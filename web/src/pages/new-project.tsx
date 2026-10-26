@@ -3,6 +3,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
+import { TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
 import { projectSchema, type ProjectSchema } from "@/schema/project-schema"
 import { useProject } from "@/store/use-project"
 import {
@@ -31,7 +32,7 @@ export function NewProject() {
         id,
         name: title,
         description,
-        typography: [],
+        typography: TYPOGRAPHY_STATER_PACKS,
         colors: [],
         templateTypography: "",
         templateColors: "",

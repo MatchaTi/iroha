@@ -2,8 +2,10 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 export type Typography = {
+  id: string
   name: string
   purpose: "display" | "headline" | "title" | "body" | "label"
+  level: "large" | "medium" | "small"
   fontFamily: string
   fontSize: number
   fontWeight: string
@@ -12,6 +14,7 @@ export type Typography = {
 }
 
 export type Color = {
+  id: string
   name: string
   purpose:
     | "background"

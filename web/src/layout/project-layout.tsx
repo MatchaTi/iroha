@@ -18,34 +18,36 @@ export function ProjectLayout() {
 
   return (
     <div>
-      <ScrollArea>
-        <ButtonGroup className="mb-4">
-          <ProjectNav label="Details" href={`/projects/${id}`} icon={List} />
-          <ProjectNav
-            label="Typography"
-            href={`/projects/${id}/typography`}
-            icon={CaseSensitive}
-          />
+      <div className="sticky top-4 z-10">
+        <ScrollArea>
+          <ButtonGroup className="mb-4">
+            <ProjectNav label="Details" href={`/projects/${id}`} icon={List} />
+            <ProjectNav
+              label="Typography"
+              href={`/projects/${id}/typography`}
+              icon={CaseSensitive}
+            />
 
-          <ProjectNav
-            label="Color Palette"
-            href={`/projects/${id}/color-palette`}
-            icon={Palette}
-          />
-          <Button variant={"outline"} disabled>
-            <Feather /> Icon
-            <Badge className="italic">Coming Soon</Badge>
-          </Button>
-          <Button variant={"outline"} disabled>
-            <Component /> Design System
-            <Badge className="italic">Coming Soon</Badge>
-          </Button>
-          <Button variant={"outline"} disabled>
-            <VectorSquare /> Brand Kit
-            <Badge className="italic">Coming Soon</Badge>
-          </Button>
-        </ButtonGroup>
-      </ScrollArea>
+            <ProjectNav
+              label="Color Palette"
+              href={`/projects/${id}/color-palette`}
+              icon={Palette}
+            />
+            <Button variant={"outline"} disabled>
+              <Feather /> Icon
+              <Badge className="italic">Coming Soon</Badge>
+            </Button>
+            <Button variant={"outline"} disabled>
+              <Component /> Design System
+              <Badge className="italic">Coming Soon</Badge>
+            </Button>
+            <Button variant={"outline"} disabled>
+              <VectorSquare /> Brand Kit
+              <Badge className="italic">Coming Soon</Badge>
+            </Button>
+          </ButtonGroup>
+        </ScrollArea>
+      </div>
       <Outlet />
     </div>
   )
