@@ -20,7 +20,7 @@ export function ProjectLayout() {
     <div>
       <div className="sticky top-4 z-10">
         <ScrollArea>
-          <ButtonGroup className="mb-4">
+          <ButtonGroup className="mb-8">
             <ProjectNav label="Details" href={`/projects/${id}`} icon={List} />
             <ProjectNav
               label="Typography"

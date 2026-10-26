@@ -34,7 +34,7 @@ export function NewProject() {
         description,
         typography: TYPOGRAPHY_STATER_PACKS,
         colors: [],
-        templateTypography: "",
+        templateTypography: "one",
         templateColors: "",
       })
       toast.add({

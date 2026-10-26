@@ -19,7 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { useProject, type Typography } from "@/store/use-project"
 import { useParams } from "react-router"
-import { FONTS } from "@/lib/constants"
+import { FONTS, TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
 import {
   InputGroup,
   InputGroupAddon,
@@ -30,6 +30,7 @@ import {
   Copy,
   LetterSpacing,
   LineHeight,
+  RotateCcw,
   RulerDimensionLine,
 } from "lucide-react"
 import {
@@ -38,14 +39,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
+import { TypographyOne } from "@/components/template/typography-one"
+import { TypographyTwo } from "@/components/template/typography-two"
 
 interface TypoRowProps {
   typo: Typography
   onCommit: (updated: Partial<Typography>) => void
   applyFontToAll: (fontFamily: string) => void
+  template: string
 }
 
-function TypoRow({ typo, onCommit, applyFontToAll }: TypoRowProps) {
+function TypoRow({ typo, onCommit, applyFontToAll, template }: TypoRowProps) {
   const [fontSize, setFontSize] = useState(String(typo.fontSize))
   const [lineHeight, setLineHeight] = useState(String(typo.lineHeight))
   const [letterSpacing, setLetterSpacing] = useState(String(typo.letterSpacing))
@@ -76,24 +80,44 @@ function TypoRow({ typo, onCommit, applyFontToAll }: TypoRowProps) {
   }
 
   return (
-    <div className="grid border-b last:border-b-0 md:grid-cols-[1fr_280px]">
+    <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
-      <div className="flex min-h-24 items-center px-6 py-8">
-        <div
-          className="duration-200"
-          style={{
-            fontFamily: fontFamily || undefined,
-            fontSize:
+      <div className="flex min-h-24 items-center px-6 py-8 md:col-span-3">
+        {template === "one" && (
+          <TypographyOne
+            id={typo.id}
+            name={name || typo.name}
+            purpose={purpose}
+            level={level}
+            fontFamily={fontFamily}
+            fontSize={
               !isNaN(previewFontSize) && previewFontSize > 0
                 ? previewFontSize
-                : typo.fontSize,
-            fontWeight: fontWeight || undefined,
-            lineHeight: `${parseFloat(lineHeight) || typo.lineHeight}px`,
-            letterSpacing: `${parseFloat(letterSpacing) || typo.letterSpacing}px`,
-          }}
-        >
-          {name || typo.name}
-        </div>
+                : typo.fontSize
+            }
+            fontWeight={fontWeight}
+            lineHeight={`${parseFloat(lineHeight) || typo.lineHeight}px`}
+            letterSpacing={`${parseFloat(letterSpacing) || typo.letterSpacing}px`}
+          />
+        )}
+
+        {template === "two" && (
+          <TypographyTwo
+            id={typo.id}
+            name={name || typo.name}
+            purpose={purpose}
+            level={level}
+            fontFamily={fontFamily}
+            fontSize={
+              !isNaN(previewFontSize) && previewFontSize > 0
+                ? previewFontSize
+                : typo.fontSize
+            }
+            fontWeight={fontWeight}
+            lineHeight={`${parseFloat(lineHeight) || typo.lineHeight}px`}
+            letterSpacing={`${parseFloat(letterSpacing) || typo.letterSpacing}px`}
+          />
+        )}
       </div>
 
       {/* Controls */}
@@ -330,19 +354,57 @@ export function Typography() {
     })
   }
 
+  const resetToDefault = () => {
+    if (!project) return
+    updateProject(id!, {
+      typography: TYPOGRAPHY_STATER_PACKS,
+    })
+  }
+
+  const changeTemplate = (template: string) => {
+    if (!project) return
+    updateProject(id!, {
+      templateTypography: template,
+    })
+  }
+
   return (
     <main>
-      <h1 className="heading">Typography</h1>
-      <div className="mt-6 rounded-2xl border">
+      <section className="flex flex-wrap items-center justify-between gap-2">
+        <div className="space-y-2">
+          <h1 className="heading">Typography</h1>
+          <p>Use typography to make content readable and beautiful</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Select
+            value={project?.templateTypography}
+            onValueChange={(value) => changeTemplate(value as string)}
+          >
+            <SelectTrigger>
+              <SelectValue className={"capitalize"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="one">Template One</SelectItem>
+              <SelectItem value="two">Template Two</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant={"outline"} onClick={resetToDefault}>
+            <RotateCcw /> Reset
+          </Button>
+        </div>
+      </section>
+      <section className="mt-6 rounded-2xl border">
         {project?.typography.map((typo) => (
           <TypoRow
             key={`${typo.id}-${typo.fontFamily}`}
             typo={typo}
             onCommit={(updated) => handleCommit(typo.id, updated)}
             applyFontToAll={applyFontToAll}
+            template={project.templateTypography}
           />
         ))}
-      </div>
+      </section>
     </main>
   )
 }

@@ -21,7 +21,7 @@ import { useProject } from "@/store/use-project"
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" variant="inset">
       <Header />
       <Content />
     </Sidebar>
