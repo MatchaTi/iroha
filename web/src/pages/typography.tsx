@@ -1,3 +1,7 @@
 export function Typography() {
-  return <main>Typography</main>
+  return (
+    <main>
+      <h1 className="heading">Typography</h1>
+    </main>
+  )
 }

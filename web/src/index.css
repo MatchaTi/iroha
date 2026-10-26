@@ -130,3 +130,7 @@
         @apply font-sans;
     }
 }
+
+.heading {
+    @apply text-4xl;
+}

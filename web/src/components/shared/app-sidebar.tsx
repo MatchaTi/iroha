@@ -1,8 +1,8 @@
 import {
-  CaseSensitive,
+  CircleSmall,
   Grid3x2,
   LayoutDashboard,
-  Palette,
+  Plus,
   type LucideIcon,
 } from "lucide-react"
 import {
@@ -17,6 +17,7 @@ import {
 } from "../ui/sidebar"
 import { Link, useMatch } from "react-router"
 import { PROJECT_NAME_JP } from "@/lib/constants"
+import { useProject } from "@/store/use-project"
 
 export function AppSidebar() {
   return (
@@ -41,53 +42,44 @@ function Header() {
 }
 
 function Content() {
-  const ITEMS = [
-    {
-      label: "Navigation",
-      items: [
-        {
-          label: "Dashboard",
-          href: "/dashboard",
-          icon: LayoutDashboard,
-        },
-      ],
-    },
-    {
-      label: "Menu",
-      items: [
-        {
-          label: "Typography",
-          href: "/typography",
-          icon: CaseSensitive,
-        },
-        {
-          label: "Color Palette",
-          href: "/color-palette",
-          icon: Palette,
-        },
-      ],
-    },
-  ]
-
   return (
     <SidebarContent>
-      {ITEMS.map((item) => (
-        <SidebarGroup key={item.label}>
-          <SidebarGroupLabel>{item.label}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            {item.items.map((subItem) => (
-              <NavItem
-                key={subItem.label}
-                label={subItem.label}
-                href={subItem.href}
-                icon={subItem.icon}
-              />
-            ))}
-          </SidebarGroupContent>
-        </SidebarGroup>
-      ))}
+      <SidebarGroup>
+        <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <NavItem label="Dashboard" href="/dashboard" icon={LayoutDashboard} />
+          <NavItem label="New Project" href="/new" icon={Plus} />
+        </SidebarGroupContent>
+      </SidebarGroup>
+      <SidebarGroup>
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <Projects />
+        </SidebarGroupContent>
+      </SidebarGroup>
     </SidebarContent>
   )
+}
+
+function Projects() {
+  const projects = useProject((state) => state.projects)
+
+  if (!projects || projects.length === 0) {
+    return (
+      <SidebarMenuButton tooltip="No projects" isActive={false}>
+        No projects yet
+      </SidebarMenuButton>
+    )
+  }
+
+  return projects.map((project) => (
+    <NavItem
+      key={project.id}
+      label={project.name}
+      href={`/projects/${project.id}`}
+      icon={CircleSmall}
+    />
+  ))
 }
 
 function NavItem({

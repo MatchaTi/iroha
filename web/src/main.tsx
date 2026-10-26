@@ -5,7 +5,8 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { TooltipProvider } from "./components/ui/tooltip.tsx"
-import { BrowserRouter, Route, Routes } from "react-router"
+import { BrowserRouter } from "react-router"
+import { Toaster } from "./components/ui/toast.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <TooltipProvider>
           <App />
+          <Toaster />
         </TooltipProvider>
       </ThemeProvider>
     </BrowserRouter>

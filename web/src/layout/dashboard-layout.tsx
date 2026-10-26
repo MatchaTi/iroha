@@ -6,8 +6,10 @@ export function DashboardLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="p-4">
-        <SidebarTrigger />
+      <div className="w-full p-4">
+        <div className="mb-4 lg:hidden">
+          <SidebarTrigger />
+        </div>
         <Outlet />
       </div>
     </SidebarProvider>
