@@ -27,17 +27,25 @@ import {
 } from "@/components/ui/input-group"
 import {
   ALargeSmall,
+  Copy,
   LetterSpacing,
   LineHeight,
   RulerDimensionLine,
 } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 
 interface TypoRowProps {
   typo: Typography
   onCommit: (updated: Partial<Typography>) => void
+  applyFontToAll: (fontFamily: string) => void
 }
 
-function TypoRow({ typo, onCommit }: TypoRowProps) {
+function TypoRow({ typo, onCommit, applyFontToAll }: TypoRowProps) {
   const [fontSize, setFontSize] = useState(String(typo.fontSize))
   const [lineHeight, setLineHeight] = useState(String(typo.lineHeight))
   const [letterSpacing, setLetterSpacing] = useState(String(typo.letterSpacing))
@@ -159,39 +167,57 @@ function TypoRow({ typo, onCommit }: TypoRowProps) {
 
         <Separator />
 
-        <Field>
-          <FieldLabel className="text-xs text-muted-foreground">
-            Font Family
-          </FieldLabel>
-          <Combobox
-            items={FONTS}
-            value={fontFamily}
-            onValueChange={(value) => {
-              setFontFamily(value ?? "")
-              onCommit({ fontFamily: value ?? "" })
-            }}
-          >
-            <ComboboxInput
-              placeholder="Select font..."
-              showClear
-              style={{ fontFamily }}
+        <div className="flex items-end gap-2">
+          <Field>
+            <FieldLabel className="text-xs text-muted-foreground">
+              Font Family
+            </FieldLabel>
+            <Combobox
+              items={FONTS}
+              value={fontFamily}
+              onValueChange={(value) => {
+                setFontFamily(value ?? "")
+                onCommit({ fontFamily: value ?? "" })
+              }}
+            >
+              <ComboboxInput
+                placeholder="Select font..."
+                showClear
+                style={{ fontFamily }}
+              />
+              <ComboboxContent>
+                <ComboboxEmpty>No font found.</ComboboxEmpty>
+                <ComboboxList>
+                  {(font: (typeof FONTS)[number]) => (
+                    <ComboboxItem
+                      key={font.value}
+                      value={font.value}
+                      style={{ fontFamily: font.value }}
+                    >
+                      {font.label}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </Field>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  size={"icon"}
+                  variant={"secondary"}
+                  onClick={() => applyFontToAll(fontFamily)}
+                >
+                  <Copy />
+                </Button>
+              }
             />
-            <ComboboxContent>
-              <ComboboxEmpty>No font found.</ComboboxEmpty>
-              <ComboboxList>
-                {(font: (typeof FONTS)[number]) => (
-                  <ComboboxItem
-                    key={font.value}
-                    value={font.value}
-                    style={{ fontFamily: font.value }}
-                  >
-                    {font.label}
-                  </ComboboxItem>
-                )}
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </Field>
+            <TooltipContent>
+              Apply this font to all typography styles in the project.
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
         <div className="grid grid-cols-2 gap-2">
           <Field>
@@ -297,15 +323,23 @@ export function Typography() {
     })
   }
 
+  const applyFontToAll = (fontFamily: string) => {
+    if (!project) return
+    updateProject(id!, {
+      typography: project.typography.map((t) => ({ ...t, fontFamily })),
+    })
+  }
+
   return (
     <main>
       <h1 className="heading">Typography</h1>
       <div className="mt-6 rounded-2xl border">
         {project?.typography.map((typo) => (
           <TypoRow
-            key={typo.id}
+            key={`${typo.id}-${typo.fontFamily}`}
             typo={typo}
             onCommit={(updated) => handleCommit(typo.id, updated)}
+            applyFontToAll={applyFontToAll}
           />
         ))}
       </div>
