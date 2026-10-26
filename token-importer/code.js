@@ -118,8 +118,6 @@ var COLOR_TEMPLATES = {
 };
 
 // ---------- Typography templates ----------
-// Template "1" — specimen sederhana: preview teks + meta inline (purpose/level · fontFamily · size/lh · ls)
-// Template "2" — detailed: badge purpose/level + preview + metrics row terpisah
 
 var TYPE_TEMPLATES = {
   "one": async function (typeItems) {
@@ -218,7 +216,7 @@ var TYPE_TEMPLATES = {
 //   name: string
 //   description: string
 //   templateColors: "cards" | "circles" | "bars"
-//   templateTypography: "specimen" | "detailed"
+//   templateTypography: "one" | "two"
 //   colors: Color[]   // { id, name, purpose, hex, rgb }
 //   typography: Typography[]  // { id, name, purpose, level, fontFamily, fontSize, fontWeight, lineHeight, letterSpacing }
 // }
