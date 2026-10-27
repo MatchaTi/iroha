@@ -50,7 +50,7 @@ export function NewProject() {
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-4">
-      <h1 className="heading mb-8 flex items-center gap-2">
+      <h1 className="heading mb-8 flex flex-wrap items-center gap-2">
         <Palette size={32} />
         Hi! Let's create a new project
       </h1>
@@ -58,6 +58,7 @@ export function NewProject() {
         <Field>
           <FieldLabel htmlFor={fields.name.id}>Project Name</FieldLabel>
           <Input
+            className="p-8"
             {...getInputProps(fields.name, { type: "text" })}
             placeholder="Raana e.g"
           />
@@ -66,6 +67,7 @@ export function NewProject() {
         <Field>
           <FieldLabel htmlFor={fields.description.id}>Description</FieldLabel>
           <Textarea
+            className="min-h-[200px] p-8"
             {...getTextareaProps(fields.description)}
             placeholder="Description..."
           />

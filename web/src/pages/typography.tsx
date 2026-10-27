@@ -381,7 +381,7 @@ export function Typography() {
             value={project?.templateTypography}
             onValueChange={(value) => changeTemplate(value as string)}
           >
-            <SelectTrigger>
+            <SelectTrigger className={"rounded-full px-8 py-6"}>
               <SelectValue className={"capitalize"} />
             </SelectTrigger>
             <SelectContent>

@@ -91,12 +91,13 @@ function NavItem({
   href: string
   icon: LucideIcon
 }) {
-  const match = useMatch(href)
+  const match = useMatch(`${href}/*`)
   const Icon = icon
 
   return (
     <SidebarMenu key={label}>
       <SidebarMenuButton
+        className="rounded-full px-8 py-6"
         tooltip={label}
         isActive={!!match}
         render={
