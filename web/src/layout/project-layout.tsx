@@ -17,7 +17,6 @@ import {
   Palette,
   Settings,
   VectorSquare,
-  type LucideIcon,
 } from "lucide-react"
 import { useState } from "react"
 import { Link, Outlet, useMatch, useParams } from "react-router"
@@ -25,8 +24,20 @@ import { Link, Outlet, useMatch, useParams } from "react-router"
 type NavItem = {
   label: string
   href: string
-  icon: LucideIcon
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   disabled: boolean
+}
+
+function MarkdownIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 640 640"
+      fill="currentColor"
+    >
+      <path d="M593.8 123.1L46.2 123.1C20.7 123.1 0 143.8 0 169.2L0 470.7C0 496.2 20.7 516.9 46.2 516.9L593.9 516.9C619.4 516.9 640.1 496.2 640 470.8L640 169.2C640 143.8 619.3 123.1 593.8 123.1zM338.5 424.6L277 424.6L277 304.6L215.5 381.5L154 304.6L154 424.6L92.3 424.6L92.3 215.4L153.8 215.4L215.3 292.3L276.8 215.4L338.3 215.4L338.3 424.6L338.5 424.6zM473.8 427.7L381.5 320L443 320L443 215.4L504.5 215.4L504.5 320L566 320L473.8 427.7z" />
+    </svg>
+  )
 }
 
 export function ProjectLayout() {
@@ -68,6 +79,12 @@ export function ProjectLayout() {
       icon: VectorSquare,
       disabled: true,
     },
+    {
+      label: "DESIGN.md",
+      href: `/projects/${id}/design-md`,
+      icon: MarkdownIcon,
+      disabled: true,
+    },
   ]
 
   return (
@@ -101,7 +118,7 @@ export function ProjectLayout() {
 type ProjectNavProps = {
   label: string
   href: string
-  icon: LucideIcon
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 } & React.ComponentProps<typeof SidebarMenuButton>
 
 function ProjectNav({
