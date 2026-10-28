@@ -43,6 +43,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 const PURPOSE_OPTIONS: ColorPaletteType["purpose"][] = [
   "primary",
@@ -133,7 +134,7 @@ function PaletteRow({
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Template preview */}
-      <div className="min-w-0 overflow-hidden flex items-center px-6 py-8 md:col-span-3">
+      <div className="flex min-w-0 items-center overflow-hidden px-6 py-8 md:col-span-3">
         {template === "one" && (
           <ColorPaletteOne
             name={name || palette.name}
@@ -358,11 +359,12 @@ export function ColorPalette() {
               <FieldLabel className="mt-2 text-xs text-muted-foreground">
                 Preset
               </FieldLabel>
-              <div className="overflow-x-auto pb-2">
+              <ScrollArea>
                 <div className="flex gap-3 py-2">
                   <PresetPicker onApply={applyPreset} />
                 </div>
-              </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
             </div>
           </div>
         </section>
