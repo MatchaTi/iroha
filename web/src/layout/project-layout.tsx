@@ -1,6 +1,4 @@
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
 import {
   Drawer,
   DrawerClose,
@@ -10,8 +8,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { cn } from "cn"
+import { SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar"
 import {
   CaseSensitive,
   Component,
@@ -22,6 +19,7 @@ import {
   VectorSquare,
   type LucideIcon,
 } from "lucide-react"
+import { useState } from "react"
 import { Link, Outlet, useMatch, useParams } from "react-router"
 
 type NavItem = {
@@ -33,7 +31,6 @@ type NavItem = {
 
 export function ProjectLayout() {
   const { id } = useParams<{ id: string }>()
-  const match = useMatch(`/projects/${id}`)
   const NAV_ITEMS: NavItem[] = [
     {
       label: "Details",
@@ -74,35 +71,29 @@ export function ProjectLayout() {
   ]
 
   return (
-    <div>
-      <div className="sticky top-0 z-10 grid border-b backdrop-blur lg:grid-cols-4">
-        <div className={"hidden p-4 lg:col-span-3 lg:block"}>
-          <ButtonGroup>
-            {NAV_ITEMS.map((item) => (
-              <ProjectNav
-                key={item.label}
-                label={item.label}
-                href={item.href}
-                icon={item.icon}
-                disabled={item.disabled}
-              />
-            ))}
-          </ButtonGroup>
+    <div className="flex">
+      <aside className="hidden min-h-screen border-r bg-sidebar p-4 lg:block">
+        <div className="sticky top-4 w-52 space-y-1">
+          {NAV_ITEMS.map((item) => (
+            <ProjectNav
+              key={item.label}
+              label={item.label}
+              href={item.href}
+              icon={item.icon}
+              disabled={item.disabled}
+              className={"justify-start"}
+            />
+          ))}
         </div>
-        <div className="flex items-center justify-between p-2 lg:hidden">
+      </aside>
+
+      <section>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-sidebar/50 px-4 py-2 backdrop-blur lg:hidden">
           <SidebarTrigger />
           <NavDrawer items={NAV_ITEMS} />
         </div>
-        <div
-          className={cn(
-            "hidden items-center border-l bg-sidebar px-4 lg:flex",
-            match && "lg:hidden"
-          )}
-        >
-          Editor
-        </div>
-      </div>
-      <Outlet />
+        <Outlet />
+      </section>
     </div>
   )
 }
@@ -111,7 +102,7 @@ type ProjectNavProps = {
   label: string
   href: string
   icon: LucideIcon
-} & React.ComponentProps<typeof Button>
+} & React.ComponentProps<typeof SidebarMenuButton>
 
 function ProjectNav({
   label,
@@ -124,17 +115,14 @@ function ProjectNav({
   const Icon = icon
 
   return (
-    <Button
+    <SidebarMenuButton
       {...props}
-      variant={match ? "secondary" : "outline"}
+      isActive={match !== null}
       render={
         disabled ? (
           <span className="text-muted-foreground">
             <Icon />
-            {label}{" "}
-            <Badge className="italic" variant={"secondary"}>
-              Coming Soon
-            </Badge>
+            {label}
           </span>
         ) : (
           <Link to={href}>
@@ -149,8 +137,10 @@ function ProjectNav({
 }
 
 function NavDrawer({ items }: { items: NavItem[] }) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <Drawer showSwipeHandle>
+    <Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
       <DrawerTrigger
         className={"w-fit"}
         render={
@@ -172,6 +162,7 @@ function NavDrawer({ items }: { items: NavItem[] }) {
               icon={item.icon}
               disabled={item.disabled}
               className={"justify-start"}
+              onClick={() => setOpen(false)}
             />
           ))}
         </section>

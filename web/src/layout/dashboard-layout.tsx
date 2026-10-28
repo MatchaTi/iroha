@@ -4,7 +4,7 @@ import { Outlet } from "react-router"
 
 export function DashboardLayout() {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <div className="w-full">
         <Outlet />

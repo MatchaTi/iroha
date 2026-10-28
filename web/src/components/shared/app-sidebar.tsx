@@ -59,13 +59,20 @@ function Header() {
 }
 
 function Content() {
+  const { setOpenMobile } = useSidebar()
+
   return (
     <SidebarContent>
       <SidebarGroup>
         <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
           <NavItem label="Home" href="/" icon={Home} />
-          <NavItem label="New Project" href="/new" icon={Plus} />
+          <NavItem
+            label="New Project"
+            href="/new"
+            icon={Plus}
+            onClick={() => setOpenMobile(false)}
+          />
         </SidebarGroupContent>
       </SidebarGroup>
       <SidebarGroup>
@@ -122,6 +129,7 @@ function Footer() {
 
 function Projects() {
   const projects = useProject((state) => state.projects)
+  const { setOpenMobile } = useSidebar()
 
   if (!projects || projects.length === 0) {
     return (
@@ -133,6 +141,7 @@ function Projects() {
 
   return projects.map((project) => (
     <NavItem
+      onClick={() => setOpenMobile(false)}
       key={project.id}
       label={project.name}
       href={`/projects/${project.id}`}
@@ -141,21 +150,20 @@ function Projects() {
   ))
 }
 
-function NavItem({
-  label,
-  href,
-  icon,
-}: {
+type NavItemProps = {
   label: string
   href: string
   icon: LucideIcon
-}) {
+} & React.ComponentProps<typeof SidebarMenuButton>
+
+function NavItem({ label, href, icon, ...props }: NavItemProps) {
   const match = useMatch(`${href}/*`)
   const Icon = icon
 
   return (
     <SidebarMenu key={label}>
       <SidebarMenuButton
+        {...props}
         tooltip={label}
         isActive={!!match}
         render={
