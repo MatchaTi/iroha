@@ -346,7 +346,7 @@ export function ColorPalette() {
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" onClick={resetToDefault}>
+              <Button variant="secondary" onClick={resetToDefault}>
                 <RotateCcw /> Reset
               </Button>
               <Button onClick={handleAdd}>

@@ -388,7 +388,7 @@ export function Typography() {
               <SelectItem value="two">Template Two</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant={"outline"} onClick={resetToDefault}>
+          <Button variant={"secondary"} onClick={resetToDefault}>
             <RotateCcw /> Reset
           </Button>
         </div>

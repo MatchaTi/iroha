@@ -10,6 +10,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { cn } from "cn"
 import {
   CaseSensitive,
   Component,
@@ -31,6 +33,7 @@ type NavItem = {
 
 export function ProjectLayout() {
   const { id } = useParams<{ id: string }>()
+  const match = useMatch(`/projects/${id}`)
   const NAV_ITEMS: NavItem[] = [
     {
       label: "Details",
@@ -72,7 +75,7 @@ export function ProjectLayout() {
 
   return (
     <div>
-      <div className="mb8 sticky top-0 z-10 grid border-b backdrop-blur lg:grid-cols-4">
+      <div className="sticky top-0 z-10 grid border-b backdrop-blur lg:grid-cols-4">
         <div className={"hidden p-4 lg:col-span-3 lg:block"}>
           <ButtonGroup>
             {NAV_ITEMS.map((item) => (
@@ -86,8 +89,16 @@ export function ProjectLayout() {
             ))}
           </ButtonGroup>
         </div>
-        <NavDrawer items={NAV_ITEMS} />
-        <div className="hidden items-center border-l bg-sidebar px-4 lg:flex">
+        <div className="flex items-center justify-between p-2 lg:hidden">
+          <SidebarTrigger />
+          <NavDrawer items={NAV_ITEMS} />
+        </div>
+        <div
+          className={cn(
+            "hidden items-center border-l bg-sidebar px-4 lg:flex",
+            match && "lg:hidden"
+          )}
+        >
           Editor
         </div>
       </div>
@@ -141,7 +152,7 @@ function NavDrawer({ items }: { items: NavItem[] }) {
   return (
     <Drawer showSwipeHandle>
       <DrawerTrigger
-        className={"m-2 w-fit lg:hidden"}
+        className={"w-fit"}
         render={
           <Button variant={"outline"}>
             <Settings /> Menu
