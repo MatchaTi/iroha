@@ -133,7 +133,7 @@ function PaletteRow({
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Template preview */}
-      <div className="flex min-h-24 items-center px-6 py-8 md:col-span-3">
+      <div className="min-w-0 overflow-hidden flex items-center px-6 py-8 md:col-span-3">
         {template === "one" && (
           <ColorPaletteOne
             name={name || palette.name}

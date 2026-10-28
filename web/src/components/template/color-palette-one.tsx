@@ -1,56 +1,63 @@
 import type { ColorPalette } from "@/store/use-project"
 import { getContrastColor } from "@/lib/color-utils"
-import { cn } from "@/lib/utils"
+import { cn, copyToClipboard } from "@/lib/utils"
+import { ScrollArea, ScrollBar } from "../ui/scroll-area"
 
 type ColorPaletteOneProps = Pick<ColorPalette, "name" | "purpose" | "colors">
 
-export function ColorPaletteOne({ name, purpose, colors }: ColorPaletteOneProps) {
-  const anchor = colors.find((c) => c.level === "500")
-
+export function ColorPaletteOne({
+  name,
+  purpose,
+  colors,
+}: ColorPaletteOneProps) {
   return (
-    <div className="flex flex-col gap-3">
-      {/* Header row: anchor swatch + name/purpose */}
-      <div className="flex items-center gap-3">
-        <div
-          className="size-8 rounded-md border border-border/30 shadow-sm shrink-0"
-          style={{ backgroundColor: anchor?.hex }}
-        />
-        <div>
-          <p className="text-sm font-medium leading-none">{name}</p>
-          <p className="mt-1 font-mono text-[10px] text-muted-foreground capitalize">{purpose}</p>
+    <div className="w-full overflow-x-auto">
+      <h3 className="mb-4 capitalize">
+        {name} - {purpose}
+      </h3>
+      <ScrollArea>
+        <div className="flex">
+          {colors.map((color) => {
+            const textColor = getContrastColor(color.hex)
+            return (
+              <div
+                key={color.level}
+                className="flex aspect-[3/4] flex-none flex-col items-start justify-between rounded-xl p-4 not-first:-ml-3 not-last:rounded-r-none lg:w-full lg:flex-1"
+                style={{ backgroundColor: color.hex }}
+                onClick={() => copyToClipboard(color.hex)}
+              >
+                <span
+                  className={cn(
+                    "text-[11px] leading-none font-semibold",
+                    textColor === "black" ? "text-black/80" : "text-white/80"
+                  )}
+                >
+                  {color.level}
+                </span>
+                <div className="space-y-1">
+                  <p
+                    className={cn(
+                      "font-mono text-[9px] leading-none",
+                      textColor === "black" ? "text-black/60" : "text-white/60"
+                    )}
+                  >
+                    {color.hex.toUpperCase()}
+                  </p>
+                  <p
+                    className={cn(
+                      "font-mono text-[9px] leading-none",
+                      textColor === "black" ? "text-black/60" : "text-white/60"
+                    )}
+                  >
+                    {color.rgb}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </div>
-      </div>
-
-      {/* Grid of color swatches */}
-      <div className="grid grid-cols-5 gap-2">
-        {colors.map((color) => {
-          const textColor = getContrastColor(color.hex)
-          return (
-            <div
-              key={color.level}
-              className="flex aspect-square flex-col items-center justify-center rounded-xl gap-0.5 transition-transform hover:scale-105"
-              style={{ backgroundColor: color.hex }}
-            >
-              <span
-                className={cn(
-                  "text-[11px] font-semibold leading-none",
-                  textColor === "black" ? "text-black/80" : "text-white/80"
-                )}
-              >
-                {color.level}
-              </span>
-              <span
-                className={cn(
-                  "font-mono text-[9px] leading-none hidden md:block",
-                  textColor === "black" ? "text-black/50" : "text-white/50"
-                )}
-              >
-                {color.hex.toUpperCase()}
-              </span>
-            </div>
-          )
-        })}
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   )
 }
