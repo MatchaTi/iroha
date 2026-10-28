@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/empty"
 import { useProject, type Project } from "@/store/use-project"
 import { Check, Copy, Download, Palette } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link, useParams } from "react-router"
 
 function buildTokenPayload(project: Project) {
@@ -26,8 +26,31 @@ function buildTokenPayload(project: Project) {
 export function ProjectDetails() {
   const { id } = useParams<{ id: string }>()
   const getProject = useProject((s) => s.getProject)
+  const updateProject = useProject((s) => s.updateProject)
   const project = id ? getProject(id) : undefined
   const [copied, setCopied] = useState(false)
+  const nameRef = useRef<HTMLHeadingElement>(null)
+  const descRef = useRef<HTMLParagraphElement>(null)
+
+  function handleNameBlur() {
+    if (!id || !nameRef.current) return
+    const value = nameRef.current.textContent?.trim() ?? ""
+    if (value) updateProject(id, { name: value })
+    else if (project) nameRef.current.textContent = project.name
+  }
+
+  function handleDescBlur() {
+    if (!id || !descRef.current) return
+    const value = descRef.current.textContent?.trim() ?? ""
+    updateProject(id, { description: value })
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).blur()
+    }
+  }
 
   function handleExport() {
     if (!project) return
@@ -110,8 +133,26 @@ export function ProjectDetails() {
               <p>Typography</p>
               <p>{project.typography[0].fontFamily}</p>
             </div>
-            <h2 className="text-[12vw] lg:text-[4vw]">{project.name}</h2>
-            <p>{project.description}</p>
+            <h2
+              ref={nameRef}
+              className="text-[12vw] outline-none line-clamp-1 lg:text-[4vw]"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={handleNameBlur}
+              onKeyDown={handleKeyDown}
+            >
+              {project.name}
+            </h2>
+            <p
+              ref={descRef}
+              className="outline-none line-clamp-3"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={handleDescBlur}
+              onKeyDown={handleKeyDown}
+            >
+              {project.description}
+            </p>
           </section>
           <section className="space-y-4">
             <p className="text-balance">
