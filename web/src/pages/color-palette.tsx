@@ -43,7 +43,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 const PURPOSE_OPTIONS: ColorPaletteType["purpose"][] = [
   "primary",
@@ -76,10 +75,8 @@ function PresetPicker({ onApply }: { onApply: (preset: ColorPreset) => void }) {
               onApply(preset)
             }}
             className={cn(
-              "group flex flex-col gap-2 rounded-2xl border p-3 text-left transition-all hover:border-foreground/30 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-              isActive
-                ? "border-foreground/50 bg-muted shadow-sm"
-                : "border-border bg-background"
+              "group flex flex-col gap-2 rounded-2xl border p-2 text-left transition-all hover:border-foreground/30 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              isActive ? "border-border bg-muted" : "bg-background"
             )}
           >
             {/* Color dots */}
@@ -87,15 +84,11 @@ function PresetPicker({ onApply }: { onApply: (preset: ColorPreset) => void }) {
               {dots.map((p) => (
                 <div
                   key={p.purpose}
-                  className="size-5 rounded-full border border-white/20 shadow-sm"
+                  className="size-4 rounded-full border border-white/20"
                   style={{ backgroundColor: p.anchor }}
                 />
               ))}
             </div>
-            {/* Label */}
-            <span className="text-xs leading-none font-medium text-foreground">
-              {preset.name}
-            </span>
           </button>
         )
       })}
@@ -158,7 +151,7 @@ function PaletteRow({
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col gap-3 border-t px-4 py-4 md:border-t-0 md:border-l">
+      <div className="flex flex-col gap-3 border-t bg-sidebar px-4 py-4 md:border-t-0 md:border-l lg:border-l">
         {/* Anchor color input */}
         <Field>
           <FieldLabel className="text-xs text-muted-foreground">
@@ -328,55 +321,55 @@ export function ColorPalette() {
   return (
     <main>
       {/* Header */}
-      <section className="flex flex-wrap items-center justify-between gap-2">
-        <div className="space-y-2">
-          <h1 className="heading">Color Palette</h1>
-          <p>
-            Create accessible, personal color schemes communicating your
-            product's hierarchy, state, and brand
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={project?.templateColorPalette}
-            onValueChange={(value) => changeTemplate(value as string)}
-          >
-            <SelectTrigger className="rounded-full px-8 py-6">
-              <SelectValue className="capitalize" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="one">Template One</SelectItem>
-              <SelectItem value="two">Template Two</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={resetToDefault}>
-            <RotateCcw /> Reset
-          </Button>
-          <Button onClick={handleAdd}>
-            <Plus /> Add Palette
-          </Button>
-        </div>
-      </section>
-
-      {/* Palette Preset */}
-      <section className="mt-6 space-y-3">
-        <div>
-          <p className="text-sm font-medium">Presets</p>
-          <p className="text-xs text-muted-foreground">
-            Apply a curated color palette to your project instantly.
-          </p>
-        </div>
-        <ScrollArea>
-          <div className="flex gap-3 pb-2">
-            <PresetPicker onApply={applyPreset} />
+      <div>
+        <section className="grid lg:grid-cols-4">
+          <div className="space-y-2 p-4 lg:col-span-3">
+            <h1 className="heading">Color Palette</h1>
+            <p>
+              Create accessible, personal color schemes communicating your
+              product's hierarchy, state, and brand
+            </p>
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </section>
+
+          <div className="overflow-hidden border-l bg-sidebar">
+            <div className="flex flex-wrap items-center gap-2 p-4">
+              <Select
+                value={project?.templateColorPalette}
+                onValueChange={(value) => changeTemplate(value as string)}
+              >
+                <SelectTrigger>
+                  <SelectValue className="capitalize" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="one">Template One</SelectItem>
+                  <SelectItem value="two">Template Two</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button variant="outline" onClick={resetToDefault}>
+                <RotateCcw /> Reset
+              </Button>
+              <Button onClick={handleAdd}>
+                <Plus /> Add Palette
+              </Button>
+            </div>
+
+            <div className="w-full min-w-0 border-t p-4">
+              <FieldLabel className="mt-2 text-xs text-muted-foreground">
+                Preset
+              </FieldLabel>
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-3 py-2">
+                  <PresetPicker onApply={applyPreset} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* Palette list */}
-      <section className="mt-6 rounded-2xl border">
+      <section className="border-y">
         {!project?.colorPalette || project.colorPalette.length === 0 ? (
           <Empty>
             <EmptyHeader>
