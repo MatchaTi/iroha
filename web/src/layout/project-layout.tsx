@@ -1,79 +1,173 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 import {
   CaseSensitive,
   Component,
   Feather,
   List,
   Palette,
+  Settings,
   VectorSquare,
   type LucideIcon,
 } from "lucide-react"
 import { Link, Outlet, useMatch, useParams } from "react-router"
 
+type NavItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+  disabled: boolean
+}
+
 export function ProjectLayout() {
   const { id } = useParams<{ id: string }>()
+  const NAV_ITEMS: NavItem[] = [
+    {
+      label: "Details",
+      href: `/projects/${id}`,
+      icon: List,
+      disabled: false,
+    },
+    {
+      label: "Typography",
+      href: `/projects/${id}/typography`,
+      icon: CaseSensitive,
+      disabled: false,
+    },
+    {
+      label: "Color Palette",
+      href: `/projects/${id}/color-palette`,
+      icon: Palette,
+      disabled: false,
+    },
+    {
+      label: "Icon",
+      href: `/projects/${id}/icon`,
+      icon: Feather,
+      disabled: true,
+    },
+    {
+      label: "Design System",
+      href: `/projects/${id}/design-system`,
+      icon: Component,
+      disabled: true,
+    },
+    {
+      label: "Brand Kit",
+      href: `/projects/${id}/brand-kit`,
+      icon: VectorSquare,
+      disabled: true,
+    },
+  ]
 
   return (
     <div>
-      <div className="sticky top-4 z-10">
-        <ScrollArea>
-          <ButtonGroup className="mb-8">
-            <ProjectNav label="Details" href={`/projects/${id}`} icon={List} />
-            <ProjectNav
-              label="Typography"
-              href={`/projects/${id}/typography`}
-              icon={CaseSensitive}
-            />
-
-            <ProjectNav
-              label="Color Palette"
-              href={`/projects/${id}/color-palette`}
-              icon={Palette}
-            />
-            <Button variant={"outline"} disabled>
-              <Feather /> Icon
-              <Badge className="italic">Coming Soon</Badge>
-            </Button>
-            <Button variant={"outline"} disabled>
-              <Component /> Design System
-              <Badge className="italic">Coming Soon</Badge>
-            </Button>
-            <Button variant={"outline"} disabled>
-              <VectorSquare /> Brand Kit
-              <Badge className="italic">Coming Soon</Badge>
-            </Button>
+      <div className="mb8 sticky top-0 z-10 grid border-b backdrop-blur lg:grid-cols-4">
+        <div className={"hidden p-4 lg:col-span-3 lg:block"}>
+          <ButtonGroup>
+            {NAV_ITEMS.map((item) => (
+              <ProjectNav
+                key={item.label}
+                label={item.label}
+                href={item.href}
+                icon={item.icon}
+                disabled={item.disabled}
+              />
+            ))}
           </ButtonGroup>
-        </ScrollArea>
+        </div>
+        <NavDrawer items={NAV_ITEMS} />
+        <div className="hidden items-center border-l bg-sidebar px-4 lg:flex">
+          Editor
+        </div>
       </div>
       <Outlet />
     </div>
   )
 }
 
+type ProjectNavProps = {
+  label: string
+  href: string
+  icon: LucideIcon
+} & React.ComponentProps<typeof Button>
+
 function ProjectNav({
   label,
   href,
   icon,
-}: {
-  label: string
-  href: string
-  icon: LucideIcon
-}) {
+  disabled,
+  ...props
+}: ProjectNavProps) {
   const match = useMatch(href)
   const Icon = icon
 
   return (
     <Button
-      variant={match ? "default" : "outline"}
+      {...props}
+      variant={match ? "secondary" : "outline"}
       render={
-        <Link to={href}>
-          <Icon />
-          {label}
-        </Link>
+        disabled ? (
+          <span className="text-muted-foreground">
+            <Icon />
+            {label}{" "}
+            <Badge className="italic" variant={"secondary"}>
+              Coming Soon
+            </Badge>
+          </span>
+        ) : (
+          <Link to={href}>
+            <Icon />
+            {label}
+          </Link>
+        )
       }
+      disabled={disabled}
     />
+  )
+}
+
+function NavDrawer({ items }: { items: NavItem[] }) {
+  return (
+    <Drawer showSwipeHandle>
+      <DrawerTrigger
+        className={"m-2 w-fit lg:hidden"}
+        render={
+          <Button variant={"outline"}>
+            <Settings /> Menu
+          </Button>
+        }
+      />
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Menu</DrawerTitle>
+        </DrawerHeader>
+        <section className="grid flex-1 gap-2 p-4">
+          {items.map((item) => (
+            <ProjectNav
+              key={item.label}
+              label={item.label}
+              href={item.href}
+              icon={item.icon}
+              disabled={item.disabled}
+              className={"justify-start"}
+            />
+          ))}
+        </section>
+        <DrawerFooter>
+          <DrawerClose render={<Button variant={"outline"}>Close</Button>} />
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }

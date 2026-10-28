@@ -1,7 +1,7 @@
 import {
   CircleSmall,
-  Grid3x2,
   LayoutDashboard,
+  Palette,
   Plus,
   type LucideIcon,
 } from "lucide-react"
@@ -21,7 +21,7 @@ import { useProject } from "@/store/use-project"
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon">
       <Header />
       <Content />
     </Sidebar>
@@ -30,10 +30,10 @@ export function AppSidebar() {
 
 function Header() {
   return (
-    <SidebarHeader>
+    <SidebarHeader className="border-b">
       <SidebarMenuButton size="lg">
         <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-          <Grid3x2 />
+          <Palette />
         </div>
         {PROJECT_NAME_JP}
       </SidebarMenuButton>

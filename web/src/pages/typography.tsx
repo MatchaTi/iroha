@@ -119,9 +119,8 @@ function TypoRow({ typo, onCommit, applyFontToAll, template }: TypoRowProps) {
           />
         )}
       </div>
-
       {/* Controls */}
-      <div className="flex flex-col gap-3 border-t px-4 py-4 md:border-t-0 md:border-l">
+      <div className="flex flex-col gap-3 border-t bg-sidebar px-4 py-4 md:border-t-0 md:border-l">
         {/* Name + Purpose + Level row */}
         <Field>
           <FieldLabel className="text-xs text-muted-foreground">
@@ -370,18 +369,18 @@ export function Typography() {
 
   return (
     <main>
-      <section className="flex flex-wrap items-center justify-between gap-2">
-        <div className="space-y-2">
+      <section className="grid lg:grid-cols-4">
+        <div className="space-y-2 p-4 lg:col-span-3">
           <h1 className="heading">Typography</h1>
           <p>Use typography to make content readable and beautiful</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-4 lg:border-l lg:bg-sidebar">
           <Select
             value={project?.templateTypography}
             onValueChange={(value) => changeTemplate(value as string)}
           >
-            <SelectTrigger className={"rounded-full px-8 py-6"}>
+            <SelectTrigger>
               <SelectValue className={"capitalize"} />
             </SelectTrigger>
             <SelectContent>
@@ -394,7 +393,7 @@ export function Typography() {
           </Button>
         </div>
       </section>
-      <section className="mt-6 rounded-2xl border">
+      <section className="mt-4 border-y lg:mt-0">
         {project?.typography.map((typo) => (
           <TypoRow
             key={`${typo.id}-${typo.fontFamily}`}
