@@ -88,7 +88,7 @@ export function ProjectLayout() {
   ]
 
   return (
-    <div className="flex">
+    <div className="flex w-full">
       <aside className="hidden min-h-screen border-r bg-sidebar p-4 lg:block">
         <div className="sticky top-4 w-52 space-y-1">
           {NAV_ITEMS.map((item) => (
@@ -104,7 +104,7 @@ export function ProjectLayout() {
         </div>
       </aside>
 
-      <section>
+      <section className="w-full">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-sidebar/50 px-4 py-2 backdrop-blur lg:hidden">
           <SidebarTrigger />
           <NavDrawer items={NAV_ITEMS} />

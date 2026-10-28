@@ -1,12 +1,18 @@
 import { Button } from "@/components/ui/button"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { useProject, type Project } from "@/store/use-project"
-import { Check, Copy, Download } from "lucide-react"
+import { Check, Copy, Download, Palette } from "lucide-react"
 import { useState } from "react"
-import { useParams } from "react-router"
+import { Link, useParams } from "react-router"
 
-function buildTokenPayload(project: 
-  Project
-) {
+function buildTokenPayload(project: Project) {
   return {
     name: project.name,
     description: project.description,
@@ -50,43 +56,123 @@ export function ProjectDetails() {
     })
   }
 
+  if (!project) {
+    return (
+      <Empty className="flex h-screen w-full items-center justify-center">
+        <EmptyHeader>
+          <EmptyMedia variant={"icon"}>
+            <Palette />
+          </EmptyMedia>
+          <EmptyTitle>No project found</EmptyTitle>
+          <EmptyDescription>
+            Create a new project to get started.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button render={<Link to="/new">Create Project</Link>} />
+        </EmptyContent>
+      </Empty>
+    )
+  }
+
+  const anchorColors = project.colorPalette.map((palette) =>
+    palette.colors.filter((color) => color.level === "500")
+  )
+
   return (
-    <main className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {project ? project.name : `Project ${id}`}
-          </h1>
-          {project?.description && (
-            <p className="text-muted-foreground text-sm mt-1">
-              {project.description}
+    <main
+      className="space-y-12 p-4"
+      style={{ fontFamily: project.typography[0].fontFamily }}
+    >
+      {/* Token Generator*/}
+      <section className="flex flex-wrap items-center justify-between gap-4">
+        <p>Token Generator</p>
+        <div className="space-x-2">
+          <Button onClick={handleCopy}>
+            {copied ? (
+              <>
+                <Check />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy />
+                Copy Tokens
+              </>
+            )}
+          </Button>
+
+          <Button onClick={handleExport}>
+            <Download />
+            Export Tokens
+          </Button>
+        </div>
+      </section>
+
+      <div className="min-h-screen space-y-12 rounded-lg bg-secondary p-4 lg:px-40 lg:py-24">
+        {/* Typography */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <section className="lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <p>Typography</p>
+              <p>{project.typography[0].fontFamily}</p>
+            </div>
+            <h2 className="text-[12vw] lg:text-[4vw]">{project.name}</h2>
+            <p>{project.description}</p>
+          </section>
+
+          <section className="space-y-4">
+            <p className="text-balance">
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+              Reprehenderit eaque maxime natus eius cum, perferendis ipsa ab.
+              Quis.
             </p>
+            <p className="grid grid-cols-9 gap-2">
+              <span>Aa</span>
+              <span>Bb</span>
+              <span>Cc</span>
+              <span>Dd</span>
+              <span>Ee</span>
+              <span>Ff</span>
+              <span>Gg</span>
+              <span>Hh</span>
+              <span>Ii</span>
+              <span>Jj</span>
+              <span>Kk</span>
+              <span>Ll</span>
+              <span>Mm</span>
+              <span>Nn</span>
+              <span>Oo</span>
+              <span>Pp</span>
+              <span>Qq</span>
+              <span>Rr</span>
+              <span>Ss</span>
+              <span>Tt</span>
+              <span>Uu</span>
+              <span>Vv</span>
+              <span>Ww</span>
+              <span>Xx</span>
+              <span>Yy</span>
+              <span>Zz</span>
+            </p>
+          </section>
+        </div>
+
+        {/* Color Palette */}
+        <section className="grid h-auto grid-cols-2 overflow-hidden rounded-lg bg-red-500 lg:grid-cols-7">
+          {anchorColors.map((colors) =>
+            colors.map((color) => (
+              <div
+                className="aspect-square w-full p-8 lg:aspect-auto lg:h-200 lg:first:col-span-2"
+                key={color.hex}
+                style={{ backgroundColor: color.hex }}
+              >
+                <p className="uppercase">{color.hex}</p>
+              </div>
+            ))
           )}
-        </div>
-
-        {project && (
-          <div className="flex items-center gap-2">
-            <Button onClick={handleCopy} variant="outline">
-              {copied ? <Check /> : <Copy />}
-              {copied ? "Copied!" : "Copy Tokens"}
-            </Button>
-            <Button onClick={handleExport} variant="outline">
-              <Download />
-              Export Tokens
-            </Button>
-          </div>
-        )}
+        </section>
       </div>
-
-      {project ? (
-        <div className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            {project.colors.length} colors · {project.typography.length} typography styles
-          </div>
-        </div>
-      ) : (
-        <p className="text-muted-foreground">Project not found.</p>
-      )}
     </main>
   )
 }

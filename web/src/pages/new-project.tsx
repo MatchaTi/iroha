@@ -3,7 +3,10 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
-import { COLOR_PALETTE_STARTER_PACKS, TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
+import {
+  COLOR_PALETTE_STARTER_PACKS,
+  TYPOGRAPHY_STATER_PACKS,
+} from "@/lib/constants"
 import { projectSchema, type ProjectSchema } from "@/schema/project-schema"
 import { useProject } from "@/store/use-project"
 import {
@@ -38,7 +41,7 @@ export function NewProject() {
           id: crypto.randomUUID(),
         })),
         templateTypography: "one",
-        templateColorPalette: "",
+        templateColorPalette: "one",
       })
       toast.add({
         title: "Project created",
@@ -52,7 +55,7 @@ export function NewProject() {
   })
 
   return (
-    <main className="flex h-full flex-col items-center justify-center gap-4">
+    <main className="flex h-full flex-col items-center justify-center gap-4 p-4">
       <h1 className="heading mb-8 flex flex-wrap items-center gap-2">
         <Palette size={32} />
         Hi! Let's create a new project
