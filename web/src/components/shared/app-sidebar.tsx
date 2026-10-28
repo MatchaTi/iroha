@@ -1,6 +1,6 @@
 import {
   CircleSmall,
-  LayoutDashboard,
+  Home,
   Moon,
   Palette,
   Plus,
@@ -64,7 +64,7 @@ function Content() {
       <SidebarGroup>
         <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
-          <NavItem label="Dashboard" href="/dashboard" icon={LayoutDashboard} />
+          <NavItem label="Home" href="/" icon={Home} />
           <NavItem label="New Project" href="/new" icon={Plus} />
         </SidebarGroupContent>
       </SidebarGroup>
