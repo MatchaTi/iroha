@@ -3,7 +3,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
-import { TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
+import { COLOR_PALETTE_STARTER_PACKS, TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
 import { projectSchema, type ProjectSchema } from "@/schema/project-schema"
 import { useProject } from "@/store/use-project"
 import {
@@ -33,9 +33,12 @@ export function NewProject() {
         name: title,
         description,
         typography: TYPOGRAPHY_STATER_PACKS,
-        colors: [],
+        colorPalette: COLOR_PALETTE_STARTER_PACKS.map((p) => ({
+          ...p,
+          id: crypto.randomUUID(),
+        })),
         templateTypography: "one",
-        templateColors: "",
+        templateColorPalette: "",
       })
       toast.add({
         title: "Project created",

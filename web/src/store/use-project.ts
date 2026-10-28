@@ -14,10 +14,18 @@ export type Typography = {
 }
 
 export type Color = {
+  level:
+    "50" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900"
+  hex: string
+  rgb: string
+}
+
+export type ColorPalette = {
   id: string
   name: string
   purpose:
     | "background"
+    | "heading"
     | "foreground"
     | "primary"
     | "secondary"
@@ -26,8 +34,7 @@ export type Color = {
     | "error"
     | "warning"
     | "success"
-  hex: string
-  rgb: string
+  colors: Color[]
 }
 
 export type Project = {
@@ -35,9 +42,9 @@ export type Project = {
   name: string
   description: string
   typography: Typography[]
-  colors: Color[]
+  colorPalette: ColorPalette[]
   templateTypography: string
-  templateColors: string
+  templateColorPalette: string
 }
 
 type ProjectState = {

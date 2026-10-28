@@ -12,7 +12,7 @@ export function DashboardLayout() {
       <AppSidebar />
       <SidebarInset>
         <div className="w-full p-4">
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <SidebarTrigger />
           </div>
           <Outlet />

@@ -1,4 +1,5 @@
-import type { Typography } from "@/store/use-project"
+import type { ColorPalette, Typography } from "@/store/use-project"
+import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
 
@@ -183,5 +184,141 @@ export const TYPOGRAPHY_STATER_PACKS: Typography[] = [
     fontWeight: "Regular",
     lineHeight: 16,
     letterSpacing: 0.4,
+  },
+]
+
+export const COLOR_PALETTE_STARTER_PACKS: ColorPalette[] = [
+  {
+    id: crypto.randomUUID(),
+    name: "Primary",
+    purpose: "primary",
+    colors: generateColorPalette("#6750A4"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Secondary",
+    purpose: "secondary",
+    colors: generateColorPalette("#625B71"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Accent",
+    purpose: "accent",
+    colors: generateColorPalette("#7D5260"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Error",
+    purpose: "error",
+    colors: generateColorPalette("#B3261E"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Success",
+    purpose: "success",
+    colors: generateColorPalette("#386A20"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Warning",
+    purpose: "warning",
+    colors: generateColorPalette("#7D5700"),
+  },
+]
+
+/** A color preset is a named collection of anchor hex values (one per palette role) */
+export type ColorPreset = {
+  name: string
+  palettes: { name: string; purpose: ColorPalette["purpose"]; anchor: string }[]
+}
+
+export const COLOR_PRESETS: ColorPreset[] = [
+  {
+    name: "Material You",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#6750A4" },
+      { name: "Secondary", purpose: "secondary", anchor: "#625B71" },
+      { name: "Accent", purpose: "accent", anchor: "#7D5260" },
+      { name: "Error", purpose: "error", anchor: "#B3261E" },
+      { name: "Success", purpose: "success", anchor: "#386A20" },
+      { name: "Warning", purpose: "warning", anchor: "#7D5700" },
+    ],
+  },
+  {
+    name: "Ocean",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#0077B6" },
+      { name: "Secondary", purpose: "secondary", anchor: "#00B4D8" },
+      { name: "Accent", purpose: "accent", anchor: "#90E0EF" },
+      { name: "Error", purpose: "error", anchor: "#C1121F" },
+      { name: "Success", purpose: "success", anchor: "#2D6A4F" },
+      { name: "Warning", purpose: "warning", anchor: "#D9770E" },
+    ],
+  },
+  {
+    name: "Forest",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#386641" },
+      { name: "Secondary", purpose: "secondary", anchor: "#6A994E" },
+      { name: "Accent", purpose: "accent", anchor: "#A7C957" },
+      { name: "Error", purpose: "error", anchor: "#BC4749" },
+      { name: "Success", purpose: "success", anchor: "#3A7D44" },
+      { name: "Warning", purpose: "warning", anchor: "#CB8B2A" },
+    ],
+  },
+  {
+    name: "Sunset",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#E63946" },
+      { name: "Secondary", purpose: "secondary", anchor: "#F4A261" },
+      { name: "Accent", purpose: "accent", anchor: "#E9C46A" },
+      { name: "Error", purpose: "error", anchor: "#9B1B30" },
+      { name: "Success", purpose: "success", anchor: "#2A9D8F" },
+      { name: "Warning", purpose: "warning", anchor: "#E76F51" },
+    ],
+  },
+  {
+    name: "Monochrome",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#1A1A2E" },
+      { name: "Secondary", purpose: "secondary", anchor: "#16213E" },
+      { name: "Accent", purpose: "accent", anchor: "#0F3460" },
+      { name: "Error", purpose: "error", anchor: "#E43F5A" },
+      { name: "Success", purpose: "success", anchor: "#28A745" },
+      { name: "Warning", purpose: "warning", anchor: "#FFC107" },
+    ],
+  },
+  {
+    name: "Rose",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#C9184A" },
+      { name: "Secondary", purpose: "secondary", anchor: "#FF4D6D" },
+      { name: "Accent", purpose: "accent", anchor: "#FF85A1" },
+      { name: "Error", purpose: "error", anchor: "#9D0208" },
+      { name: "Success", purpose: "success", anchor: "#40916C" },
+      { name: "Warning", purpose: "warning", anchor: "#E9943A" },
+    ],
+  },
+  {
+    name: "Nordic",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#5E81AC" },
+      { name: "Secondary", purpose: "secondary", anchor: "#81A1C1" },
+      { name: "Accent", purpose: "accent", anchor: "#88C0D0" },
+      { name: "Error", purpose: "error", anchor: "#BF616A" },
+      { name: "Success", purpose: "success", anchor: "#A3BE8C" },
+      { name: "Warning", purpose: "warning", anchor: "#EBCB8B" },
+    ],
+  },
+  {
+    name: "Autumn",
+    palettes: [
+      { name: "Primary", purpose: "primary", anchor: "#9C4221" },
+      { name: "Secondary", purpose: "secondary", anchor: "#C05621" },
+      { name: "Accent", purpose: "accent", anchor: "#DD6B20" },
+      { name: "Error", purpose: "error", anchor: "#822727" },
+      { name: "Success", purpose: "success", anchor: "#276749" },
+      { name: "Warning", purpose: "warning", anchor: "#B7791F" },
+    ],
   },
 ]
