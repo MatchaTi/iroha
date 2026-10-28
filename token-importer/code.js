@@ -49,69 +49,124 @@ function makeText(chars, size, style, hex, name, family) {
   return t;
 }
 
-// ---------- Color templates ----------
-// Menerima colorItems: [{ color: Color, styleId }]
-// color = { id, name, purpose, hex, rgb }
+// ---------- Color Palette templates ----------
+// Menerima palettes: ColorPalette[] = [{ id, name, purpose, colors: [{ level, hex, rgb }] }]
+//
+// Template "one" — horizontal sliding cards, warna full, level + hex + rgb di dalam card
+// Template "two" — square swatches per shade, label Name-Level + hex di bawah
 
 var COLOR_TEMPLATES = {
-  cards: async function (colorItems) {
-    var wrap = makeFrame("Palette · Cards", "HORIZONTAL", 16);
-    wrap.counterAxisAlignItems = "MIN";
-    for (var it of colorItems) {
-      var card = makeFrame("Swatch · " + it.color.name, "VERTICAL", 8);
-      var rect = figma.createRectangle();
-      rect.name = "Color";
-      rect.resize(96, 96);
-      rect.cornerRadius = 12;
-      if (it.styleId) await rect.setFillStyleIdAsync(it.styleId);
-      else rect.fills = solid(it.color.hex);
-      card.appendChild(rect);
-      card.appendChild(makeText(
-        it.color.name + "\n" + it.color.hex,
-        12, "Regular", "#1A1A1A", "Label"
+  one: async function (palettes) {
+    var wrap = makeFrame("Color · Template One", "VERTICAL", 40);
+    for (var palette of palettes) {
+      var group = makeFrame("Palette · " + palette.name, "VERTICAL", 12);
+
+      // Header: "Primary - Primary"
+      group.appendChild(makeText(
+        cap(palette.name) + " - " + cap(palette.purpose),
+        13, "Regular", "#1A1A1A", "Header"
       ));
-      wrap.appendChild(card);
+
+      // Row kartu warna
+      var row = makeFrame("Shades", "HORIZONTAL", 0);
+      var sorted = palette.colors.slice().sort(function (a, b) {
+        return parseInt(a.level) - parseInt(b.level);
+      });
+
+      for (var i = 0; i < sorted.length; i++) {
+        var c = sorted[i];
+        var isFirst = i === 0;
+        var isLast = i === sorted.length - 1;
+
+        var card = figma.createFrame();
+        card.name = "Shade · " + c.level;
+        card.layoutMode = "VERTICAL";
+        card.primaryAxisSizingMode = "FIXED";
+        card.counterAxisSizingMode = "FIXED";
+        card.resize(96, 128);
+        card.paddingLeft = card.paddingRight = card.paddingTop = card.paddingBottom = 12;
+        card.primaryAxisAlignItems = "SPACE_BETWEEN";
+        card.fills = solid(c.hex);
+
+        // Corner radius: rounded hanya di ujung kiri/kanan
+        if (isFirst && isLast) {
+          card.cornerRadius = 12;
+        } else if (isFirst) {
+          card.topLeftRadius = 12;
+          card.bottomLeftRadius = 12;
+        } else if (isLast) {
+          card.topRightRadius = 12;
+          card.bottomRightRadius = 12;
+        }
+
+        var fg = readableOn(c.hex);
+        var fgMuted = fg === "#1A1A1A" ? "#6B6B6B" : "#AAAAAA";
+
+        // Level di atas
+        card.appendChild(makeText(c.level, 11, "Medium", fg, "Level", "Google Sans Flex"));
+
+        // Hex + RGB di bawah
+        var bottom = makeFrame("Bottom", "VERTICAL", 2);
+        bottom.fills = [];
+        bottom.appendChild(makeText(c.hex.toUpperCase(), 9, "Regular", fg, "Hex", "Source Code Pro"));
+        bottom.appendChild(makeText(c.rgb, 9, "Regular", fgMuted, "RGB", "Source Code Pro"));
+        card.appendChild(bottom);
+
+        row.appendChild(card);
+      }
+
+      group.appendChild(row);
+      wrap.appendChild(group);
     }
     return wrap;
   },
 
-  circles: async function (colorItems) {
-    var wrap = makeFrame("Palette · Circles", "HORIZONTAL", 20);
-    for (var it of colorItems) {
-      var col = makeFrame("Swatch · " + it.color.name, "VERTICAL", 8);
-      col.counterAxisAlignItems = "CENTER";
-      var dot = figma.createEllipse();
-      dot.name = "Color";
-      dot.resize(72, 72);
-      if (it.styleId) await dot.setFillStyleIdAsync(it.styleId);
-      else dot.fills = solid(it.color.hex);
-      col.appendChild(dot);
-      col.appendChild(makeText(it.color.name.split("/").pop(), 12, "Medium", "#1A1A1A", "Label"));
-      wrap.appendChild(col);
-    }
-    return wrap;
-  },
+  two: async function (palettes) {
+    var wrap = makeFrame("Color · Template Two", "VERTICAL", 40);
+    for (var palette of palettes) {
+      var group = makeFrame("Palette · " + palette.name, "VERTICAL", 12);
 
-  bars: async function (colorItems) {
-    var wrap = makeFrame("Palette · Bars", "VERTICAL", 0);
-    wrap.cornerRadius = 20;
-    wrap.clipsContent = true;
-    for (var it of colorItems) {
-      var row = figma.createFrame();
-      row.name = "Swatch · " + it.color.name;
-      row.layoutMode = "HORIZONTAL";
-      row.primaryAxisSizingMode = "FIXED";
-      row.counterAxisSizingMode = "FIXED";
-      row.resize(400, 56);
-      row.paddingLeft = row.paddingRight = 20;
-      row.primaryAxisAlignItems = "SPACE_BETWEEN";
-      row.counterAxisAlignItems = "CENTER";
-      if (it.styleId) await row.setFillStyleIdAsync(it.styleId);
-      else row.fills = solid(it.color.hex);
-      var fg = readableOn(it.color.hex);
-      row.appendChild(makeText(it.color.name, 14, "Medium", fg, "Name"));
-      row.appendChild(makeText(it.color.hex, 14, "Regular", fg, "Hex"));
-      wrap.appendChild(row);
+      // Header: "Primary - Primary"
+      group.appendChild(makeText(
+        cap(palette.name) + " - " + cap(palette.purpose),
+        13, "Regular", "#1A1A1A", "Header"
+      ));
+
+      // Row square swatches
+      var row = makeFrame("Shades", "HORIZONTAL", 8);
+      var sorted = palette.colors.slice().sort(function (a, b) {
+        return parseInt(a.level) - parseInt(b.level);
+      });
+
+      for (var c of sorted) {
+        var swatch = makeFrame("Swatch · " + c.level, "VERTICAL", 6);
+
+        // Square color box
+        var box = figma.createRectangle();
+        box.name = "Color";
+        box.resize(88, 88);
+        box.cornerRadius = 10;
+        box.fills = solid(c.hex);
+        swatch.appendChild(box);
+
+        // Label bawah
+        var labels = makeFrame("Labels", "VERTICAL", 2);
+        labels.fills = [];
+        labels.appendChild(makeText(
+          cap(palette.name) + "-" + c.level,
+          11, "Regular", "#1A1A1A", "Name", "Source Code Pro"
+        ));
+        labels.appendChild(makeText(
+          c.hex.toUpperCase(),
+          11, "Regular", "#7A7A7A", "Hex", "Source Code Pro"
+        ));
+        swatch.appendChild(labels);
+
+        row.appendChild(swatch);
+      }
+
+      group.appendChild(row);
+      wrap.appendChild(group);
     }
     return wrap;
   }
@@ -213,15 +268,18 @@ var TYPE_TEMPLATES = {
 // ---------- main ----------
 // Payload shape sesuai type Project dari store:
 // {
+// ---------- main ----------
+// Payload shape sesuai type Project dari store:
+// {
 //   name: string
 //   description: string
-//   templateColors: "cards" | "circles" | "bars"
+//   templateColorPalette: "one" | "two"
 //   templateTypography: "one" | "two"
-//   colors: Color[]   // { id, name, purpose, hex, rgb }
-//   typography: Typography[]  // { id, name, purpose, level, fontFamily, fontSize, fontWeight, lineHeight, letterSpacing }
+//   colorPalette: ColorPalette[]  // { id, name, purpose, colors: [{ level, hex, rgb }] }
+//   typography: Typography[]      // { id, name, purpose, level, fontFamily, fontSize, fontWeight, lineHeight, letterSpacing }
 // }
 async function importTokens(t) {
-  var colorFn = COLOR_TEMPLATES[t.templateColors] || COLOR_TEMPLATES.cards;
+  var colorFn = COLOR_TEMPLATES[t.templateColorPalette] || COLOR_TEMPLATES.one;
   var typeFn = TYPE_TEMPLATES[t.templateTypography] || TYPE_TEMPLATES["one"];
 
   await figma.loadFontAsync({ family: "Google Sans Flex", style: "Regular" });
@@ -230,9 +288,9 @@ async function importTokens(t) {
   await figma.loadFontAsync({ family: "Source Code Pro", style: "Regular" });
   await figma.loadFontAsync({ family: "Source Code Pro", style: "Medium" });
 
-  // -- Colors: paint styles + optional variables --
-  var colorItems = [];
-  if (t.colors && t.colors.length) {
+  // -- Color Palettes: paint styles + optional variables per shade --
+  var palettesForTemplate = [];
+  if (t.colorPalette && t.colorPalette.length) {
     var varCollection = null;
     var modeId = null;
     try {
@@ -243,30 +301,30 @@ async function importTokens(t) {
       varCollection = null;
     }
 
-    for (var c of t.colors) {
-      var paintStyle = figma.createPaintStyle();
-      // Group by purpose: "Primary/Blue" dsb
-      paintStyle.name = cap(c.purpose) + "/" + c.name;
+    for (var palette of t.colorPalette) {
+      for (var c of palette.colors) {
+        var paintStyle = figma.createPaintStyle();
+        paintStyle.name = cap(palette.name) + "/" + c.level;
 
-      if (varCollection && modeId) {
-        try {
-          var v = figma.variables.createVariable(cap(c.purpose) + "/" + c.name, varCollection, "COLOR");
-          v.setValueForMode(modeId, hexToRgb(c.hex));
-          paintStyle.paints = [
-            figma.variables.setBoundVariableForPaint(
-              { type: "SOLID", color: hexToRgb(c.hex) },
-              "color",
-              v
-            )
-          ];
-        } catch (e) {
+        if (varCollection && modeId) {
+          try {
+            var v = figma.variables.createVariable(cap(palette.name) + "/" + c.level, varCollection, "COLOR");
+            v.setValueForMode(modeId, hexToRgb(c.hex));
+            paintStyle.paints = [
+              figma.variables.setBoundVariableForPaint(
+                { type: "SOLID", color: hexToRgb(c.hex) },
+                "color",
+                v
+              )
+            ];
+          } catch (e) {
+            paintStyle.paints = solid(c.hex);
+          }
+        } else {
           paintStyle.paints = solid(c.hex);
         }
-      } else {
-        paintStyle.paints = solid(c.hex);
       }
-
-      colorItems.push({ color: c, styleId: paintStyle.id });
+      palettesForTemplate.push(palette);
     }
   }
 
@@ -282,7 +340,6 @@ async function importTokens(t) {
       continue;
     }
     var ts = figma.createTextStyle();
-    // Group by purpose/level: "Display/Large · Heading"
     ts.name = cap(s.purpose) + "/" + cap(s.level) + " · " + s.name;
     ts.fontName = font;
     ts.fontSize = s.fontSize;
@@ -293,29 +350,36 @@ async function importTokens(t) {
     typeItems.push({ typo: s, figmaStyle: figmaStyle, styleId: ts.id });
   }
 
-  // -- Board --
-  var board = makeFrame("Design System · " + (t.name || "Untitled"), "VERTICAL", 48, 48);
-  board.cornerRadius = 24;
-  board.fills = solid("#F0EDE6");
+  // -- Frame 1: Header --
+  var frameHeader = makeFrame("Design System · " + (t.name || "Untitled"), "VERTICAL", 12, 48);
+  frameHeader.cornerRadius = 24;
+  frameHeader.fills = solid("#F0EDE6");
+  frameHeader.appendChild(makeText("Design System", 13, "Regular", "#7A7A7A", "Label"));
+  if (t.name) frameHeader.appendChild(makeText(t.name, 32, "Bold", "#1A1A1A", "Project Name"));
+  if (t.description) frameHeader.appendChild(makeText(t.description, 14, "Regular", "#7A7A7A", "Description"));
+  figma.currentPage.appendChild(frameHeader);
 
-  if (t.name || t.description) {
-    var header = makeFrame("Header", "VERTICAL", 4);
-    if (t.name) header.appendChild(makeText(t.name, 24, "Bold", "#1A1A1A", "Project Name"));
-    if (t.description) header.appendChild(makeText(t.description, 14, "Regular", "#7A7A7A", "Description"));
-    board.appendChild(header);
-  }
-
-  if (colorItems.length) {
-    board.appendChild(makeText("Colors", 20, "Bold", "#1A1A1A", "Title · Colors"));
-    board.appendChild(await colorFn(colorItems));
-  }
+  // -- Frame 2: Typography --
   if (typeItems.length) {
-    board.appendChild(makeText("Typography", 20, "Bold", "#1A1A1A", "Title · Typography"));
-    board.appendChild(await typeFn(typeItems));
+    var frameTypo = makeFrame("Typography", "VERTICAL", 32, 48);
+    frameTypo.cornerRadius = 24;
+    frameTypo.fills = solid("#F0EDE6");
+    frameTypo.appendChild(makeText("Typography", 20, "Bold", "#1A1A1A", "Title"));
+    frameTypo.appendChild(await typeFn(typeItems));
+    figma.currentPage.appendChild(frameTypo);
   }
 
-  figma.currentPage.appendChild(board);
-  figma.viewport.scrollAndZoomIntoView([board]);
+  // -- Frame 3: Color Palette --
+  if (palettesForTemplate.length) {
+    var frameColors = makeFrame("Color Palette", "VERTICAL", 32, 48);
+    frameColors.cornerRadius = 24;
+    frameColors.fills = solid("#F0EDE6");
+    frameColors.appendChild(makeText("Color Palette", 20, "Bold", "#1A1A1A", "Title"));
+    frameColors.appendChild(await colorFn(palettesForTemplate));
+    figma.currentPage.appendChild(frameColors);
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-3));
 }
 
 figma.showUI(__html__, { width: 360, height: 260 });

@@ -16,9 +16,9 @@ function buildTokenPayload(project: Project) {
   return {
     name: project.name,
     description: project.description,
-    templateColors: project.templateColors || "cards",
+    templateColorPalette: project.templateColorPalette || "one",
     templateTypography: project.templateTypography || "one",
-    colors: project.colors,
+    colorPalette: project.colorPalette,
     typography: project.typography,
   }
 }
@@ -31,13 +31,10 @@ export function ProjectDetails() {
 
   function handleExport() {
     if (!project) return
-
     const payload = buildTokenPayload(project)
-
     const json = JSON.stringify(payload, null, 2)
     const blob = new Blob([json], { type: "application/json" })
     const url = URL.createObjectURL(blob)
-
     const a = document.createElement("a")
     a.href = url
     a.download = `${project.name.toLowerCase().replace(/\s+/g, "-")}-tokens.json`
@@ -47,9 +44,7 @@ export function ProjectDetails() {
 
   function handleCopy() {
     if (!project) return
-
     const payload = buildTokenPayload(project)
-
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -101,14 +96,12 @@ export function ProjectDetails() {
               </>
             )}
           </Button>
-
           <Button onClick={handleExport}>
             <Download />
             Export Tokens
           </Button>
         </div>
       </section>
-
       <div className="min-h-screen space-y-12 rounded-lg bg-secondary p-4 lg:px-40 lg:py-24">
         {/* Typography */}
         <div className="grid gap-4 lg:grid-cols-3">
@@ -120,7 +113,6 @@ export function ProjectDetails() {
             <h2 className="text-[12vw] lg:text-[4vw]">{project.name}</h2>
             <p>{project.description}</p>
           </section>
-
           <section className="space-y-4">
             <p className="text-balance">
               Lorem ipsum dolor sit, amet consectetur adipisicing elit.
@@ -157,7 +149,6 @@ export function ProjectDetails() {
             </p>
           </section>
         </div>
-
         {/* Color Palette */}
         <section className="grid h-auto grid-cols-2 overflow-hidden rounded-lg bg-red-500 lg:grid-cols-7">
           {anchorColors.map((colors) =>
