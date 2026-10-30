@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { HexColorPickerInput } from "@/components/shared/hex-color-picker-input"
 
 const PURPOSE_OPTIONS: ColorPaletteType["purpose"][] = [
   "primary",
@@ -158,30 +159,17 @@ function PaletteRow({
           <FieldLabel className="text-xs text-muted-foreground">
             Anchor Color (500)
           </FieldLabel>
-          <div className="flex items-center gap-2">
-            <label
-              className="size-9 shrink-0 cursor-pointer overflow-hidden rounded-md border"
-              style={{ backgroundColor: hexInput }}
-            >
-              <input
-                type="color"
-                className="sr-only"
-                value={hexInput.startsWith("#") ? hexInput : `#${hexInput}`}
-                onChange={(e) => {
-                  setHexInput(e.target.value)
-                  applyHex(e.target.value)
-                }}
-              />
-            </label>
-            <Input
-              className="font-mono"
-              value={hexInput}
-              onChange={(e) => setHexInput(e.target.value)}
-              onBlur={() => applyHex(hexInput)}
-              onKeyDown={handleKeyDown}
-              placeholder="#6750A4"
-            />
-          </div>
+          <HexColorPickerInput
+            value={hexInput}
+            onChange={(hex) => {
+              setHexInput(hex)
+              // picker always gives valid 6-digit hex, commit immediately
+              if (isValidHex(hex)) {
+                const colors = generateColorPalette(hex)
+                onCommit({ colors })
+              }
+            }}
+          />
         </Field>
 
         <Field>

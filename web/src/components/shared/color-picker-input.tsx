@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react"
 import { HexAlphaColorPicker } from "react-colorful"
 import { Input } from "@/components/ui/input"
 import {
@@ -7,6 +6,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Blend } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 
 interface ColorPickerInputProps {
   value: string // #rrggbbaa
@@ -14,30 +14,33 @@ interface ColorPickerInputProps {
 }
 
 export function ColorPickerInput({ value, onChange }: ColorPickerInputProps) {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [open])
-
   return (
-    <div ref={containerRef} className="relative flex items-center gap-2">
-      {/* Swatch trigger */}
-      <button
-        type="button"
-        className="size-9 shrink-0 rounded-md border shadow-sm transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{ backgroundColor: value }}
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Pick color"
-      />
+    <div className="relative flex items-center gap-2">
+      <Popover>
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              className="size-9 shrink-0 rounded-md border shadow-sm transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              style={{ backgroundColor: value }}
+              aria-label="Pick color"
+            />
+          }
+        />
+        <PopoverContent>
+          <HexAlphaColorPicker
+            color={value}
+            onChange={onChange}
+            className="min-w-full"
+          />
+          <Input
+            className="font-mono text-xs"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="#000000ff"
+          />
+        </PopoverContent>
+      </Popover>
 
       {/* Hex text input */}
       <InputGroup className="flex-1">
@@ -51,19 +54,6 @@ export function ColorPickerInput({ value, onChange }: ColorPickerInputProps) {
           placeholder="#000000ff"
         />
       </InputGroup>
-
-      {/* Picker dropdown */}
-      {open && (
-        <div className="absolute left-0 top-11 z-50 flex flex-col gap-2 rounded-2xl border bg-popover p-3 shadow-lg">
-          <HexAlphaColorPicker color={value} onChange={onChange} />
-          <Input
-            className="font-mono text-xs"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="#000000ff"
-          />
-        </div>
-      )}
     </div>
   )
 }
