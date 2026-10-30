@@ -3,6 +3,31 @@ function hexToRgb(hex) {
   var n = parseInt(hex.replace("#", ""), 16);
   return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
+// Parse rgba(r,g,b,a) atau hex (#RRGGBB / #RRGGBBAA) ke { r,g,b,a } (0–1)
+function parseColor(color) {
+  if (!color) return { r: 0, g: 0, b: 0, a: 1 };
+  var rgba = color.match(/rgba?\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\s*\)/);
+  if (rgba) {
+    return {
+      r: parseFloat(rgba[1]) / 255,
+      g: parseFloat(rgba[2]) / 255,
+      b: parseFloat(rgba[3]) / 255,
+      a: rgba[4] !== undefined ? parseFloat(rgba[4]) : 1,
+    };
+  }
+  // hex #RRGGBB atau #RRGGBBAA
+  var h = color.replace("#", "");
+  if (h.length === 8) {
+    return {
+      r: parseInt(h.slice(0, 2), 16) / 255,
+      g: parseInt(h.slice(2, 4), 16) / 255,
+      b: parseInt(h.slice(4, 6), 16) / 255,
+      a: parseInt(h.slice(6, 8), 16) / 255,
+    };
+  }
+  var rgb = hexToRgb(color);
+  return { r: rgb.r, g: rgb.g, b: rgb.b, a: 1 };
+}
 function readableOn(hex) {
   var n = parseInt(hex.replace("#", ""), 16);
   var lum = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
@@ -379,7 +404,123 @@ async function importTokens(t) {
     figma.currentPage.appendChild(frameColors);
   }
 
-  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-3));
+  // -- Corner: variable FLOAT + frame --
+  if (t.corner && t.corner.length) {
+    // Cari atau buat collection (reuse yang sudah ada dari warna)
+    var cornerCollection = null;
+    var cornerModeId = null;
+    try {
+      // Coba reuse varCollection dari colors, kalau tidak ada buat baru
+      if (varCollection && modeId) {
+        cornerCollection = varCollection;
+        cornerModeId = modeId;
+      } else {
+        cornerCollection = figma.variables.createVariableCollection("Design Tokens");
+        cornerModeId = cornerCollection.modes[0].modeId;
+        cornerCollection.renameMode(cornerModeId, "Default");
+      }
+      for (var cr of t.corner) {
+        var crVar = figma.variables.createVariable("Corner/" + cr.name, cornerCollection, "FLOAT");
+        crVar.setValueForMode(cornerModeId, cr.radius >= 99 ? 9999 : cr.radius);
+      }
+    } catch (e) {
+      // Variables tidak tersedia, lanjut tanpa variable
+    }
+
+    // Cari warna primary/500 untuk bg shape
+    var primaryHex = "#1A1A1A";
+    if (t.colorPalette && t.colorPalette.length) {
+      for (var pal of t.colorPalette) {
+        if (pal.purpose === "primary") {
+          for (var clr of pal.colors) {
+            if (clr.level === "500") { primaryHex = clr.hex; break; }
+          }
+          break;
+        }
+      }
+    }
+
+    var frameCorner = makeFrame("Corner", "VERTICAL", 24, 48);
+    frameCorner.cornerRadius = 24;
+    frameCorner.fills = solid("#F0EDE6");
+    frameCorner.appendChild(makeText("Corner", 20, "Bold", "#1A1A1A", "Title"));
+
+    var cornerRow = makeFrame("Corners", "HORIZONTAL", 24);
+    cornerRow.counterAxisAlignItems = "MIN";
+    for (var cr of t.corner) {
+      var crGroup = makeFrame("Corner · " + cr.name, "VERTICAL", 10);
+      crGroup.fills = [];
+      var crBox = figma.createRectangle();
+      crBox.name = "Preview";
+      crBox.resize(80, 80);
+      crBox.fills = solid(primaryHex);
+      crBox.cornerRadius = cr.radius >= 99 ? 40 : cr.radius;
+      crGroup.appendChild(crBox);
+      var crLabel = makeFrame("Label", "VERTICAL", 2);
+      crLabel.fills = [];
+      crLabel.appendChild(makeText(cr.name, 12, "Medium", "#1A1A1A", "Name"));
+      crLabel.appendChild(makeText(cr.radius >= 99 ? "Full" : cr.radius + "px", 11, "Regular", "#7A7A7A", "Value", "Source Code Pro"));
+      crGroup.appendChild(crLabel);
+      cornerRow.appendChild(crGroup);
+    }
+    frameCorner.appendChild(cornerRow);
+    figma.currentPage.appendChild(frameCorner);
+  }
+
+  // -- Shadow: effect styles + frame --
+  if (t.shadow && t.shadow.length) {
+    for (var sh of t.shadow) {
+      var shStyle = figma.createEffectStyle();
+      shStyle.name = "Shadow/" + sh.name;
+      var col = parseColor(sh.color);
+      shStyle.effects = [{
+        type: "DROP_SHADOW",
+        color: { r: col.r, g: col.g, b: col.b, a: col.a },
+        offset: { x: sh.x, y: sh.y },
+        radius: sh.blur,
+        spread: sh.spread,
+        visible: true,
+        blendMode: "NORMAL",
+      }];
+    }
+
+    var frameShadow = makeFrame("Shadow", "VERTICAL", 24, 48);
+    frameShadow.cornerRadius = 24;
+    frameShadow.fills = solid("#F0EDE6");
+    frameShadow.appendChild(makeText("Shadow", 20, "Bold", "#1A1A1A", "Title"));
+
+    var shadowRow = makeFrame("Shadows", "HORIZONTAL", 32);
+    shadowRow.counterAxisAlignItems = "MIN";
+    for (var sh of t.shadow) {
+      var shGroup = makeFrame("Shadow · " + sh.name, "VERTICAL", 12);
+      var col = parseColor(sh.color);
+      var shBox = figma.createRectangle();
+      shBox.name = "Preview";
+      shBox.resize(80, 80);
+      shBox.cornerRadius = 12;
+      shBox.fills = solid("#FFFFFF");
+      shBox.effects = [{
+        type: "DROP_SHADOW",
+        color: { r: col.r, g: col.g, b: col.b, a: col.a },
+        offset: { x: sh.x, y: sh.y },
+        radius: sh.blur,
+        spread: sh.spread,
+        visible: true,
+        blendMode: "NORMAL",
+      }];
+      shGroup.appendChild(shBox);
+      var shLabel = makeFrame("Label", "VERTICAL", 2);
+      shLabel.fills = [];
+      shLabel.appendChild(makeText(sh.name, 12, "Medium", "#1A1A1A", "Name"));
+      shLabel.appendChild(makeText(sh.x + " " + sh.y + " " + sh.blur + " " + sh.spread, 11, "Regular", "#7A7A7A", "Value", "Source Code Pro"));
+      shGroup.appendChild(shLabel);
+      shadowRow.appendChild(shGroup);
+    }
+    frameShadow.appendChild(shadowRow);
+    figma.currentPage.appendChild(frameShadow);
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-5));
 }
 
 figma.showUI(__html__, { width: 360, height: 260 });

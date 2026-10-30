@@ -1,10 +1,3 @@
-import { useState } from "react"
-import { useParams } from "react-router"
-import { useProject, type Corner } from "@/store/use-project"
-import { CORNER_STARTER_PACKS } from "@/lib/constants"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Plus, RotateCcw, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   Empty,
   EmptyContent,
@@ -25,17 +18,24 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { SquareRoundCorner } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
+import { CORNER_STARTER_PACKS } from "@/lib/constants"
+import { useProject, type Corner } from "@/store/use-project"
+import { Plus, RotateCcw, SquareRoundCorner, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { useParams } from "react-router"
 
 // ─── CornerRow ────────────────────────────────────────────────────────────────
 
 interface CornerRowProps {
   corner: Corner
+  background: string
   onCommit: (updated: Partial<Corner>) => void
   onDelete: () => void
 }
 
-function CornerRow({ corner, onCommit, onDelete }: CornerRowProps) {
+function CornerRow({ corner, background, onCommit, onDelete }: CornerRowProps) {
   const [name, setName] = useState(corner.name)
   const [radius, setRadius] = useState(corner.radius)
 
@@ -51,23 +51,22 @@ function CornerRow({ corner, onCommit, onDelete }: CornerRowProps) {
       {/* Preview */}
       <div
         className="relative aspect-video w-full border-2 border-border bg-sidebar transition-all duration-200"
-        style={{ borderRadius: previewRadius }}
+        style={{ borderRadius: previewRadius, background }}
       >
-        <div
+        {/* <div
           className="absolute right-0 bottom-0 h-full w-full border-r border-b border-primary"
-
-          style={{ borderRadius: previewRadius }}
+          style={{ borderRadius: previewRadius, background }}
         />
         <div
           className="absolute top-0 right-0 h-1/2 w-1/2 bg-sidebar"
           // only round the top-right corner
-          style={{ borderTopRightRadius: previewRadius }}
+          style={{ borderTopRightRadius: previewRadius, background }}
         />
         <div
           className="absolute bottom-0 left-0 h-1/2 w-3/5 bg-sidebar"
           // only round the bottom-left corner
-          style={{ borderBottomLeftRadius: previewRadius }}
-        />
+          style={{ borderBottomLeftRadius: previewRadius , background}}
+        /> */}
       </div>
 
       {/* Inline editor */}
@@ -171,6 +170,10 @@ export function Corner() {
     })
   }
 
+  const primaryColor = project?.colorPalette.find(color => color.purpose === 'primary')
+  const anchorColor = primaryColor?.colors.find(color => color.level === '500')
+  console.log( anchorColor)
+
   return (
     <main>
       {/* Header */}
@@ -216,6 +219,7 @@ export function Corner() {
             <CornerRow
               key={corner.id}
               corner={corner}
+              background={anchorColor?.hex || ""}
               onCommit={(updated) => handleCommit(corner.id, updated)}
               onDelete={() => handleDelete(corner.id)}
             />

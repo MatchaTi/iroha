@@ -31,6 +31,8 @@ function buildTokenPayload(project: Project) {
     templateTypography: project.templateTypography || "one",
     colorPalette: project.colorPalette,
     typography: project.typography,
+    corner: project.corner,
+    shadow: project.shadow,
   }
 }
 
