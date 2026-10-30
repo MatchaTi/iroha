@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useParams } from "react-router"
-import { useProject, type Shadow } from "@/store/use-project"
+import { useProject, type Shadow, type ColorPalette } from "@/store/use-project"
 import { SHADOW_STARTER_PACKS } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Plus, RotateCcw, Trash2 } from "lucide-react"
+import { Grip, Plus, RotateCcw, Trash2 } from "lucide-react"
 import {
   Empty,
   EmptyContent,
@@ -31,13 +31,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import {
-  Blend,
-  MoveHorizontal,
-  MoveVertical,
-  Radius,
-  Expand,
-} from "lucide-react"
+import { Blend, MoveHorizontal, MoveVertical, Expand } from "lucide-react"
 import { ColorPickerInput } from "@/components/shared/color-picker-input"
 
 function shadowToCss(s: Shadow) {
@@ -46,11 +40,12 @@ function shadowToCss(s: Shadow) {
 
 interface ShadowRowProps {
   shadow: Shadow
+  palettes: ColorPalette[]
   onCommit: (updated: Partial<Shadow>) => void
   onDelete: () => void
 }
 
-function ShadowRow({ shadow, onCommit, onDelete }: ShadowRowProps) {
+function ShadowRow({ shadow, palettes, onCommit, onDelete }: ShadowRowProps) {
   const [name, setName] = useState(shadow.name)
   const [x, setX] = useState(String(shadow.x))
   const [y, setY] = useState(String(shadow.y))
@@ -154,7 +149,7 @@ function ShadowRow({ shadow, onCommit, onDelete }: ShadowRowProps) {
             </FieldLabel>
             <InputGroup>
               <InputGroupAddon>
-                <Radius />
+                <Grip />
               </InputGroupAddon>
               <InputGroupInput
                 value={blur}
@@ -191,6 +186,7 @@ function ShadowRow({ shadow, onCommit, onDelete }: ShadowRowProps) {
           </FieldLabel>
           <ColorPickerInput
             value={color}
+            palettes={palettes}
             onChange={(val) => {
               setColor(val)
               onCommit({ color: val })
@@ -325,6 +321,7 @@ export function Shadow() {
             <ShadowRow
               key={shadow.id}
               shadow={shadow}
+              palettes={project.colorPalette ?? []}
               onCommit={(updated) => handleCommit(shadow.id, updated)}
               onDelete={() => handleDelete(shadow.id)}
             />
