@@ -60,6 +60,9 @@ export type DesignButtonVariant =
   | "ghost"
   | "destructive"
   | "link"
+  | "error"
+  | "warning"
+  | "success"
 
 export type DesignButtonSize = "xs" | "sm" | "default" | "lg"
 

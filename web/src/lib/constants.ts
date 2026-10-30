@@ -398,6 +398,21 @@ export const DESIGN_BUTTON_STARTER_PACKS: Omit<DesignButton, "cornerId" | "typog
   { variant: "link", size: "sm",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
   { variant: "link", size: "default", background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
   { variant: "link", size: "lg",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── error ──
+  { variant: "error", size: "xs",      background: "error::500",  foreground: "error::50",   border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "error", size: "sm",      background: "error::500",  foreground: "error::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "error", size: "default", background: "error::500",  foreground: "error::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "error", size: "lg",      background: "error::500",  foreground: "error::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── warning ──
+  { variant: "warning", size: "xs",      background: "warning::500",  foreground: "warning::50",   border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "warning", size: "sm",      background: "warning::500",  foreground: "warning::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "warning", size: "default", background: "warning::500",  foreground: "warning::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "warning", size: "lg",      background: "warning::500",  foreground: "warning::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── success ──
+  { variant: "success", size: "xs",      background: "success::500",  foreground: "success::50",   border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "success", size: "sm",      background: "success::500",  foreground: "success::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "success", size: "default", background: "success::500",  foreground: "success::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "success", size: "lg",      background: "success::500",  foreground: "success::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
 ]
 
 /** Resolve starter pack name refs to actual token IDs from project data */

@@ -46,6 +46,9 @@ const VARIANTS: DesignButtonVariant[] = [
   "secondary",
   "ghost",
   "destructive",
+  "error",
+  "warning",
+  "success",
   "link",
 ]
 
