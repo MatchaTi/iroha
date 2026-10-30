@@ -547,7 +547,7 @@ export function DSButton() {
 
   return (
     <main>
-      <section className="flex flex-wrap items-center justify-between gap-2">
+      <section className="flex flex-wrap items-center justify-between gap-2 p-4">
         <div className="space-y-2">
           <h1 className="heading">Button</h1>
           <p>
@@ -562,7 +562,7 @@ export function DSButton() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border">
+      <section className="border-t">
         {!project?.designButton || project.designButton.length === 0 ? (
           <Empty>
             <EmptyHeader>
