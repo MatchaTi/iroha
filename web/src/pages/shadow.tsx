@@ -87,7 +87,7 @@ function ShadowRow({ shadow, palettes, onCommit, onDelete }: ShadowRowProps) {
       <div className="flex min-h-40 items-center justify-center px-6 py-8 md:col-span-3">
         <div className="flex flex-col items-center gap-4">
           <div
-            className="size-24 rounded-2xl bg-background transition-all duration-200"
+            className="size-24 rounded-2xl bg-secondary transition-all duration-200"
             style={{ boxShadow: shadowToCss(previewShadow) }}
           />
           <p className="font-mono text-xs text-muted-foreground">
