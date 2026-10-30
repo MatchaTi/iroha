@@ -53,6 +53,32 @@ export type Shadow = {
   color: string // rgba
 }
 
+export type DesignButtonVariant =
+  | "default"
+  | "outline"
+  | "secondary"
+  | "ghost"
+  | "destructive"
+  | "link"
+
+export type DesignButtonSize = "xs" | "sm" | "default" | "lg"
+
+export type DesignButton = {
+  variant: DesignButtonVariant
+  size: DesignButtonSize
+  // color refs: "transparent" or "paletteId::level"
+  background: string
+  foreground: string
+  border: string
+  // token refs
+  cornerId: string
+  typographyId: string
+  shadowId: string // "none" or shadow.id
+  // spacing
+  paddingX: number
+  paddingY: number
+}
+
 export type Project = {
   id: string
   name: string
@@ -61,6 +87,7 @@ export type Project = {
   colorPalette: ColorPalette[]
   corner: Corner[]
   shadow: Shadow[]
+  designButton: DesignButton[]
   templateTypography: string
   templateColorPalette: string
 }

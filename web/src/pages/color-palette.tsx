@@ -121,17 +121,6 @@ function PaletteRow({
     if (e.key === "Enter") e.currentTarget.blur()
   }
 
-  const applyHex = (raw: string) => {
-    const clean = raw.startsWith("#") ? raw : `#${raw}`
-    if (isValidHex(clean)) {
-      const colors = generateColorPalette(clean)
-      onCommit({ colors })
-      setHexInput(clean)
-    } else {
-      setHexInput(anchor500)
-    }
-  }
-
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Template preview */}

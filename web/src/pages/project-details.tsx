@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Empty,
@@ -7,10 +17,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { toast } from "@/components/ui/toast"
 import { useProject, type Project } from "@/store/use-project"
-import { Check, Copy, Download, Palette } from "lucide-react"
+import { Check, Copy, Download, Palette, Trash } from "lucide-react"
 import { useRef, useState } from "react"
-import { Link, useParams } from "react-router"
+import { Link, useNavigate, useParams } from "react-router"
 
 function buildTokenPayload(project: Project) {
   return {
@@ -27,10 +38,12 @@ export function ProjectDetails() {
   const { id } = useParams<{ id: string }>()
   const getProject = useProject((s) => s.getProject)
   const updateProject = useProject((s) => s.updateProject)
+  const deleteProject = useProject((s) => s.deleteProject)
   const project = id ? getProject(id) : undefined
   const [copied, setCopied] = useState(false)
   const nameRef = useRef<HTMLHeadingElement>(null)
   const descRef = useRef<HTMLParagraphElement>(null)
+  const navigate = useNavigate()
 
   function handleNameBlur() {
     if (!id || !nameRef.current) return
@@ -47,8 +60,8 @@ export function ProjectDetails() {
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") {
-      e.preventDefault();
-      (e.currentTarget as HTMLElement).blur()
+      e.preventDefault()
+      ;(e.currentTarget as HTMLElement).blur()
     }
   }
 
@@ -97,6 +110,16 @@ export function ProjectDetails() {
     palette.colors.filter((color) => color.level === "500")
   )
 
+  const handleDelete = () => {
+    if (!id) return
+    toast.add({
+      title: "Project deleted",
+      description: `${project.name} has been deleted.`,
+    })
+    deleteProject(id)
+    navigate("/new")
+  }
+
   return (
     <main
       className="space-y-12 p-4"
@@ -106,6 +129,34 @@ export function ProjectDetails() {
       <section className="flex flex-wrap items-center justify-between gap-4">
         <p>Token Generator</p>
         <div className="space-x-2">
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button variant="destructive">
+                  <Trash />
+                  Delete Project
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Are you sure you want to delete this project?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  project and all of its data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button variant="destructive" onClick={handleDelete}>
+                  <Trash />
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button onClick={handleCopy}>
             {copied ? (
               <>
@@ -135,7 +186,7 @@ export function ProjectDetails() {
             </div>
             <h2
               ref={nameRef}
-              className="text-[12vw] outline-none line-clamp-1 lg:text-[4vw]"
+              className="line-clamp-1 text-[12vw] outline-none lg:text-[4vw]"
               contentEditable
               suppressContentEditableWarning
               onBlur={handleNameBlur}
@@ -145,7 +196,7 @@ export function ProjectDetails() {
             </h2>
             <p
               ref={descRef}
-              className="outline-none line-clamp-3"
+              className="line-clamp-3 outline-none"
               contentEditable
               suppressContentEditableWarning
               onBlur={handleDescBlur}

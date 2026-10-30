@@ -1,4 +1,4 @@
-import type { ColorPalette, Corner, Shadow, Typography } from "@/store/use-project"
+import type { ColorPalette, Corner, DesignButton, Shadow, Typography } from "@/store/use-project"
 import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
@@ -362,3 +362,66 @@ export const SHADOW_STARTER_PACKS: Shadow[] = [
     color: "#00000033",
   },
 ]
+
+export const DESIGN_BUTTON_STARTER_PACKS: Omit<DesignButton, "cornerId" | "typographyId" | "shadowId"> & {
+  cornerName: string
+  typographyName: string
+  shadowName: string
+}[] = [
+  // ── default ──
+  { variant: "default", size: "xs",      background: "primary::500",  foreground: "primary::50",   border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "default", size: "sm",      background: "primary::500",  foreground: "primary::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "default", size: "default", background: "primary::500",  foreground: "primary::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "default", size: "lg",      background: "primary::500",  foreground: "primary::50",   border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── outline ──
+  { variant: "outline", size: "xs",      background: "transparent",   foreground: "primary::500",  border: "primary::300", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "outline", size: "sm",      background: "transparent",   foreground: "primary::500",  border: "primary::300", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "outline", size: "default", background: "transparent",   foreground: "primary::500",  border: "primary::300", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "outline", size: "lg",      background: "transparent",   foreground: "primary::500",  border: "primary::300", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── secondary ──
+  { variant: "secondary", size: "xs",      background: "primary::100",  foreground: "primary::900",  border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "secondary", size: "sm",      background: "primary::100",  foreground: "primary::900",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "secondary", size: "default", background: "primary::100",  foreground: "primary::900",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "secondary", size: "lg",      background: "primary::100",  foreground: "primary::900",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── ghost ──
+  { variant: "ghost", size: "xs",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "ghost", size: "sm",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "ghost", size: "default", background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "ghost", size: "lg",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── destructive ──
+  { variant: "destructive", size: "xs",      background: "error::100",  foreground: "error::500",  border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY:  4 },
+  { variant: "destructive", size: "sm",      background: "error::100",  foreground: "error::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY:  6 },
+  { variant: "destructive", size: "default", background: "error::100",  foreground: "error::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY:  8 },
+  { variant: "destructive", size: "lg",      background: "error::100",  foreground: "error::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+  // ── link ──
+  { variant: "link", size: "xs",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Medium",  shadowName: "none", paddingX: 10, paddingY: 4 },
+  { variant: "link", size: "sm",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 12, paddingY: 6 },
+  { variant: "link", size: "default", background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 10, paddingY: 8 },
+  { variant: "link", size: "lg",      background: "transparent",   foreground: "primary::500",  border: "transparent", cornerName: "Full", typographyName: "Label Large",  shadowName: "none", paddingX: 16, paddingY: 10 },
+]
+
+/** Resolve starter pack name refs to actual token IDs from project data */
+export function resolveDesignButtonStarterPacks(
+  corners: Corner[],
+  shadows: ShadowType[],
+  typographies: Typography[]
+): DesignButton[] {
+  return DESIGN_BUTTON_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow = pack.shadowName === "none" ? undefined : shadows.find((s) => s.name === pack.shadowName)
+    // Match typography by name — for sizes, prefer label that matches button size
+    const typo = typographies.find((t) => t.name === pack.typographyName)
+    return {
+      variant: pack.variant,
+      size: pack.size,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      typographyId: typo?.id ?? typographies[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      paddingX: pack.paddingX,
+      paddingY: pack.paddingY,
+    }
+  })
+}

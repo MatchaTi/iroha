@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/toast"
 import {
   COLOR_PALETTE_STARTER_PACKS,
   CORNER_STARTER_PACKS,
+  resolveDesignButtonStarterPacks,
   SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
@@ -33,14 +34,18 @@ export function NewProject() {
       const title = formData.get("name") as string
       const description = formData.get("description") as string
       const id = crypto.randomUUID()
+      const typography = TYPOGRAPHY_STATER_PACKS
+      const corners = CORNER_STARTER_PACKS
+      const shadows = SHADOW_STARTER_PACKS
       addProject({
         id,
         name: title,
         description,
-        typography: TYPOGRAPHY_STATER_PACKS,
+        typography,
         colorPalette: COLOR_PALETTE_STARTER_PACKS,
-        corner: CORNER_STARTER_PACKS,
-        shadow: SHADOW_STARTER_PACKS,
+        corner: corners,
+        shadow: shadows,
+        designButton: resolveDesignButtonStarterPacks(corners, shadows, typography),
         templateTypography: "one",
         templateColorPalette: "one",
       })

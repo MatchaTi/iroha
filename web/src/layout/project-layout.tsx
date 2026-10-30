@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button"
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -8,9 +13,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  SidebarGroup,
+  SidebarMenuButton,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { cn } from "cn"
 import {
   CaseSensitive,
+  ChevronDown,
   Component,
   Feather,
   List,
@@ -23,10 +34,16 @@ import {
 import { useState } from "react"
 import { Link, Outlet, useMatch, useParams } from "react-router"
 
-type NavItem = {
+type SubItem = {
   label: string
   href: string
+}
+
+type NavItem = {
+  label: string
+  href?: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  subItems?: SubItem[]
   disabled: boolean
 }
 
@@ -83,9 +100,14 @@ export function ProjectLayout() {
     },
     {
       label: "Design System",
-      href: `/projects/${id}/design-system`,
       icon: Component,
-      disabled: true,
+      disabled: false,
+      subItems: [
+        {
+          label: "Button",
+          href: `/projects/${id}/button`,
+        },
+      ],
     },
     {
       label: "Brand Kit",
@@ -112,6 +134,7 @@ export function ProjectLayout() {
               href={item.href}
               icon={item.icon}
               disabled={item.disabled}
+              subItems={item.subItems}
               className={"justify-start"}
             />
           ))}
@@ -131,19 +154,58 @@ export function ProjectLayout() {
 
 type ProjectNavProps = {
   label: string
-  href: string
+  href?: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  subItems?: SubItem[]
 } & React.ComponentProps<typeof SidebarMenuButton>
+
+function SubNavItem({ label, href }: SubItem) {
+  const match = useMatch(href)
+  return (
+    <SidebarMenuButton
+      render={<Link to={href}>{label}</Link>}
+      isActive={match !== null}
+      className="pl-6"
+    />
+  )
+}
 
 function ProjectNav({
   label,
   href,
   icon,
   disabled,
+  subItems,
   ...props
 }: ProjectNavProps) {
-  const match = useMatch(href)
+  const match = useMatch(href || "")
   const Icon = icon
+  const [open, setOpen] = useState(false)
+
+  if (!href) {
+    return (
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger
+          render={
+            <SidebarMenuButton {...props}>
+              <Icon />
+              {label}
+              <ChevronDown
+                className={cn("ml-auto duration-200", open && "rotate-180")}
+              />
+            </SidebarMenuButton>
+          }
+        />
+        <CollapsibleContent>
+          <SidebarGroup>
+            {subItems?.map((subItem) => (
+              <SubNavItem key={subItem.label} label={subItem.label} href={subItem.href} />
+            ))}
+          </SidebarGroup>
+        </CollapsibleContent>
+      </Collapsible>
+    )
+  }
 
   return (
     <SidebarMenuButton
