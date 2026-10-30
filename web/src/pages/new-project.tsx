@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
 import {
   COLOR_PALETTE_STARTER_PACKS,
+  CORNER_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
 import { projectSchema, type ProjectSchema } from "@/schema/project-schema"
@@ -36,10 +37,8 @@ export function NewProject() {
         name: title,
         description,
         typography: TYPOGRAPHY_STATER_PACKS,
-        colorPalette: COLOR_PALETTE_STARTER_PACKS.map((p) => ({
-          ...p,
-          id: crypto.randomUUID(),
-        })),
+        colorPalette: COLOR_PALETTE_STARTER_PACKS,
+        corner: CORNER_STARTER_PACKS,
         templateTypography: "one",
         templateColorPalette: "one",
       })

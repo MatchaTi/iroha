@@ -1,4 +1,4 @@
-import type { ColorPalette, Typography } from "@/store/use-project"
+import type { ColorPalette, Corner, Typography } from "@/store/use-project"
 import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
@@ -321,4 +321,14 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Warning", purpose: "warning", anchor: "#B7791F" },
     ],
   },
+]
+
+export const CORNER_STARTER_PACKS: Corner[] = [
+  { id: crypto.randomUUID(), name: "None", radius: 0 },
+  { id: crypto.randomUUID(), name: "Extra Small", radius: 2 },
+  { id: crypto.randomUUID(), name: "Small", radius: 4 },
+  { id: crypto.randomUUID(), name: "Medium", radius: 8 },
+  { id: crypto.randomUUID(), name: "Large", radius: 12 },
+  { id: crypto.randomUUID(), name: "Extra Large", radius: 16 },
+  { id: crypto.randomUUID(), name: "Full", radius: 99 },
 ]

@@ -16,6 +16,7 @@ import {
   List,
   Palette,
   Settings,
+  SquareRoundCorner,
   VectorSquare,
 } from "lucide-react"
 import { useState } from "react"
@@ -59,6 +60,12 @@ export function ProjectLayout() {
       label: "Color Palette",
       href: `/projects/${id}/color-palette`,
       icon: Palette,
+      disabled: false,
+    },
+    {
+      label: "Corner",
+      href: `/projects/${id}/corner`,
+      icon: SquareRoundCorner,
       disabled: false,
     },
     {

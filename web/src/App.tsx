@@ -6,6 +6,7 @@ import { NewProject } from "./pages/new-project"
 import { ProjectDetails } from "./pages/project-details"
 import { ProjectLayout } from "./layout/project-layout"
 import { ColorPalette } from "./pages/color-palette"
+import { Corner } from "./pages/corner"
 
 export function App() {
   return (
@@ -20,6 +21,7 @@ export function App() {
             path="/projects/:id/color-palette"
             element={<ColorPalette />}
           />
+          <Route path="/projects/:id/corner" element={<Corner />} />
         </Route>
       </Route>
     </Routes>

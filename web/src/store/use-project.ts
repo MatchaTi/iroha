@@ -37,12 +37,19 @@ export type ColorPalette = {
   colors: Color[]
 }
 
+export type Corner = {
+  id: string
+  name: string
+  radius: number
+}
+
 export type Project = {
   id: string
   name: string
   description: string
   typography: Typography[]
   colorPalette: ColorPalette[]
+  corner: Corner[]
   templateTypography: string
   templateColorPalette: string
 }
