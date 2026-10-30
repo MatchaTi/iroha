@@ -21,7 +21,7 @@ export function ColorPaletteTwo({
               <div
                 key={color.level}
                 className="w-24 flex-none space-y-2 lg:w-full lg:flex-1"
-                onClick={() => copyToClipboard(color.hex)}
+                onClick={() => copyToClipboard(color.hex.toUpperCase())}
               >
                 <div
                   className="aspect-square w-full rounded-lg"

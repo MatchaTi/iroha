@@ -24,7 +24,7 @@ export function ColorPaletteOne({
                 key={color.level}
                 className="flex aspect-[3/4] flex-none flex-col items-start justify-between rounded-xl p-4 not-first:-ml-3 not-last:rounded-r-none lg:w-full lg:flex-1"
                 style={{ backgroundColor: color.hex }}
-                onClick={() => copyToClipboard(color.hex)}
+                onClick={() => copyToClipboard(color.hex.toUpperCase())}
               >
                 <span
                   className={cn(

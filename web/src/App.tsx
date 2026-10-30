@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router"
-import { Dashboard } from "./pages/dashboard"
 import { Home } from "./pages/home"
 import { DashboardLayout } from "./layout/dashboard-layout"
 import { Typography } from "./pages/typography"
@@ -13,7 +12,6 @@ export function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route element={<DashboardLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/new" element={<NewProject />} />
         <Route element={<ProjectLayout />}>
           <Route index path="/projects/:id" element={<ProjectDetails />} />
