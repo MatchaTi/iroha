@@ -565,7 +565,203 @@ async function importTokens(t) {
     figma.currentPage.appendChild(frameShadow);
   }
 
-  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-5));
+  // -- Frame 5: Button Components --
+  if (t.designButton && t.designButton.length) {
+    // Helper resolve color ref "purpose::level" → hex
+    function resolveColorRef(ref) {
+      if (!ref || ref === "transparent") return null;
+      if (!ref.includes("::")) return ref;
+      var parts = ref.split("::");
+      var purpose = parts[0], level = parts[1];
+      for (var pal of (t.colorPalette || [])) {
+        if (pal.purpose === purpose) {
+          for (var clr of pal.colors) {
+            if (clr.level === level) return clr.hex;
+          }
+        }
+      }
+      return "#000000";
+    }
+
+    // Helper resolve cornerId → radius
+    function resolveCornerRef(id) {
+      for (var cr of (t.corner || [])) {
+        if (cr.id === id) return cr.radius >= 99 ? 9999 : cr.radius;
+      }
+      return 0;
+    }
+
+    // Helper resolve shadowId → Figma effect array
+    function resolveShadowRef(id) {
+      if (id === "none" || !id) return [];
+      for (var sh of (t.shadow || [])) {
+        if (sh.id === id) {
+          var col = parseColor(sh.color);
+          return [{
+            type: "DROP_SHADOW",
+            color: { r: col.r, g: col.g, b: col.b, a: col.a },
+            offset: { x: sh.x, y: sh.y },
+            radius: sh.blur,
+            spread: sh.spread,
+            visible: true,
+            blendMode: "NORMAL",
+          }];
+        }
+      }
+      return [];
+    }
+
+    // Helper resolve typographyId → { fontFamily, fontSize, fontWeight }
+    function resolveTypoRef(id) {
+      for (var ty of (t.typography || [])) {
+        if (ty.id === id) return ty;
+      }
+      return null;
+    }
+
+    // Map fontWeight → Figma style string
+    var SIZES_ORDER = ["xs", "sm", "default", "lg"];
+    var VARIANTS_ORDER = [
+      "default", "outline", "secondary", "ghost",
+      "destructive", "error", "warning", "success", "link"
+    ];
+
+    var components = [];
+
+    for (var btn of t.designButton) {
+      var bgHex = resolveColorRef(btn.background);
+      var fgHex = resolveColorRef(btn.foreground);
+      var borderHex = resolveColorRef(btn.border);
+      var radius = resolveCornerRef(btn.cornerId);
+      var effects = resolveShadowRef(btn.shadowId);
+      var typo = resolveTypoRef(btn.typographyId);
+      var figmaFontStyle = toFigmaStyle(typo ? typo.fontWeight : "400");
+      var fontFamily = typo ? typo.fontFamily : "Inter";
+      var fontSize = typo ? typo.fontSize : 14;
+
+      // Load font — fallback ke Inter Regular jika font/style tidak tersedia
+      var fontLoaded = false;
+      try {
+        await figma.loadFontAsync({ family: fontFamily, style: figmaFontStyle });
+        fontLoaded = true;
+      } catch(e) {}
+      if (!fontLoaded) {
+        // Coba style Regular dari font yang sama
+        try {
+          await figma.loadFontAsync({ family: fontFamily, style: "Regular" });
+          figmaFontStyle = "Regular";
+          fontLoaded = true;
+        } catch(e) {}
+      }
+      if (!fontLoaded) {
+        // Fallback total ke Inter Regular
+        fontFamily = "Inter";
+        figmaFontStyle = "Regular";
+      }
+
+      // Buat component
+      var comp = figma.createComponent();
+      comp.name = "Variant=" + cap(btn.variant) + ", Size=" + btn.size;
+      comp.layoutMode = "HORIZONTAL";
+      comp.primaryAxisSizingMode = "AUTO";
+      comp.counterAxisSizingMode = "AUTO";
+      comp.primaryAxisAlignItems = "CENTER";
+      comp.counterAxisAlignItems = "CENTER";
+      comp.paddingLeft = comp.paddingRight = btn.paddingX;
+      comp.paddingTop = comp.paddingBottom = btn.paddingY;
+      comp.cornerRadius = radius > 9000 ? 9999 : radius;
+      comp.fills = bgHex ? solid(bgHex) : [];
+      comp.strokes = borderHex && borderHex !== "transparent"
+        ? [{ type: "SOLID", color: hexToRgb(borderHex) }]
+        : [];
+      comp.strokeWeight = 1;
+      comp.strokeAlign = "INSIDE";
+      comp.effects = effects;
+
+      // Text label dengan component property
+      var labelPropKey = comp.addComponentProperty("Label", "TEXT", "Button");
+      var txt = figma.createText();
+      txt.fontName = { family: fontFamily, style: figmaFontStyle };
+      txt.fontSize = fontSize;
+      txt.fills = fgHex ? solid(fgHex) : solid("#000000");
+      txt.characters = "Button";
+      if (btn.variant === "link") {
+        txt.textDecoration = "UNDERLINE";
+      }
+      comp.appendChild(txt);
+      txt.componentPropertyReferences = { characters: labelPropKey };
+
+      components.push(comp);
+    }
+
+    // Gabungkan jadi ComponentSet
+    if (components.length > 0) {
+      var compSet = figma.combineAsVariants(components, figma.currentPage);
+      compSet.name = "Button";
+      compSet.fills = [];
+      compSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+      compSet.strokeWeight = 2;
+      compSet.dashPattern = [8, 4];
+      compSet.strokeAlign = "INSIDE";
+
+      // Susun manual: tiap variant = satu baris, size xs→lg kiri ke kanan
+      var sizeOrder = { xs: 0, sm: 1, "default": 2, lg: 3 };
+      var variantOrder = ["Default","Outline","Secondary","Ghost","Destructive","Error","Warning","Success","Link"];
+      var colGap = 16, rowGap = 24;
+      var padH = 32, padV = 32;
+
+      // Kelompokkan children per variant
+      var byVariant = {};
+      for (var ci = 0; ci < compSet.children.length; ci++) {
+        var ch = compSet.children[ci];
+        ch.primaryAxisSizingMode = "AUTO";
+        ch.counterAxisSizingMode = "AUTO";
+        var vm = ch.name.match(/Variant=([^,]+)/);
+        var sm2 = ch.name.match(/Size=(\w+)/);
+        var vk = vm ? vm[1] : "Other";
+        var sk = sm2 ? sm2[1] : "default";
+        if (!byVariant[vk]) byVariant[vk] = [];
+        byVariant[vk].push({ node: ch, sizeKey: sk });
+      }
+
+      // Posisikan tiap node
+      var curY = padV;
+      var maxRowWidth = 0;
+      for (var ri = 0; ri < variantOrder.length; ri++) {
+        var vk = variantOrder[ri];
+        if (!byVariant[vk]) continue;
+        var row = byVariant[vk].sort(function(a, b) {
+          return (sizeOrder[a.sizeKey] || 0) - (sizeOrder[b.sizeKey] || 0);
+        });
+        var curX = padH;
+        var maxH = 0;
+        for (var si = 0; si < row.length; si++) {
+          var node = row[si].node;
+          node.x = curX;
+          node.y = curY;
+          curX += node.width + colGap;
+          if (node.height > maxH) maxH = node.height;
+        }
+        var rowWidth = curX - colGap + padH;
+        if (rowWidth > maxRowWidth) maxRowWidth = rowWidth;
+        curY += maxH + rowGap;
+      }
+
+      // Resize compSet agar pas dengan konten
+      compSet.resize(maxRowWidth, curY - rowGap + padV);
+
+      // Buat frame wrapper
+      var frameBtn = makeSectionFrame(
+        "Button",
+        "Button",
+        "Customize button styles for each variant and size in your design system"
+      );
+      frameBtn.appendChild(compSet);
+      figma.currentPage.appendChild(frameBtn);
+    }
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-6));
 }
 
 figma.showUI(__html__, { width: 360, height: 260 });

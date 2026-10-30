@@ -33,6 +33,7 @@ function buildTokenPayload(project: Project) {
     typography: project.typography,
     corner: project.corner,
     shadow: project.shadow,
+    designButton: project.designButton,
   }
 }
 
