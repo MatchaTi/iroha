@@ -47,7 +47,7 @@ function CornerRow({ corner, onCommit, onDelete }: CornerRowProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Preview */}
       <div
         className="relative aspect-video w-full border-2 border-border bg-sidebar transition-all duration-200"
@@ -71,7 +71,7 @@ function CornerRow({ corner, onCommit, onDelete }: CornerRowProps) {
       </div>
 
       {/* Inline editor */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         {/* Name + radius value + delete */}
         <div className="flex items-center gap-2">
           <Input
