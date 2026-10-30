@@ -43,6 +43,16 @@ export type Corner = {
   radius: number
 }
 
+export type Shadow = {
+  id: string
+  name: string
+  x: number
+  y: number
+  blur: number
+  spread: number
+  color: string // rgba
+}
+
 export type Project = {
   id: string
   name: string
@@ -50,6 +60,7 @@ export type Project = {
   typography: Typography[]
   colorPalette: ColorPalette[]
   corner: Corner[]
+  shadow: Shadow[]
   templateTypography: string
   templateColorPalette: string
 }

@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/toast"
 import {
   COLOR_PALETTE_STARTER_PACKS,
   CORNER_STARTER_PACKS,
+  SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
 import { projectSchema, type ProjectSchema } from "@/schema/project-schema"
@@ -39,6 +40,7 @@ export function NewProject() {
         typography: TYPOGRAPHY_STATER_PACKS,
         colorPalette: COLOR_PALETTE_STARTER_PACKS,
         corner: CORNER_STARTER_PACKS,
+        shadow: SHADOW_STARTER_PACKS,
         templateTypography: "one",
         templateColorPalette: "one",
       })

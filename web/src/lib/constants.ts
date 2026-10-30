@@ -1,4 +1,4 @@
-import type { ColorPalette, Corner, Typography } from "@/store/use-project"
+import type { ColorPalette, Corner, Shadow, Typography } from "@/store/use-project"
 import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
@@ -331,4 +331,34 @@ export const CORNER_STARTER_PACKS: Corner[] = [
   { id: crypto.randomUUID(), name: "Large", radius: 12 },
   { id: crypto.randomUUID(), name: "Extra Large", radius: 16 },
   { id: crypto.randomUUID(), name: "Full", radius: 99 },
+]
+
+export const SHADOW_STARTER_PACKS: Shadow[] = [
+  {
+    id: crypto.randomUUID(),
+    name: "Shadow Small",
+    x: 0,
+    y: 1,
+    blur: 3,
+    spread: 0,
+    color: "#0000001f",
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Shadow Medium",
+    x: 0,
+    y: 4,
+    blur: 12,
+    spread: 0,
+    color: "#00000029",
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Shadow Large",
+    x: 0,
+    y: 8,
+    blur: 24,
+    spread: 0,
+    color: "#00000033",
+  },
 ]

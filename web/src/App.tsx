@@ -7,6 +7,7 @@ import { ProjectDetails } from "./pages/project-details"
 import { ProjectLayout } from "./layout/project-layout"
 import { ColorPalette } from "./pages/color-palette"
 import { Corner } from "./pages/corner"
+import { Shadow } from "./pages/shadow"
 
 export function App() {
   return (
@@ -22,6 +23,7 @@ export function App() {
             element={<ColorPalette />}
           />
           <Route path="/projects/:id/corner" element={<Corner />} />
+          <Route path="/projects/:id/shadow" element={<Shadow />} />
         </Route>
       </Route>
     </Routes>
