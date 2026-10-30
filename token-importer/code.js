@@ -66,12 +66,37 @@ function makeFrame(name, mode, gap, pad) {
 }
 function makeText(chars, size, style, hex, name, family) {
   var t = figma.createText();
-  t.fontName = { family: family || "Google Sans Flex", style: style };
+  t.fontName = { family: family || "Inter", style: style };
   t.fontSize = size;
   t.characters = chars;
   t.fills = solid(hex);
   if (name) t.name = name;
   return t;
+}
+// Buat section frame dengan bg #f1f5f9, title, description, dan separator
+function makeSectionFrame(name, title, description) {
+  var f = makeFrame(name, "VERTICAL", 0, 48);
+  f.cornerRadius = 24;
+  f.fills = solid("#F1F5F9");
+
+  // Header area
+  var header = makeFrame("Header", "VERTICAL", 6);
+  header.fills = [];
+  header.appendChild(makeText(title, 20, "Bold", "#0F172A", "Title"));
+  header.appendChild(makeText(description, 13, "Regular", "#64748B", "Description"));
+  f.appendChild(header);
+
+  // Separator garis horizontal
+  var sep = figma.createRectangle();
+  sep.name = "Separator";
+  sep.fills = solid("#E2E8F0");
+  sep.resize(100, 1);
+  sep.layoutAlign = "STRETCH";
+  sep.layoutGrow = 0;
+  f.appendChild(sep);
+
+  f.itemSpacing = 16;
+  return f;
 }
 
 // ---------- Color Palette templates ----------
@@ -307,11 +332,28 @@ async function importTokens(t) {
   var colorFn = COLOR_TEMPLATES[t.templateColorPalette] || COLOR_TEMPLATES.one;
   var typeFn = TYPE_TEMPLATES[t.templateTypography] || TYPE_TEMPLATES["one"];
 
+  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+  await figma.loadFontAsync({ family: "Inter", style: "Medium" });
+  await figma.loadFontAsync({ family: "Inter", style: "Bold" });
   await figma.loadFontAsync({ family: "Google Sans Flex", style: "Regular" });
   await figma.loadFontAsync({ family: "Google Sans Flex", style: "Medium" });
   await figma.loadFontAsync({ family: "Google Sans Flex", style: "Bold" });
   await figma.loadFontAsync({ family: "Source Code Pro", style: "Regular" });
   await figma.loadFontAsync({ family: "Source Code Pro", style: "Medium" });
+
+  // -- Canvas background: primary/100 --
+  var canvasBg = "#F8FAFC"; // fallback slate-50
+  if (t.colorPalette && t.colorPalette.length) {
+    for (var pal of t.colorPalette) {
+      if (pal.purpose === "primary") {
+        for (var clr of pal.colors) {
+          if (clr.level === "50") { canvasBg = clr.hex; break; }
+        }
+        break;
+      }
+    }
+  }
+  figma.currentPage.backgrounds = [{ type: "SOLID", color: hexToRgb(canvasBg) }];
 
   // -- Color Palettes: paint styles + optional variables per shade --
   var palettesForTemplate = [];
@@ -376,30 +418,31 @@ async function importTokens(t) {
   }
 
   // -- Frame 1: Header --
-  var frameHeader = makeFrame("Design System · " + (t.name || "Untitled"), "VERTICAL", 12, 48);
-  frameHeader.cornerRadius = 24;
-  frameHeader.fills = solid("#F0EDE6");
-  frameHeader.appendChild(makeText("Design System", 13, "Regular", "#7A7A7A", "Label"));
-  if (t.name) frameHeader.appendChild(makeText(t.name, 32, "Bold", "#1A1A1A", "Project Name"));
-  if (t.description) frameHeader.appendChild(makeText(t.description, 14, "Regular", "#7A7A7A", "Description"));
+  var frameHeader = makeSectionFrame(
+    "Design System · " + (t.name || "Untitled"),
+    t.name || "Untitled",
+    t.description || ""
+  );
   figma.currentPage.appendChild(frameHeader);
 
   // -- Frame 2: Typography --
   if (typeItems.length) {
-    var frameTypo = makeFrame("Typography", "VERTICAL", 32, 48);
-    frameTypo.cornerRadius = 24;
-    frameTypo.fills = solid("#F0EDE6");
-    frameTypo.appendChild(makeText("Typography", 20, "Bold", "#1A1A1A", "Title"));
+    var frameTypo = makeSectionFrame(
+      "Typography",
+      "Typography",
+      "Define type styles for consistent text hierarchy across your design system"
+    );
     frameTypo.appendChild(await typeFn(typeItems));
     figma.currentPage.appendChild(frameTypo);
   }
 
   // -- Frame 3: Color Palette --
   if (palettesForTemplate.length) {
-    var frameColors = makeFrame("Color Palette", "VERTICAL", 32, 48);
-    frameColors.cornerRadius = 24;
-    frameColors.fills = solid("#F0EDE6");
-    frameColors.appendChild(makeText("Color Palette", 20, "Bold", "#1A1A1A", "Title"));
+    var frameColors = makeSectionFrame(
+      "Color Palette",
+      "Color Palette",
+      "Define color tokens for consistent use of color across your design system"
+    );
     frameColors.appendChild(await colorFn(palettesForTemplate));
     figma.currentPage.appendChild(frameColors);
   }
@@ -440,10 +483,11 @@ async function importTokens(t) {
       }
     }
 
-    var frameCorner = makeFrame("Corner", "VERTICAL", 24, 48);
-    frameCorner.cornerRadius = 24;
-    frameCorner.fills = solid("#F0EDE6");
-    frameCorner.appendChild(makeText("Corner", 20, "Bold", "#1A1A1A", "Title"));
+    var frameCorner = makeSectionFrame(
+      "Corner",
+      "Corner",
+      "Define border radius tokens for consistent rounded corners across your design system"
+    );
 
     var cornerRow = makeFrame("Corners", "HORIZONTAL", 24);
     cornerRow.counterAxisAlignItems = "MIN";
@@ -484,10 +528,11 @@ async function importTokens(t) {
       }];
     }
 
-    var frameShadow = makeFrame("Shadow", "VERTICAL", 24, 48);
-    frameShadow.cornerRadius = 24;
-    frameShadow.fills = solid("#F0EDE6");
-    frameShadow.appendChild(makeText("Shadow", 20, "Bold", "#1A1A1A", "Title"));
+    var frameShadow = makeSectionFrame(
+      "Shadow",
+      "Shadow",
+      "Define elevation and depth with consistent shadow tokens across your design system"
+    );
 
     var shadowRow = makeFrame("Shadows", "HORIZONTAL", 32);
     shadowRow.counterAxisAlignItems = "MIN";
