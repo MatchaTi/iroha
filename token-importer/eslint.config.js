@@ -13,6 +13,11 @@ module.exports = tseslint.config(
     plugins: {
       '@figma/figma-plugins': figmaPlugin,
     },
+    extends: [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:@figma/figma-plugins/recommended"
+    ],
     rules: {
       ...figmaPlugin.configs.recommended.rules,
       // allow underscore-prefixing of unused variables
