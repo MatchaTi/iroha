@@ -197,7 +197,7 @@ export function ProjectDetails() {
   const BADGE_VARIANTS = ["default", "secondary", "destructive", "error", "warning", "success", "outline"] as const
 
   return (
-    <main className="space-y-16 overflow-x-hidden p-4 lg:p-10">
+    <main className="space-y-16 overflow-x-hidden p-4">
       {/* ── Header ── */}
       <section className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex-1 space-y-3">
