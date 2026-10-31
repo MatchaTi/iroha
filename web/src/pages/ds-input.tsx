@@ -314,7 +314,7 @@ function InputEditor({
               {(() => {
                 const c = corners.find((c) => c.id === inp.cornerId)
                 return c
-                  ? `${c.name} — ${c.radius >= 99 ? "Full" : `${c.radius}px`}`
+                  ? `${c.name} - ${c.radius >= 99 ? "Full" : `${c.radius}px`}`
                   : "Custom"
               })()}
             </SelectValue>
@@ -322,7 +322,7 @@ function InputEditor({
           <SelectContent>
             {corners.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name} — {c.radius >= 99 ? "Full" : `${c.radius}px`}
+                {c.name} - {c.radius >= 99 ? "Full" : `${c.radius}px`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -385,7 +385,7 @@ function InputEditor({
               {(() => {
                 const t = typographies.find((t) => t.id === inp.typographyId)
                 return t
-                  ? `${t.name} — ${t.fontSize}px / ${t.fontWeight}`
+                  ? `${t.name} - ${t.fontSize}px / ${t.fontWeight}`
                   : "Custom"
               })()}
             </SelectValue>
