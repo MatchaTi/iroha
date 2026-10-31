@@ -17,6 +17,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/toast"
 import {
   useProject,
@@ -58,6 +59,37 @@ function resolveShadow(id: string, shadows: ShadowType[]): string {
   if (id === "none") return "none"
   const s = shadows.find((s) => s.id === id)
   return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
+}
+
+function getContrastColor(hex: string): string {
+  const n = parseInt(hex.replace("#", ""), 16)
+  const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)
+  return lum > 150 ? "#1A1A1A" : "#FFFFFF"
+}
+
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      <Separator />
+      {children}
+    </section>
+  )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -121,9 +153,7 @@ export function ProjectDetails() {
             <Palette />
           </EmptyMedia>
           <EmptyTitle>No project found</EmptyTitle>
-          <EmptyDescription>
-            Create a new project to get started.
-          </EmptyDescription>
+          <EmptyDescription>Create a new project to get started.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button render={<Link to="/new">Create Project</Link>} />
@@ -134,10 +164,7 @@ export function ProjectDetails() {
 
   const handleDelete = () => {
     if (!id) return
-    toast.add({
-      title: "Project deleted",
-      description: `${project.name} has been deleted.`,
-    })
+    toast.add({ title: "Project deleted", description: `${project.name} has been deleted.` })
     deleteProject(id)
     navigate("/dashboard")
   }
@@ -146,6 +173,7 @@ export function ProjectDetails() {
   const corners = project.corner ?? []
   const shadows = project.shadow ?? []
   const typographies = project.typography ?? []
+
   const displayTypo =
     typographies.find((t) => t.purpose === "display" && t.level === "large") ??
     typographies[0]
@@ -153,58 +181,48 @@ export function ProjectDetails() {
     typographies.find((t) => t.purpose === "body" && t.level === "medium") ??
     typographies[0]
 
-  // Samples
-  const defaultBtn = project.designButton.find(
-    (b) => b.variant === "default" && b.size === "default"
-  )
-  const outlineBtn = project.designButton.find(
-    (b) => b.variant === "outline" && b.size === "default"
-  )
-  const errorBtn = project.designButton.find(
-    (b) => b.variant === "error" && b.size === "default"
-  )
-  const defaultBadge = project.designBadge.find((b) => b.variant === "default")
-  const errorBadge = project.designBadge.find((b) => b.variant === "error")
-  const successBadge = project.designBadge.find((b) => b.variant === "success")
-  const defaultInput = project.designInput.find((i) => i.state === "default")
+  // Primary palette untuk color section
+  const primaryPalette = palettes.find((p) => p.purpose === "primary")
+  const anchor500 = primaryPalette?.colors.find((c) => c.level === "500")
+  const otherShades = primaryPalette?.colors.filter((c) => c.level !== "500") ?? []
+
+  // Button samples — all variants × all sizes
+  const BUTTON_VARIANTS = ["default", "outline", "secondary", "ghost", "destructive", "error", "warning", "success", "link"] as const
+  const BUTTON_SIZES = ["xs", "sm", "default", "lg"] as const
+
+  // Input per state
+  const INPUT_STATES = ["default", "focus", "error", "disabled"] as const
+
+  // Badge all variants
+  const BADGE_VARIANTS = ["default", "secondary", "destructive", "error", "warning", "success", "outline"] as const
 
   return (
-    <main
-      className="space-y-4 p-4"
-      style={{ fontFamily: displayTypo?.fontFamily }}
-    >
-      {/* Header */}
-      <section className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex-1 space-y-2">
-          <h2
+    <main className="space-y-16 overflow-x-hidden p-4 lg:p-10">
+      {/* ── Header ── */}
+      <section className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex-1 space-y-3">
+          <h1
             ref={nameRef}
-            className="line-clamp-2 text-3xl font-bold outline-none lg:text-4xl"
+            className="text-4xl font-bold outline-none lg:text-5xl"
             contentEditable
             suppressContentEditableWarning
             onBlur={handleNameBlur}
             onKeyDown={handleKeyDown}
             style={{
               fontFamily: displayTypo?.fontFamily,
-              fontSize: displayTypo?.fontSize,
               fontWeight: displayTypo?.fontWeight,
-              lineHeight: `${displayTypo?.lineHeight}px`,
             }}
           >
             {project.name}
-          </h2>
+          </h1>
           <p
             ref={descRef}
-            className="max-w-xl text-sm text-muted-foreground outline-none"
+            className="max-w-2xl text-muted-foreground outline-none"
             contentEditable
             suppressContentEditableWarning
             onBlur={handleDescBlur}
             onKeyDown={handleKeyDown}
-            style={{
-              fontFamily: bodyTypo?.fontFamily,
-              fontSize: bodyTypo?.fontSize,
-              fontWeight: bodyTypo?.fontWeight,
-              lineHeight: `${bodyTypo?.lineHeight}px`,
-            }}
+            style={{ fontFamily: bodyTypo?.fontFamily }}
           >
             {project.description}
           </p>
@@ -221,9 +239,7 @@ export function ProjectDetails() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this project?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone.
-                </AlertDialogDescription>
+                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -234,15 +250,7 @@ export function ProjectDetails() {
             </AlertDialogContent>
           </AlertDialog>
           <Button size="sm" variant="outline" onClick={handleCopy}>
-            {copied ? (
-              <>
-                <Check /> Copied
-              </>
-            ) : (
-              <>
-                <Copy /> Copy
-              </>
-            )}
+            {copied ? <><Check /> Copied</> : <><Copy /> Copy</>}
           </Button>
           <Button size="sm" onClick={handleExport}>
             <Download /> Export
@@ -250,218 +258,292 @@ export function ProjectDetails() {
         </div>
       </section>
 
-      {/* Bento grid — 4 columns on lg */}
-      <section className="grid auto-rows-[120px] grid-cols-2 gap-3 lg:auto-rows-[140px] lg:grid-cols-4">
-        {/* Color Palette — big, top-left, spans 2 cols × 2 rows */}
-        <div className="col-span-2 row-span-2 flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">
-            Color Palette
-          </p>
-          <div className="flex flex-1 flex-col justify-center gap-2">
-            {palettes.slice(0, 4).map((palette) => (
-              <div key={palette.id} className="flex items-center gap-2">
-                <span className="w-14 shrink-0 truncate text-xs text-muted-foreground capitalize">
-                  {palette.name}
-                </span>
-                <div className="flex flex-1 gap-0.5">
-                  {palette.colors.map((color) => (
-                    <div
-                      key={color.level}
-                      className="flex-1 rounded-sm transition-all hover:scale-y-110"
-                      style={{ backgroundColor: color.hex, height: 24 }}
-                      title={`${palette.name} ${color.level} — ${color.hex}`}
-                    />
-                  ))}
+      {/* ── Color Palette ── */}
+      {primaryPalette && (
+        <Section
+          title={`${primaryPalette.name} Colors`}
+          description="Primary color palette"
+        >
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-[2fr_repeat(3,1fr)] sm:grid-rows-2">
+            {/* Card besar — shade 500 */}
+            {anchor500 && (
+              <div
+                className="col-span-2 flex flex-col justify-between rounded-2xl p-6 sm:col-span-1 sm:row-span-2"
+                style={{ backgroundColor: anchor500.hex }}
+              >
+                <div>
+                  <p
+                    className="text-xs font-semibold uppercase tracking-widest opacity-70"
+                    style={{ color: getContrastColor(anchor500.hex) }}
+                  >
+                    HEX CODE:
+                  </p>
+                  <p
+                    className="mt-1 text-3xl font-bold"
+                    style={{ color: getContrastColor(anchor500.hex) }}
+                  >
+                    {anchor500.hex.toUpperCase().replace("#", "")}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: `${getContrastColor(anchor500.hex)}20`,
+                      color: getContrastColor(anchor500.hex),
+                    }}
+                  >
+                    {primaryPalette.name}
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: `${getContrastColor(anchor500.hex)}20`,
+                      color: getContrastColor(anchor500.hex),
+                    }}
+                  >
+                    500
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            )}
 
-        {/* Typography — top-right, spans 2 cols */}
-        <div className="col-span-2 flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">
-            Typography
-          </p>
-          <div className="flex flex-1 items-end justify-around">
-            {typographies.slice(0, 4).map((t) => (
-              <div key={t.id} className="flex flex-col items-center gap-1">
+            {/* Grid shade lainnya */}
+            {otherShades.slice(0, 6).map((color) => (
+              <div
+                key={color.level}
+                className="flex aspect-square items-center justify-center rounded-xl p-2"
+                style={{ backgroundColor: color.hex }}
+              >
                 <span
-                  style={{
-                    fontFamily: t.fontFamily,
-                    fontSize: Math.min(t.fontSize, 28),
-                    fontWeight: t.fontWeight,
-                    lineHeight: 1,
-                  }}
+                  className="font-mono text-xs font-medium"
+                  style={{ color: getContrastColor(color.hex) }}
                 >
-                  Aa
-                </span>
-                <span className="font-mono text-[8px] text-muted-foreground">
-                  {t.fontSize}px
+                  {color.hex.toUpperCase().replace("#", "")}
                 </span>
               </div>
             ))}
           </div>
-        </div>
+        </Section>
+      )}
 
-        {/* Corner — mid-right */}
-        <div className="flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">Corner</p>
-          <div className="flex flex-1 flex-wrap items-center justify-around gap-2">
-            {corners.slice(0, 3).map((c) => (
-              <div
-                key={c.id}
-                className="size-8 border-2 border-foreground/20 bg-foreground/5"
-                style={{ borderRadius: Math.min(c.radius, 32) }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Shadow — mid-right */}
-        <div className="flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">Shadow</p>
-          <div className="flex flex-1 flex-wrap items-center justify-around gap-2">
-            {shadows.map((s) => (
-              <div
-                key={s.id}
-                className="size-8 rounded-xl bg-background"
-                style={{
-                  boxShadow: `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Button — bottom-left, spans 2 cols */}
-        <div className="col-span-2 flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">Button</p>
-          <div className="flex flex-1 flex-wrap items-center gap-3">
-            {[defaultBtn, outlineBtn, errorBtn].map((btn, i) => {
-              if (!btn) return null
-              const typo = resolveTypography(btn.typographyId, typographies)
-              const radius = resolveCorner(btn.cornerId, corners)
-              return (
-                <span
-                  key={i}
-                  className="inline-flex items-center justify-center whitespace-nowrap"
-                  style={{
-                    backgroundColor:
-                      resolveColor(btn.background, palettes) === "transparent"
-                        ? "transparent"
-                        : resolveColor(btn.background, palettes),
-                    color: resolveColor(btn.foreground, palettes),
-                    border: `1px solid ${resolveColor(btn.border, palettes) === "transparent" ? "transparent" : resolveColor(btn.border, palettes)}`,
-                    borderRadius: radius >= 9999 ? 9999 : radius,
-                    fontFamily: typo?.fontFamily,
-                    fontSize: typo?.fontSize ?? 14,
-                    fontWeight: typo?.fontWeight ?? "Medium",
-                    paddingLeft: btn.paddingX,
-                    paddingRight: btn.paddingX,
-                    paddingTop: btn.paddingY,
-                    paddingBottom: btn.paddingY,
-                    boxShadow: resolveShadow(btn.shadowId, shadows),
-                  }}
-                >
-                  {["Default", "Outline", "Error"][i]}
-                </span>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Badge */}
-        <div className="flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">Badge</p>
-          <div className="flex flex-1 flex-wrap items-center gap-2">
-            {[defaultBadge, errorBadge, successBadge].map((badge, i) => {
-              if (!badge) return null
-              const typo = resolveTypography(badge.typographyId, typographies)
-              const radius = resolveCorner(badge.cornerId, corners)
-              return (
-                <span
-                  key={i}
-                  className="inline-flex items-center justify-center whitespace-nowrap"
-                  style={{
-                    backgroundColor:
-                      resolveColor(badge.background, palettes) === "transparent"
-                        ? "transparent"
-                        : resolveColor(badge.background, palettes),
-                    color: resolveColor(badge.foreground, palettes),
-                    border: `1px solid ${resolveColor(badge.border, palettes) === "transparent" ? "transparent" : resolveColor(badge.border, palettes)}`,
-                    borderRadius: radius >= 9999 ? 9999 : radius,
-                    fontFamily: typo?.fontFamily,
-                    fontSize: typo?.fontSize ?? 12,
-                    fontWeight: typo?.fontWeight ?? "Medium",
-                    paddingLeft: badge.paddingX,
-                    paddingRight: badge.paddingX,
-                    paddingTop: badge.paddingY,
-                    paddingBottom: badge.paddingY,
-                  }}
-                >
-                  {["Def", "Err", "Ok"][i]}
-                </span>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Input — bottom, spans 2 cols */}
-        <div className="col-span-2 flex flex-col gap-3 rounded-2xl border p-4">
-          <p className="text-xs font-medium text-muted-foreground">Input</p>
-          {defaultInput &&
-            (() => {
-              const typo = resolveTypography(
-                defaultInput.typographyId,
-                typographies
-              )
-              const radius = resolveCorner(defaultInput.cornerId, corners)
-              return (
-                <div className="flex flex-1 items-center">
-                  <div className="flex w-full max-w-xs flex-col gap-1">
-                    <label
-                      className="text-sm font-medium"
+      {/* ── Typography ── */}
+      {typographies.length > 0 && (
+        <Section
+          title={`${displayTypo?.fontFamily ?? "Typography"} Font Family`}
+          description="Type styles and specimen"
+        >
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Kiri — alphabet + description */}
+            <div className="space-y-6">
+              <p
+                className="text-lg leading-relaxed"
+                style={{ fontFamily: displayTypo?.fontFamily }}
+              >
+                Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm{" "}
+                Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz{" "}
+                1234567890 !@#$%^&*
+              </p>
+              <p
+                className="text-sm text-muted-foreground"
+                style={{ fontFamily: bodyTypo?.fontFamily }}
+              >
+                {project.description || "A versatile typeface for modern interfaces, designed for clarity across all screen sizes."}
+              </p>
+              {/* Heading scale preview */}
+              <div className="flex flex-wrap items-end gap-4">
+                {typographies
+                  .filter((t) => t.purpose === "display" || t.purpose === "headline")
+                  .slice(0, 6)
+                  .map((t, i) => (
+                    <div
+                      key={t.id}
+                      className="flex items-center justify-center rounded-xl border bg-muted/40 font-bold"
                       style={{
-                        color: resolveColor(defaultInput.label, palettes),
+                        fontFamily: t.fontFamily,
+                        fontSize: Math.max(14, 40 - i * 5),
+                        width: Math.max(48, 88 - i * 10),
+                        height: Math.max(48, 88 - i * 10),
                       }}
                     >
-                      Label
+                      {["H1", "H2", "H3", "H4", "H5", "H6"][i]}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Kanan — specimen list */}
+            <div className="space-y-4 lg:border-l lg:pl-8">
+              {typographies.slice(0, 8).map((t) => (
+                <div key={t.id} className="border-b pb-3 last:border-b-0">
+                  <p
+                    style={{
+                      fontFamily: t.fontFamily,
+                      fontSize: Math.min(t.fontSize, 24),
+                      fontWeight: t.fontWeight,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    The Quick Brown Fox Jumps Over The Lazy Dogs
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {t.purpose}/{t.level} · {t.fontFamily} · {t.fontSize}px / {t.fontWeight}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {/* ── Button ── */}
+      {project.designButton.length > 0 && (
+        <Section
+          title="Buttons"
+          description="Button styles for each variant and size"
+        >
+          <div className="space-y-6">
+            {BUTTON_SIZES.map((size) => {
+              const btns = BUTTON_VARIANTS.map((variant) =>
+                project.designButton.find((b) => b.variant === variant && b.size === size)
+              ).filter(Boolean)
+              if (!btns.length) return null
+              return (
+                <div key={size} className="space-y-2">
+                  <p className="font-mono text-xs text-muted-foreground capitalize">
+                    Size: {size}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {btns.map((btn) => {
+                      if (!btn) return null
+                      const typo = resolveTypography(btn.typographyId, typographies)
+                      const radius = resolveCorner(btn.cornerId, corners)
+                      return (
+                        <span
+                          key={btn.variant}
+                          className="inline-flex cursor-default items-center justify-center select-none"
+                          style={{
+                            backgroundColor: resolveColor(btn.background, palettes) === "transparent" ? "transparent" : resolveColor(btn.background, palettes),
+                            color: resolveColor(btn.foreground, palettes),
+                            border: `1px solid ${resolveColor(btn.border, palettes) === "transparent" ? "transparent" : resolveColor(btn.border, palettes)}`,
+                            borderRadius: radius >= 9999 ? 9999 : radius,
+                            fontFamily: typo?.fontFamily,
+                            fontSize: typo?.fontSize ?? 14,
+                            fontWeight: typo?.fontWeight,
+                            paddingLeft: btn.paddingX,
+                            paddingRight: btn.paddingX,
+                            paddingTop: btn.paddingY,
+                            paddingBottom: btn.paddingY,
+                            boxShadow: resolveShadow(btn.shadowId, shadows),
+                            textDecoration: btn.variant === "link" ? "underline" : "none",
+                          }}
+                        >
+                          Button
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </Section>
+      )}
+
+      {/* ── Input Fields ── */}
+      {project.designInput.length > 0 && (
+        <Section
+          title="Input Fields"
+          description="Input styles for each state"
+        >
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {INPUT_STATES.map((state) => {
+              const inp = project.designInput.find((i) => i.state === state)
+              if (!inp) return null
+              const typo = resolveTypography(inp.typographyId, typographies)
+              const radius = resolveCorner(inp.cornerId, corners)
+              return (
+                <div key={state} className="space-y-3">
+                  <p className="font-mono text-xs capitalize text-muted-foreground">
+                    {state}
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-sm font-medium"
+                      style={{ color: resolveColor(inp.label, palettes) }}
+                    >
+                      Input Field
                     </label>
                     <input
+                      readOnly
                       placeholder="Placeholder"
                       className="w-full outline-none"
                       style={{
-                        backgroundColor: resolveColor(
-                          defaultInput.background,
-                          palettes
-                        ),
-                        color: resolveColor(defaultInput.foreground, palettes),
-                        border: `1px solid ${resolveColor(defaultInput.border, palettes)}`,
+                        backgroundColor: resolveColor(inp.background, palettes),
+                        color: resolveColor(inp.foreground, palettes),
+                        border: `1px solid ${resolveColor(inp.border, palettes)}`,
                         borderRadius: radius >= 9999 ? 9999 : radius,
                         fontFamily: typo?.fontFamily,
                         fontSize: typo?.fontSize ?? 14,
                         fontWeight: typo?.fontWeight,
-                        paddingLeft: defaultInput.paddingX,
-                        paddingRight: defaultInput.paddingX,
-                        paddingTop: defaultInput.paddingY,
-                        paddingBottom: defaultInput.paddingY,
+                        paddingLeft: inp.paddingX,
+                        paddingRight: inp.paddingX,
+                        paddingTop: inp.paddingY,
+                        paddingBottom: inp.paddingY,
+                        opacity: state === "disabled" ? 0.5 : 1,
                       }}
                     />
                     <span
                       className="text-xs"
-                      style={{
-                        color: resolveColor(defaultInput.helper, palettes),
-                      }}
+                      style={{ color: resolveColor(inp.helper, palettes) }}
                     >
                       Helper text
                     </span>
                   </div>
                 </div>
               )
-            })()}
-        </div>
-      </section>
+            })}
+          </div>
+        </Section>
+      )}
+
+      {/* ── Badge ── */}
+      {project.designBadge.length > 0 && (
+        <Section
+          title="Badge"
+          description="Badge styles for each variant"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            {BADGE_VARIANTS.map((variant) => {
+              const badge = project.designBadge.find((b) => b.variant === variant)
+              if (!badge) return null
+              const typo = resolveTypography(badge.typographyId, typographies)
+              const radius = resolveCorner(badge.cornerId, corners)
+              return (
+                <span
+                  key={variant}
+                  className="inline-flex cursor-default items-center justify-center select-none"
+                  style={{
+                    backgroundColor: resolveColor(badge.background, palettes) === "transparent" ? "transparent" : resolveColor(badge.background, palettes),
+                    color: resolveColor(badge.foreground, palettes),
+                    border: `1px solid ${resolveColor(badge.border, palettes) === "transparent" ? "transparent" : resolveColor(badge.border, palettes)}`,
+                    borderRadius: radius >= 9999 ? 9999 : radius,
+                    fontFamily: typo?.fontFamily,
+                    fontSize: typo?.fontSize ?? 12,
+                    fontWeight: typo?.fontWeight,
+                    paddingLeft: badge.paddingX,
+                    paddingRight: badge.paddingX,
+                    paddingTop: badge.paddingY,
+                    paddingBottom: badge.paddingY,
+                  }}
+                >
+                  {variant.charAt(0).toUpperCase() + variant.slice(1)}
+                </span>
+              )
+            })}
+          </div>
+        </Section>
+      )}
     </main>
   )
 }
