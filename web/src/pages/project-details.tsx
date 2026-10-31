@@ -63,7 +63,8 @@ function resolveShadow(id: string, shadows: ShadowType[]): string {
 
 function getContrastColor(hex: string): string {
   const n = parseInt(hex.replace("#", ""), 16)
-  const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)
+  const lum =
+    0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)
   return lum > 150 ? "#1A1A1A" : "#FFFFFF"
 }
 
@@ -153,7 +154,9 @@ export function ProjectDetails() {
             <Palette />
           </EmptyMedia>
           <EmptyTitle>No project found</EmptyTitle>
-          <EmptyDescription>Create a new project to get started.</EmptyDescription>
+          <EmptyDescription>
+            Create a new project to get started.
+          </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button render={<Link to="/new">Create Project</Link>} />
@@ -164,9 +167,12 @@ export function ProjectDetails() {
 
   const handleDelete = () => {
     if (!id) return
-    toast.add({ title: "Project deleted", description: `${project.name} has been deleted.` })
+    toast.add({
+      title: "Project deleted",
+      description: `${project.name} has been deleted.`,
+    })
     deleteProject(id)
-    navigate("/dashboard")
+    navigate("/new")
   }
 
   const palettes = project.colorPalette ?? []
@@ -184,17 +190,36 @@ export function ProjectDetails() {
   // Primary palette untuk color section
   const primaryPalette = palettes.find((p) => p.purpose === "primary")
   const anchor500 = primaryPalette?.colors.find((c) => c.level === "500")
-  const otherShades = primaryPalette?.colors.filter((c) => c.level !== "500") ?? []
+  const otherShades =
+    primaryPalette?.colors.filter((c) => c.level !== "500") ?? []
 
   // Button samples — all variants × all sizes
-  const BUTTON_VARIANTS = ["default", "outline", "secondary", "ghost", "destructive", "error", "warning", "success", "link"] as const
+  const BUTTON_VARIANTS = [
+    "default",
+    "outline",
+    "secondary",
+    "ghost",
+    "destructive",
+    "error",
+    "warning",
+    "success",
+    "link",
+  ] as const
   const BUTTON_SIZES = ["xs", "sm", "default", "lg"] as const
 
   // Input per state
   const INPUT_STATES = ["default", "focus", "error", "disabled"] as const
 
   // Badge all variants
-  const BADGE_VARIANTS = ["default", "secondary", "destructive", "error", "warning", "success", "outline"] as const
+  const BADGE_VARIANTS = [
+    "default",
+    "secondary",
+    "destructive",
+    "error",
+    "warning",
+    "success",
+    "outline",
+  ] as const
 
   return (
     <main className="space-y-16 overflow-x-hidden p-4">
@@ -239,7 +264,9 @@ export function ProjectDetails() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this project?</AlertDialogTitle>
-                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -250,7 +277,15 @@ export function ProjectDetails() {
             </AlertDialogContent>
           </AlertDialog>
           <Button size="sm" variant="outline" onClick={handleCopy}>
-            {copied ? <><Check /> Copied</> : <><Copy /> Copy</>}
+            {copied ? (
+              <>
+                <Check /> Copied
+              </>
+            ) : (
+              <>
+                <Copy /> Copy
+              </>
+            )}
           </Button>
           <Button size="sm" onClick={handleExport}>
             <Download /> Export
@@ -273,7 +308,7 @@ export function ProjectDetails() {
               >
                 <div>
                   <p
-                    className="text-xs font-semibold uppercase tracking-widest opacity-70"
+                    className="text-xs font-semibold tracking-widest uppercase opacity-70"
                     style={{ color: getContrastColor(anchor500.hex) }}
                   >
                     HEX CODE:
@@ -340,20 +375,22 @@ export function ProjectDetails() {
                 className="text-lg leading-relaxed"
                 style={{ fontFamily: displayTypo?.fontFamily }}
               >
-                Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm{" "}
-                Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz{" "}
-                1234567890 !@#$%^&*
+                Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu
+                Vv Ww Xx Yy Zz 1234567890 !@#$%^&*
               </p>
               <p
                 className="text-sm text-muted-foreground"
                 style={{ fontFamily: bodyTypo?.fontFamily }}
               >
-                {project.description || "A versatile typeface for modern interfaces, designed for clarity across all screen sizes."}
+                {project.description ||
+                  "A versatile typeface for modern interfaces, designed for clarity across all screen sizes."}
               </p>
               {/* Heading scale preview */}
               <div className="flex flex-wrap items-end gap-4">
                 {typographies
-                  .filter((t) => t.purpose === "display" || t.purpose === "headline")
+                  .filter(
+                    (t) => t.purpose === "display" || t.purpose === "headline"
+                  )
                   .slice(0, 6)
                   .map((t, i) => (
                     <div
@@ -387,7 +424,8 @@ export function ProjectDetails() {
                     The Quick Brown Fox Jumps Over The Lazy Dogs
                   </p>
                   <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                    {t.purpose}/{t.level} · {t.fontFamily} · {t.fontSize}px / {t.fontWeight}
+                    {t.purpose}/{t.level} · {t.fontFamily} · {t.fontSize}px /{" "}
+                    {t.fontWeight}
                   </p>
                 </div>
               ))}
@@ -405,7 +443,9 @@ export function ProjectDetails() {
           <div className="space-y-6">
             {BUTTON_SIZES.map((size) => {
               const btns = BUTTON_VARIANTS.map((variant) =>
-                project.designButton.find((b) => b.variant === variant && b.size === size)
+                project.designButton.find(
+                  (b) => b.variant === variant && b.size === size
+                )
               ).filter(Boolean)
               if (!btns.length) return null
               return (
@@ -416,14 +456,21 @@ export function ProjectDetails() {
                   <div className="flex flex-wrap items-center gap-3">
                     {btns.map((btn) => {
                       if (!btn) return null
-                      const typo = resolveTypography(btn.typographyId, typographies)
+                      const typo = resolveTypography(
+                        btn.typographyId,
+                        typographies
+                      )
                       const radius = resolveCorner(btn.cornerId, corners)
                       return (
                         <span
                           key={btn.variant}
                           className="inline-flex cursor-default items-center justify-center select-none"
                           style={{
-                            backgroundColor: resolveColor(btn.background, palettes) === "transparent" ? "transparent" : resolveColor(btn.background, palettes),
+                            backgroundColor:
+                              resolveColor(btn.background, palettes) ===
+                              "transparent"
+                                ? "transparent"
+                                : resolveColor(btn.background, palettes),
                             color: resolveColor(btn.foreground, palettes),
                             border: `1px solid ${resolveColor(btn.border, palettes) === "transparent" ? "transparent" : resolveColor(btn.border, palettes)}`,
                             borderRadius: radius >= 9999 ? 9999 : radius,
@@ -435,7 +482,8 @@ export function ProjectDetails() {
                             paddingTop: btn.paddingY,
                             paddingBottom: btn.paddingY,
                             boxShadow: resolveShadow(btn.shadowId, shadows),
-                            textDecoration: btn.variant === "link" ? "underline" : "none",
+                            textDecoration:
+                              btn.variant === "link" ? "underline" : "none",
                           }}
                         >
                           Button
@@ -452,10 +500,7 @@ export function ProjectDetails() {
 
       {/* ── Input Fields ── */}
       {project.designInput.length > 0 && (
-        <Section
-          title="Input Fields"
-          description="Input styles for each state"
-        >
+        <Section title="Input Fields" description="Input styles for each state">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {INPUT_STATES.map((state) => {
               const inp = project.designInput.find((i) => i.state === state)
@@ -464,7 +509,7 @@ export function ProjectDetails() {
               const radius = resolveCorner(inp.cornerId, corners)
               return (
                 <div key={state} className="space-y-3">
-                  <p className="font-mono text-xs capitalize text-muted-foreground">
+                  <p className="font-mono text-xs text-muted-foreground capitalize">
                     {state}
                   </p>
                   <div className="flex flex-col gap-1.5">
@@ -509,13 +554,12 @@ export function ProjectDetails() {
 
       {/* ── Badge ── */}
       {project.designBadge.length > 0 && (
-        <Section
-          title="Badge"
-          description="Badge styles for each variant"
-        >
+        <Section title="Badge" description="Badge styles for each variant">
           <div className="flex flex-wrap items-center gap-3">
             {BADGE_VARIANTS.map((variant) => {
-              const badge = project.designBadge.find((b) => b.variant === variant)
+              const badge = project.designBadge.find(
+                (b) => b.variant === variant
+              )
               if (!badge) return null
               const typo = resolveTypography(badge.typographyId, typographies)
               const radius = resolveCorner(badge.cornerId, corners)
@@ -524,7 +568,10 @@ export function ProjectDetails() {
                   key={variant}
                   className="inline-flex cursor-default items-center justify-center select-none"
                   style={{
-                    backgroundColor: resolveColor(badge.background, palettes) === "transparent" ? "transparent" : resolveColor(badge.background, palettes),
+                    backgroundColor:
+                      resolveColor(badge.background, palettes) === "transparent"
+                        ? "transparent"
+                        : resolveColor(badge.background, palettes),
                     color: resolveColor(badge.foreground, palettes),
                     border: `1px solid ${resolveColor(badge.border, palettes) === "transparent" ? "transparent" : resolveColor(badge.border, palettes)}`,
                     borderRadius: radius >= 9999 ? 9999 : radius,
