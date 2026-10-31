@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/toast"
 import {
   COLOR_PALETTE_STARTER_PACKS,
   CORNER_STARTER_PACKS,
+  resolveDesignBadgeStarterPacks,
   resolveDesignButtonStarterPacks,
   resolveDesignInputStarterPacks,
   SHADOW_STARTER_PACKS,
@@ -48,6 +49,7 @@ export function NewProject() {
         shadow: shadows,
         designButton: resolveDesignButtonStarterPacks(corners, shadows, typography),
         designInput: resolveDesignInputStarterPacks(corners, shadows, typography),
+        designBadge: resolveDesignBadgeStarterPacks(corners, shadows, typography),
         templateTypography: "one",
         templateColorPalette: "one",
       })

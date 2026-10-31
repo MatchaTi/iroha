@@ -111,6 +111,10 @@ export function ProjectLayout() {
           label: "Input",
           href: `/projects/${id}/input`,
         },
+        {
+          label: "Badge",
+          href: `/projects/${id}/badge`,
+        },
       ],
     },
     {

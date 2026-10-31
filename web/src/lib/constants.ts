@@ -1,4 +1,4 @@
-import type { ColorPalette, Corner, DesignButton, DesignInput, Shadow, Typography } from "@/store/use-project"
+import type { ColorPalette, Corner, DesignBadge, DesignButton, DesignInput, Shadow, Typography } from "@/store/use-project"
 import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
@@ -516,6 +516,51 @@ export function resolveDesignInputStarterPacks(
       placeholder: pack.placeholder,
       label: pack.label,
       helper: pack.helper,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      typographyId: typo?.id ?? typographies[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      paddingX: pack.paddingX,
+      paddingY: pack.paddingY,
+    }
+  })
+}
+
+export const DESIGN_BADGE_STARTER_PACKS: Omit<DesignBadge, "cornerId" | "typographyId" | "shadowId"> & {
+  cornerName: string
+  typographyName: string
+  shadowName: string
+}[] = [
+  // ── default ──
+  { variant: "default",    background: "primary::500",  foreground: "primary::50",  border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── secondary ──
+  { variant: "secondary",  background: "primary::100",  foreground: "primary::900", border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── destructive ──
+  { variant: "destructive", background: "error::100",   foreground: "error::500",   border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── error ──
+  { variant: "error",       background: "error::500",    foreground: "error::50",    border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── warning ──
+  { variant: "warning",     background: "warning::500", foreground: "warning::50",  border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── success ──
+  { variant: "success",     background: "success::500", foreground: "success::50",  border: "transparent", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+  // ── outline ──
+  { variant: "outline",     background: "transparent",  foreground: "foreground::900", border: "muted::300", cornerName: "Full", typographyName: "Label Medium", shadowName: "none", paddingX: 8, paddingY: 2 },
+]
+
+/** Resolve badge starter pack name refs to actual token IDs */
+export function resolveDesignBadgeStarterPacks(
+  corners: Corner[],
+  shadows: ShadowType[],
+  typographies: Typography[]
+): DesignBadge[] {
+  return DESIGN_BADGE_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow = pack.shadowName === "none" ? undefined : shadows.find((s) => s.name === pack.shadowName)
+    const typo = typographies.find((t) => t.name === pack.typographyName)
+    return {
+      variant: pack.variant,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
       cornerId: corner?.id ?? corners[0]?.id ?? "",
       typographyId: typo?.id ?? typographies[0]?.id ?? "",
       shadowId: shadow?.id ?? "none",

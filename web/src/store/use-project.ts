@@ -102,6 +102,30 @@ export type DesignInput = {
   paddingY: number
 }
 
+export type DesignBadgeVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "error"
+  | "warning"
+  | "success"
+  | "outline"
+
+export type DesignBadge = {
+  variant: DesignBadgeVariant
+  // color refs: "transparent" or "purpose::level"
+  background: string
+  foreground: string
+  border: string
+  // token refs
+  cornerId: string
+  typographyId: string
+  shadowId: string
+  // spacing
+  paddingX: number
+  paddingY: number
+}
+
 export type Project = {
   id: string
   name: string
@@ -112,6 +136,7 @@ export type Project = {
   shadow: Shadow[]
   designButton: DesignButton[]
   designInput: DesignInput[]
+  designBadge: DesignBadge[]
   templateTypography: string
   templateColorPalette: string
 }
