@@ -565,61 +565,57 @@ async function importTokens(t) {
     figma.currentPage.appendChild(frameShadow);
   }
 
+  // ── Shared token resolvers (dipakai button, input, badge, dll) ──
+  function resolveColorRef(ref) {
+    if (!ref || ref === "transparent") return null;
+    if (!ref.includes("::")) return ref;
+    var parts = ref.split("::");
+    var purpose = parts[0], level = parts[1];
+    for (var pal of (t.colorPalette || [])) {
+      if (pal.purpose === purpose) {
+        for (var clr of pal.colors) {
+          if (clr.level === level) return clr.hex;
+        }
+      }
+    }
+    return "#000000";
+  }
+
+  function resolveCornerRef(id) {
+    for (var cr of (t.corner || [])) {
+      if (cr.id === id) return cr.radius >= 99 ? 9999 : cr.radius;
+    }
+    return 0;
+  }
+
+  function resolveShadowRef(id) {
+    if (id === "none" || !id) return [];
+    for (var sh of (t.shadow || [])) {
+      if (sh.id === id) {
+        var col = parseColor(sh.color);
+        return [{
+          type: "DROP_SHADOW",
+          color: { r: col.r, g: col.g, b: col.b, a: col.a },
+          offset: { x: sh.x, y: sh.y },
+          radius: sh.blur,
+          spread: sh.spread,
+          visible: true,
+          blendMode: "NORMAL",
+        }];
+      }
+    }
+    return [];
+  }
+
+  function resolveTypoRef(id) {
+    for (var ty of (t.typography || [])) {
+      if (ty.id === id) return ty;
+    }
+    return null;
+  }
+
   // -- Frame 5: Button Components --
   if (t.designButton && t.designButton.length) {
-    // Helper resolve color ref "purpose::level" → hex
-    function resolveColorRef(ref) {
-      if (!ref || ref === "transparent") return null;
-      if (!ref.includes("::")) return ref;
-      var parts = ref.split("::");
-      var purpose = parts[0], level = parts[1];
-      for (var pal of (t.colorPalette || [])) {
-        if (pal.purpose === purpose) {
-          for (var clr of pal.colors) {
-            if (clr.level === level) return clr.hex;
-          }
-        }
-      }
-      return "#000000";
-    }
-
-    // Helper resolve cornerId → radius
-    function resolveCornerRef(id) {
-      for (var cr of (t.corner || [])) {
-        if (cr.id === id) return cr.radius >= 99 ? 9999 : cr.radius;
-      }
-      return 0;
-    }
-
-    // Helper resolve shadowId → Figma effect array
-    function resolveShadowRef(id) {
-      if (id === "none" || !id) return [];
-      for (var sh of (t.shadow || [])) {
-        if (sh.id === id) {
-          var col = parseColor(sh.color);
-          return [{
-            type: "DROP_SHADOW",
-            color: { r: col.r, g: col.g, b: col.b, a: col.a },
-            offset: { x: sh.x, y: sh.y },
-            radius: sh.blur,
-            spread: sh.spread,
-            visible: true,
-            blendMode: "NORMAL",
-          }];
-        }
-      }
-      return [];
-    }
-
-    // Helper resolve typographyId → { fontFamily, fontSize, fontWeight }
-    function resolveTypoRef(id) {
-      for (var ty of (t.typography || [])) {
-        if (ty.id === id) return ty;
-      }
-      return null;
-    }
-
-    // Map fontWeight → Figma style string
     var SIZES_ORDER = ["xs", "sm", "default", "lg"];
     var VARIANTS_ORDER = [
       "default", "outline", "secondary", "ghost",
@@ -761,7 +757,138 @@ async function importTokens(t) {
     }
   }
 
-  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-6));
+  // -- Frame 6: Input Components --
+  if (t.designInput && t.designInput.length) {
+    var inputComponents = [];
+
+    for (var inp of t.designInput) {
+      var iBgHex     = resolveColorRef(inp.background);
+      var iBorderHex = resolveColorRef(inp.border);
+      var iPhHex     = resolveColorRef(inp.placeholder);
+      var iLabelHex  = resolveColorRef(inp.label);
+      var iHelperHex = resolveColorRef(inp.helper);
+      var iRadius    = resolveCornerRef(inp.cornerId);
+      var iEffects   = resolveShadowRef(inp.shadowId);
+      var iTypo      = resolveTypoRef(inp.typographyId);
+      var iFontStyle  = toFigmaStyle(iTypo ? iTypo.fontWeight : "400");
+      var iFontFamily = iTypo ? iTypo.fontFamily : "Inter";
+      var iFontSize   = iTypo ? iTypo.fontSize : 14;
+
+      // Load font dengan fallback
+      var iFontLoaded = false;
+      try { await figma.loadFontAsync({ family: iFontFamily, style: iFontStyle }); iFontLoaded = true; } catch(e) {}
+      if (!iFontLoaded) {
+        try { await figma.loadFontAsync({ family: iFontFamily, style: "Regular" }); iFontStyle = "Regular"; iFontLoaded = true; } catch(e) {}
+      }
+      if (!iFontLoaded) { iFontFamily = "Inter"; iFontStyle = "Regular"; }
+
+      var iComp = figma.createComponent();
+      iComp.name = "State=" + cap(inp.state);
+      iComp.layoutMode = "VERTICAL";
+      iComp.primaryAxisSizingMode = "AUTO";
+      iComp.counterAxisSizingMode = "AUTO";
+      iComp.itemSpacing = 4;
+      iComp.fills = [];
+
+      // Daftarkan semua properties — hanya untuk direct children
+      var showLabelProp  = iComp.addComponentProperty("Show Label", "BOOLEAN", true);
+      var labelTextProp  = iComp.addComponentProperty("Label", "TEXT", "Label");
+      var showHelperProp = iComp.addComponentProperty("Show Helper", "BOOLEAN", true);
+      var helperTextProp = iComp.addComponentProperty("Helper", "TEXT", "Helper text");
+
+      // 1. Label — direct child, bisa bind visible + characters
+      var labelTxt = figma.createText();
+      labelTxt.name = "Label";
+      labelTxt.fontName = { family: iFontFamily, style: iFontStyle };
+      labelTxt.fontSize = iFontSize > 12 ? iFontSize - 2 : iFontSize;
+      labelTxt.characters = "Label";
+      labelTxt.fills = iLabelHex ? solid(iLabelHex) : solid("#000000");
+      iComp.appendChild(labelTxt);
+      labelTxt.componentPropertyReferences = {
+        characters: labelTextProp,
+        visible: showLabelProp,
+      };
+
+      // 2. Input field — frame dengan placeholder di dalamnya
+      //    Tidak bisa bind componentPropertyReferences pada nested node,
+      //    jadi placeholder dibiarkan sebagai teks statis di dalam field
+      var iField = makeFrame("Field", "HORIZONTAL", 0);
+      iField.primaryAxisSizingMode = "FIXED";
+      iField.counterAxisSizingMode = "AUTO";
+      iField.resize(240, inp.paddingY * 2 + iFontSize);
+      iField.paddingLeft = iField.paddingRight = inp.paddingX;
+      iField.paddingTop = iField.paddingBottom = inp.paddingY;
+      iField.counterAxisAlignItems = "CENTER";
+      iField.cornerRadius = iRadius > 9000 ? 9999 : iRadius;
+      iField.fills = iBgHex ? solid(iBgHex) : [];
+      iField.strokes = iBorderHex && iBorderHex !== "transparent"
+        ? [{ type: "SOLID", color: hexToRgb(iBorderHex) }] : [];
+      iField.strokeWeight = 1;
+      iField.strokeAlign = "INSIDE";
+      iField.effects = iEffects;
+
+      var iPlaceholder = figma.createText();
+      iPlaceholder.name = "Placeholder";
+      iPlaceholder.fontName = { family: iFontFamily, style: iFontStyle };
+      iPlaceholder.fontSize = iFontSize;
+      iPlaceholder.characters = "Placeholder";
+      iPlaceholder.fills = iPhHex ? solid(iPhHex) : solid("#9CA3AF");
+      iField.appendChild(iPlaceholder);
+      iPlaceholder.layoutGrow = 1;
+
+      iComp.appendChild(iField);
+
+      // 3. Helper — direct child, bisa bind visible + characters
+      var iHelper = figma.createText();
+      iHelper.name = "Helper";
+      iHelper.fontName = { family: iFontFamily, style: iFontStyle };
+      iHelper.fontSize = iFontSize > 10 ? iFontSize - 4 : iFontSize;
+      iHelper.characters = "Helper text";
+      iHelper.fills = iHelperHex ? solid(iHelperHex) : solid("#6B7280");
+      iComp.appendChild(iHelper);
+      iHelper.componentPropertyReferences = {
+        characters: helperTextProp,
+        visible: showHelperProp,
+      };
+
+      inputComponents.push(iComp);
+    }
+
+    if (inputComponents.length > 0) {
+      var inputSet = figma.combineAsVariants(inputComponents, figma.currentPage);
+      inputSet.name = "Input";
+      inputSet.fills = [];
+      inputSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+      inputSet.strokeWeight = 2;
+      inputSet.dashPattern = [8, 4];
+      inputSet.strokeAlign = "INSIDE";
+
+      // Susun satu baris horizontal
+      var iPadH = 32, iPadV = 32, iGap = 32;
+      var iCurX = iPadH;
+      var iMaxH = 0;
+      for (var ci = 0; ci < inputSet.children.length; ci++) {
+        var ch = inputSet.children[ci];
+        ch.primaryAxisSizingMode = "AUTO";
+        ch.counterAxisSizingMode = "AUTO";
+        ch.x = iCurX;
+        ch.y = iPadV;
+        iCurX += ch.width + iGap;
+        if (ch.height > iMaxH) iMaxH = ch.height;
+      }
+      inputSet.resize(iCurX - iGap + iPadH, iMaxH + iPadV * 2);
+
+      var frameInput = makeSectionFrame(
+        "Input",
+        "Input",
+        "Customize input styles for each state in your design system"
+      );
+      frameInput.appendChild(inputSet);
+      figma.currentPage.appendChild(frameInput);
+    }
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-7));
 }
 
 figma.showUI(__html__, { width: 360, height: 260 });
