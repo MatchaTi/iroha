@@ -888,7 +888,106 @@ async function importTokens(t) {
     }
   }
 
-  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-7));
+  // -- Frame 7: Badge Components --
+  if (t.designBadge && t.designBadge.length) {
+    var BADGE_VARIANTS_ORDER = [
+      "default", "secondary", "destructive", "error", "warning", "success", "outline"
+    ];
+    var badgeComponents = [];
+
+    for (var badge of t.designBadge) {
+      var bBgHex     = resolveColorRef(badge.background);
+      var bFgHex     = resolveColorRef(badge.foreground);
+      var bBorderHex = resolveColorRef(badge.border);
+      var bRadius    = resolveCornerRef(badge.cornerId);
+      var bEffects   = resolveShadowRef(badge.shadowId);
+      var bTypo      = resolveTypoRef(badge.typographyId);
+      var bFontStyle  = toFigmaStyle(bTypo ? bTypo.fontWeight : "400");
+      var bFontFamily = bTypo ? bTypo.fontFamily : "Inter";
+      var bFontSize   = bTypo ? bTypo.fontSize : 12;
+
+      // Load font dengan fallback
+      var bFontLoaded = false;
+      try { await figma.loadFontAsync({ family: bFontFamily, style: bFontStyle }); bFontLoaded = true; } catch(e) {}
+      if (!bFontLoaded) {
+        try { await figma.loadFontAsync({ family: bFontFamily, style: "Regular" }); bFontStyle = "Regular"; bFontLoaded = true; } catch(e) {}
+      }
+      if (!bFontLoaded) { bFontFamily = "Inter"; bFontStyle = "Regular"; }
+
+      var bComp = figma.createComponent();
+      bComp.name = "Variant=" + cap(badge.variant);
+      bComp.layoutMode = "HORIZONTAL";
+      bComp.primaryAxisSizingMode = "AUTO";
+      bComp.counterAxisSizingMode = "AUTO";
+      bComp.primaryAxisAlignItems = "CENTER";
+      bComp.counterAxisAlignItems = "CENTER";
+      bComp.paddingLeft = bComp.paddingRight = badge.paddingX;
+      bComp.paddingTop = bComp.paddingBottom = badge.paddingY;
+      bComp.cornerRadius = bRadius > 9000 ? 9999 : bRadius;
+      bComp.fills = bBgHex ? solid(bBgHex) : [];
+      bComp.strokes = bBorderHex && bBorderHex !== "transparent"
+        ? [{ type: "SOLID", color: hexToRgb(bBorderHex) }] : [];
+      bComp.strokeWeight = 1;
+      bComp.strokeAlign = "INSIDE";
+      bComp.effects = bEffects;
+
+      // Property: Label text
+      var bLabelProp = bComp.addComponentProperty("Label", "TEXT", "Badge");
+
+      var bTxt = figma.createText();
+      bTxt.name = "Label";
+      bTxt.fontName = { family: bFontFamily, style: bFontStyle };
+      bTxt.fontSize = bFontSize;
+      bTxt.characters = "Badge";
+      bTxt.fills = bFgHex ? solid(bFgHex) : solid("#000000");
+      bComp.appendChild(bTxt);
+      bTxt.componentPropertyReferences = { characters: bLabelProp };
+
+      badgeComponents.push(bComp);
+    }
+
+    if (badgeComponents.length > 0) {
+      var badgeSet = figma.combineAsVariants(badgeComponents, figma.currentPage);
+      badgeSet.name = "Badge";
+      badgeSet.fills = [];
+      badgeSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+      badgeSet.strokeWeight = 2;
+      badgeSet.dashPattern = [8, 4];
+      badgeSet.strokeAlign = "INSIDE";
+
+      // Susun satu baris horizontal per variant
+      var bPadH = 32, bPadV = 32, bGap = 20;
+      var bCurX = bPadH;
+      var bMaxH = 0;
+
+      for (var vi = 0; vi < BADGE_VARIANTS_ORDER.length; vi++) {
+        var vname = cap(BADGE_VARIANTS_ORDER[vi]);
+        for (var ci = 0; ci < badgeSet.children.length; ci++) {
+          var ch = badgeSet.children[ci];
+          if (ch.name === "Variant=" + vname) {
+            ch.primaryAxisSizingMode = "AUTO";
+            ch.counterAxisSizingMode = "AUTO";
+            ch.x = bCurX;
+            ch.y = bPadV;
+            bCurX += ch.width + bGap;
+            if (ch.height > bMaxH) bMaxH = ch.height;
+            break;
+          }
+        }
+      }
+      badgeSet.resize(bCurX - bGap + bPadH, bMaxH + bPadV * 2);
+
+      var frameBadge = makeSectionFrame(
+        "Badge",
+        "Badge",
+        "Customize badge styles for each variant in your design system"
+      );
+      frameBadge.appendChild(badgeSet);
+      figma.currentPage.appendChild(frameBadge);
+    }
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-8));
 }
 
 figma.showUI(__html__, { width: 360, height: 260 });
