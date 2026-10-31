@@ -127,7 +127,7 @@ export function ProjectLayout() {
       label: "DESIGN.md",
       href: `/projects/${id}/design-md`,
       icon: MarkdownIcon,
-      disabled: true,
+      disabled: false,
     },
   ]
 
@@ -207,7 +207,11 @@ function ProjectNav({
         <CollapsibleContent>
           <SidebarGroup>
             {subItems?.map((subItem) => (
-              <SubNavItem key={subItem.label} label={subItem.label} href={subItem.href} />
+              <SubNavItem
+                key={subItem.label}
+                label={subItem.label}
+                href={subItem.href}
+              />
             ))}
           </SidebarGroup>
         </CollapsibleContent>

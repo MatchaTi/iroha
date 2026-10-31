@@ -11,6 +11,7 @@ import { Shadow } from "./pages/shadow"
 import { DSButton } from "./pages/ds-button"
 import { DSInput } from "./pages/ds-input"
 import { DSBadge } from "./pages/ds-badge"
+import { DesignMD } from "./pages/design-md"
 
 export function App() {
   return (
@@ -30,6 +31,7 @@ export function App() {
           <Route path="/projects/:id/button" element={<DSButton />} />
           <Route path="/projects/:id/input" element={<DSInput />} />
           <Route path="/projects/:id/badge" element={<DSBadge />} />
+          <Route path="/projects/:id/design-md" element={<DesignMD />} />
         </Route>
       </Route>
     </Routes>
