@@ -82,6 +82,26 @@ export type DesignButton = {
   paddingY: number
 }
 
+export type DesignInputState = "default" | "focus" | "error" | "disabled"
+
+export type DesignInput = {
+  state: DesignInputState
+  // color refs: "transparent" or "purpose::level"
+  background: string
+  foreground: string
+  border: string
+  placeholder: string
+  label: string
+  helper: string
+  // token refs
+  cornerId: string
+  typographyId: string
+  shadowId: string
+  // spacing
+  paddingX: number
+  paddingY: number
+}
+
 export type Project = {
   id: string
   name: string
@@ -91,6 +111,7 @@ export type Project = {
   corner: Corner[]
   shadow: Shadow[]
   designButton: DesignButton[]
+  designInput: DesignInput[]
   templateTypography: string
   templateColorPalette: string
 }

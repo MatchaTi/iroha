@@ -7,6 +7,7 @@ import {
   COLOR_PALETTE_STARTER_PACKS,
   CORNER_STARTER_PACKS,
   resolveDesignButtonStarterPacks,
+  resolveDesignInputStarterPacks,
   SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
@@ -46,6 +47,7 @@ export function NewProject() {
         corner: corners,
         shadow: shadows,
         designButton: resolveDesignButtonStarterPacks(corners, shadows, typography),
+        designInput: resolveDesignInputStarterPacks(corners, shadows, typography),
         templateTypography: "one",
         templateColorPalette: "one",
       })

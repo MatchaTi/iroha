@@ -107,6 +107,10 @@ export function ProjectLayout() {
           label: "Button",
           href: `/projects/${id}/button`,
         },
+        {
+          label: "Input",
+          href: `/projects/${id}/input`,
+        },
       ],
     },
     {

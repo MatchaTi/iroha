@@ -1,4 +1,4 @@
-import type { ColorPalette, Corner, DesignButton, Shadow, Typography } from "@/store/use-project"
+import type { ColorPalette, Corner, DesignButton, DesignInput, Shadow, Typography } from "@/store/use-project"
 import { generateColorPalette } from "./color-utils"
 
 export const PROJECT_NAME = "Iroha"
@@ -208,6 +208,24 @@ export const COLOR_PALETTE_STARTER_PACKS: ColorPalette[] = [
   },
   {
     id: crypto.randomUUID(),
+    name: "Background",
+    purpose: "background",
+    colors: generateColorPalette("#FEF7FF"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Foreground",
+    purpose: "foreground",
+    colors: generateColorPalette("#1C1B1F"),
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Muted",
+    purpose: "muted",
+    colors: generateColorPalette("#E7E0EC"),
+  },
+  {
+    id: crypto.randomUUID(),
     name: "Error",
     purpose: "error",
     colors: generateColorPalette("#B3261E"),
@@ -239,6 +257,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#6750A4" },
       { name: "Secondary", purpose: "secondary", anchor: "#625B71" },
       { name: "Accent", purpose: "accent", anchor: "#7D5260" },
+      { name: "Background", purpose: "background", anchor: "#FEF7FF" },
+      { name: "Foreground", purpose: "foreground", anchor: "#1C1B1F" },
+      { name: "Muted", purpose: "muted", anchor: "#E7E0EC" },
       { name: "Error", purpose: "error", anchor: "#B3261E" },
       { name: "Success", purpose: "success", anchor: "#386A20" },
       { name: "Warning", purpose: "warning", anchor: "#7D5700" },
@@ -250,6 +271,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#0077B6" },
       { name: "Secondary", purpose: "secondary", anchor: "#00B4D8" },
       { name: "Accent", purpose: "accent", anchor: "#90E0EF" },
+      { name: "Background", purpose: "background", anchor: "#F0F9FF" },
+      { name: "Foreground", purpose: "foreground", anchor: "#0C1E2F" },
+      { name: "Muted", purpose: "muted", anchor: "#E0F0F8" },
       { name: "Error", purpose: "error", anchor: "#C1121F" },
       { name: "Success", purpose: "success", anchor: "#2D6A4F" },
       { name: "Warning", purpose: "warning", anchor: "#D9770E" },
@@ -261,6 +285,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#386641" },
       { name: "Secondary", purpose: "secondary", anchor: "#6A994E" },
       { name: "Accent", purpose: "accent", anchor: "#A7C957" },
+      { name: "Background", purpose: "background", anchor: "#F5F7F2" },
+      { name: "Foreground", purpose: "foreground", anchor: "#1A2E14" },
+      { name: "Muted", purpose: "muted", anchor: "#E5E9DC" },
       { name: "Error", purpose: "error", anchor: "#BC4749" },
       { name: "Success", purpose: "success", anchor: "#3A7D44" },
       { name: "Warning", purpose: "warning", anchor: "#CB8B2A" },
@@ -272,6 +299,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#E63946" },
       { name: "Secondary", purpose: "secondary", anchor: "#F4A261" },
       { name: "Accent", purpose: "accent", anchor: "#E9C46A" },
+      { name: "Background", purpose: "background", anchor: "#FFF8F0" },
+      { name: "Foreground", purpose: "foreground", anchor: "#2D1B0E" },
+      { name: "Muted", purpose: "muted", anchor: "#F5E6D8" },
       { name: "Error", purpose: "error", anchor: "#9B1B30" },
       { name: "Success", purpose: "success", anchor: "#2A9D8F" },
       { name: "Warning", purpose: "warning", anchor: "#E76F51" },
@@ -283,6 +313,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#1A1A2E" },
       { name: "Secondary", purpose: "secondary", anchor: "#16213E" },
       { name: "Accent", purpose: "accent", anchor: "#0F3460" },
+      { name: "Background", purpose: "background", anchor: "#FFFFFF" },
+      { name: "Foreground", purpose: "foreground", anchor: "#1A1A2E" },
+      { name: "Muted", purpose: "muted", anchor: "#E8E8E8" },
       { name: "Error", purpose: "error", anchor: "#E43F5A" },
       { name: "Success", purpose: "success", anchor: "#28A745" },
       { name: "Warning", purpose: "warning", anchor: "#FFC107" },
@@ -294,6 +327,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#C9184A" },
       { name: "Secondary", purpose: "secondary", anchor: "#FF4D6D" },
       { name: "Accent", purpose: "accent", anchor: "#FF85A1" },
+      { name: "Background", purpose: "background", anchor: "#FFF5F7" },
+      { name: "Foreground", purpose: "foreground", anchor: "#2D0A14" },
+      { name: "Muted", purpose: "muted", anchor: "#FCE4EC" },
       { name: "Error", purpose: "error", anchor: "#9D0208" },
       { name: "Success", purpose: "success", anchor: "#40916C" },
       { name: "Warning", purpose: "warning", anchor: "#E9943A" },
@@ -305,6 +341,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#5E81AC" },
       { name: "Secondary", purpose: "secondary", anchor: "#81A1C1" },
       { name: "Accent", purpose: "accent", anchor: "#88C0D0" },
+      { name: "Background", purpose: "background", anchor: "#ECEFF4" },
+      { name: "Foreground", purpose: "foreground", anchor: "#2E3440" },
+      { name: "Muted", purpose: "muted", anchor: "#D8DEE9" },
       { name: "Error", purpose: "error", anchor: "#BF616A" },
       { name: "Success", purpose: "success", anchor: "#A3BE8C" },
       { name: "Warning", purpose: "warning", anchor: "#EBCB8B" },
@@ -316,6 +355,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
       { name: "Primary", purpose: "primary", anchor: "#9C4221" },
       { name: "Secondary", purpose: "secondary", anchor: "#C05621" },
       { name: "Accent", purpose: "accent", anchor: "#DD6B20" },
+      { name: "Background", purpose: "background", anchor: "#FFF8F1" },
+      { name: "Foreground", purpose: "foreground", anchor: "#2D1A0A" },
+      { name: "Muted", purpose: "muted", anchor: "#F0E6D6" },
       { name: "Error", purpose: "error", anchor: "#822727" },
       { name: "Success", purpose: "success", anchor: "#276749" },
       { name: "Warning", purpose: "warning", anchor: "#B7791F" },
@@ -432,6 +474,48 @@ export function resolveDesignButtonStarterPacks(
       background: pack.background,
       foreground: pack.foreground,
       border: pack.border,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      typographyId: typo?.id ?? typographies[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      paddingX: pack.paddingX,
+      paddingY: pack.paddingY,
+    }
+  })
+}
+
+export const DESIGN_INPUT_STARTER_PACKS: Omit<DesignInput, "cornerId" | "typographyId" | "shadowId"> & {
+  cornerName: string
+  typographyName: string
+  shadowName: string
+}[] = [
+  // ── default ──
+  { state: "default", background: "background::50",  foreground: "foreground::900", border: "muted::300",     placeholder: "muted::500",   label: "foreground::900", helper: "muted::500",   cornerName: "Medium", typographyName: "Body Medium", shadowName: "none", paddingX: 12, paddingY: 8 },
+  // ── focus ──
+  { state: "focus",    background: "background::50",  foreground: "foreground::900", border: "primary::500",   placeholder: "muted::500",   label: "foreground::900", helper: "muted::500",   cornerName: "Medium", typographyName: "Body Medium", shadowName: "none", paddingX: 12, paddingY: 8 },
+  // ── error ──
+  { state: "error",    background: "background::50",  foreground: "foreground::900", border: "error::500",     placeholder: "muted::500",   label: "foreground::900", helper: "error::500",   cornerName: "Medium", typographyName: "Body Medium", shadowName: "none", paddingX: 12, paddingY: 8 },
+  // ── disabled ──
+  { state: "disabled", background: "muted::100",      foreground: "muted::400",       border: "muted::200",     placeholder: "muted::300",   label: "muted::400",      helper: "muted::300",   cornerName: "Medium", typographyName: "Body Medium", shadowName: "none", paddingX: 12, paddingY: 8 },
+]
+
+/** Resolve input starter pack name refs to actual token IDs */
+export function resolveDesignInputStarterPacks(
+  corners: Corner[],
+  shadows: ShadowType[],
+  typographies: Typography[]
+): DesignInput[] {
+  return DESIGN_INPUT_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow = pack.shadowName === "none" ? undefined : shadows.find((s) => s.name === pack.shadowName)
+    const typo = typographies.find((t) => t.name === pack.typographyName)
+    return {
+      state: pack.state,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
+      placeholder: pack.placeholder,
+      label: pack.label,
+      helper: pack.helper,
       cornerId: corner?.id ?? corners[0]?.id ?? "",
       typographyId: typo?.id ?? typographies[0]?.id ?? "",
       shadowId: shadow?.id ?? "none",
