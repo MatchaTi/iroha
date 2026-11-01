@@ -11,6 +11,8 @@ import { Shadow } from "./pages/shadow"
 import { DSButton } from "./pages/ds-button"
 import { DSInput } from "./pages/ds-input"
 import { DSBadge } from "./pages/ds-badge"
+import { DSCheckbox } from "./pages/ds-checkbox"
+import { DSSwitch } from "./pages/ds-switch"
 import { DesignMD } from "./pages/design-md"
 
 export function App() {
@@ -31,6 +33,8 @@ export function App() {
           <Route path="/projects/:id/button" element={<DSButton />} />
           <Route path="/projects/:id/input" element={<DSInput />} />
           <Route path="/projects/:id/badge" element={<DSBadge />} />
+          <Route path="/projects/:id/checkbox" element={<DSCheckbox />} />
+          <Route path="/projects/:id/switch" element={<DSSwitch />} />
           <Route path="/projects/:id/design-md" element={<DesignMD />} />
         </Route>
       </Route>

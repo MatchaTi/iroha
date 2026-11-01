@@ -3,7 +3,9 @@ import type {
   Corner,
   DesignBadge,
   DesignButton,
+  DesignCheckbox,
   DesignInput,
+  DesignSwitch,
   Shadow,
   Typography,
 } from "@/store/use-project"
@@ -722,6 +724,140 @@ export function resolveDesignBadgeStarterPacks(
       shadowId: shadow?.id ?? "none",
       paddingX: pack.paddingX,
       paddingY: pack.paddingY,
+    }
+  })
+}
+
+export const DESIGN_CHECKBOX_STARTER_PACKS: (Omit<
+  DesignCheckbox,
+  "cornerId" | "shadowId"
+> & {
+  cornerName: string
+  shadowName: string
+})[] = [
+  // ── default (unchecked) ──
+  {
+    state: "default",
+    background: "muted::100",
+    foreground: "transparent",
+    border: "transparent",
+    cornerName: "Small",
+    shadowName: "none",
+    size: 16,
+  },
+  // ── checked ──
+  {
+    state: "checked",
+    background: "primary::500",
+    foreground: "primary::50",
+    border: "primary::500",
+    cornerName: "Small",
+    shadowName: "none",
+    size: 16,
+  },
+  // ── indeterminate ──
+  {
+    state: "indeterminate",
+    background: "primary::500",
+    foreground: "primary::50",
+    border: "primary::500",
+    cornerName: "Small",
+    shadowName: "none",
+    size: 16,
+  },
+  // ── disabled ──
+  {
+    state: "disabled",
+    background: "muted::200",
+    foreground: "muted::400",
+    border: "muted::200",
+    cornerName: "Small",
+    shadowName: "none",
+    size: 16,
+  },
+]
+
+/** Resolve checkbox starter pack name refs to actual token IDs */
+export function resolveDesignCheckboxStarterPacks(
+  corners: Corner[],
+  shadows: Shadow[]
+): DesignCheckbox[] {
+  return DESIGN_CHECKBOX_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow =
+      pack.shadowName === "none"
+        ? undefined
+        : shadows.find((s) => s.name === pack.shadowName)
+    return {
+      state: pack.state,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      size: pack.size,
+    }
+  })
+}
+
+export const DESIGN_SWITCH_STARTER_PACKS: (Omit<
+  DesignSwitch,
+  "cornerId" | "shadowId"
+> & {
+  cornerName: string
+  shadowName: string
+})[] = [
+  // ── default (off) ──
+  {
+    state: "default",
+    background: "muted::300",
+    foreground: "background::50",
+    border: "transparent",
+    cornerName: "Full",
+    shadowName: "none",
+    size: 24,
+  },
+  // ── checked (on) ──
+  {
+    state: "checked",
+    background: "primary::500",
+    foreground: "primary::50",
+    border: "transparent",
+    cornerName: "Full",
+    shadowName: "none",
+    size: 24,
+  },
+  // ── disabled ──
+  {
+    state: "disabled",
+    background: "muted::200",
+    foreground: "muted::400",
+    border: "transparent",
+    cornerName: "Full",
+    shadowName: "none",
+    size: 24,
+  },
+]
+
+/** Resolve switch starter pack name refs to actual token IDs */
+export function resolveDesignSwitchStarterPacks(
+  corners: Corner[],
+  shadows: Shadow[]
+): DesignSwitch[] {
+  return DESIGN_SWITCH_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow =
+      pack.shadowName === "none"
+        ? undefined
+        : shadows.find((s) => s.name === pack.shadowName)
+    return {
+      state: pack.state,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      size: pack.size,
     }
   })
 }

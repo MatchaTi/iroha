@@ -190,6 +190,36 @@ function generateMarkdown(project: Project): string {
     lines.push("")
   }
 
+  // Checkbox
+  if (project.designCheckbox?.length > 0) {
+    const shared = project.designCheckbox[0]
+    lines.push("### Checkbox")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.size}px size`
+    )
+    for (const cb of project.designCheckbox) {
+      lines.push(
+        `- **${cb.state}**: bg ${resolveColor(cb.background, palettes)}, fg ${resolveColor(cb.foreground, palettes)}, border ${resolveColor(cb.border, palettes)}`
+      )
+    }
+    lines.push("")
+  }
+
+  // Switch
+  if (project.designSwitch?.length > 0) {
+    const shared = project.designSwitch[0]
+    lines.push("### Switch")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.size}px height`
+    )
+    for (const sw of project.designSwitch) {
+      lines.push(
+        `- **${sw.state}**: track ${resolveColor(sw.background, palettes)}, thumb ${resolveColor(sw.foreground, palettes)}, border ${resolveColor(sw.border, palettes)}`
+      )
+    }
+    lines.push("")
+  }
+
   // ── Do's and Don'ts ──
   lines.push("## Do's and Don'ts")
   lines.push(

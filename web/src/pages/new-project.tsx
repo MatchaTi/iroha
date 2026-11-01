@@ -8,7 +8,9 @@ import {
   CORNER_STARTER_PACKS,
   resolveDesignBadgeStarterPacks,
   resolveDesignButtonStarterPacks,
+  resolveDesignCheckboxStarterPacks,
   resolveDesignInputStarterPacks,
+  resolveDesignSwitchStarterPacks,
   SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
@@ -62,6 +64,8 @@ export function NewProject() {
           shadows,
           typography
         ),
+        designCheckbox: resolveDesignCheckboxStarterPacks(corners, shadows),
+        designSwitch: resolveDesignSwitchStarterPacks(corners, shadows),
         templateTypography: "one",
         templateColorPalette: "one",
       })

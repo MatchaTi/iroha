@@ -115,6 +115,14 @@ export function ProjectLayout() {
           label: "Badge",
           href: `/projects/${id}/badge`,
         },
+        {
+          label: "Checkbox",
+          href: `/projects/${id}/checkbox`,
+        },
+        {
+          label: "Switch",
+          href: `/projects/${id}/switch`,
+        },
       ],
     },
     {

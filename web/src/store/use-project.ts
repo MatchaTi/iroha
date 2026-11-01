@@ -92,6 +92,37 @@ export type DesignButton = {
 
 export type DesignInputState = "default" | "focus" | "error" | "disabled"
 
+export type DesignCheckboxState =
+  "default" | "checked" | "indeterminate" | "disabled"
+
+export type DesignCheckbox = {
+  state: DesignCheckboxState
+  // color refs: "transparent" or "purpose::level"
+  background: string
+  foreground: string // check icon color
+  border: string
+  // token refs
+  cornerId: string
+  shadowId: string
+  // size (square, px)
+  size: number
+}
+
+export type DesignSwitchState = "default" | "checked" | "disabled"
+
+export type DesignSwitch = {
+  state: DesignSwitchState
+  // color refs: "transparent" or "purpose::level"
+  background: string // track
+  foreground: string // thumb
+  border: string
+  // token refs
+  cornerId: string
+  shadowId: string
+  // size (height, px) — width follows 1.75x ratio
+  size: number
+}
+
 export type DesignInput = {
   state: DesignInputState
   // color refs: "transparent" or "purpose::level"
@@ -145,6 +176,8 @@ export type Project = {
   designButton: DesignButton
   designInput: DesignInput[]
   designBadge: DesignBadge[]
+  designCheckbox: DesignCheckbox[]
+  designSwitch: DesignSwitch[]
   templateTypography: string
   templateColorPalette: string
 }
