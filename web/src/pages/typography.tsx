@@ -1,6 +1,21 @@
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
+import { TypographyOne } from "@/components/template/typography-one"
+import { TypographyTwo } from "@/components/template/typography-two"
+import { Button } from "@/components/ui/button"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
 import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
@@ -8,23 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-} from "@/components/ui/combobox"
 import { Separator } from "@/components/ui/separator"
-import { useProject, type Typography } from "@/store/use-project"
-import { useParams } from "react-router"
-import { FONTS, TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { FONTS, TYPOGRAPHY_STATER_PACKS } from "@/lib/constants"
+import { useProject, type Typography } from "@/store/use-project"
 import {
   ALargeSmall,
   Copy,
@@ -33,14 +39,8 @@ import {
   RotateCcw,
   RulerDimensionLine,
 } from "lucide-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { TypographyOne } from "@/components/template/typography-one"
-import { TypographyTwo } from "@/components/template/typography-two"
+import { useState } from "react"
+import { useParams } from "react-router"
 
 interface TypoRowProps {
   typo: Typography

@@ -252,12 +252,12 @@ export function ProjectDetails() {
             {project.description}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <AlertDialog>
             <AlertDialogTrigger
               render={
-                <Button variant="destructive" size="sm">
-                  <Trash />
+                <Button variant="destructive" size="lg">
+                  <Trash /> Delete project
                 </Button>
               }
             />
@@ -269,26 +269,26 @@ export function ProjectDetails() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <AlertDialogCancel size={'lg'}>Cancel</AlertDialogCancel>
+                <Button variant="destructive" size="lg" onClick={handleDelete}>
                   <Trash /> Delete
                 </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button size="sm" variant="outline" onClick={handleCopy}>
+          <Button size="lg" variant="outline" onClick={handleCopy}>
             {copied ? (
               <>
                 <Check /> Copied
               </>
             ) : (
               <>
-                <Copy /> Copy
+                <Copy /> Copy design tokens
               </>
             )}
           </Button>
-          <Button size="sm" onClick={handleExport}>
-            <Download /> Export
+          <Button size="lg" onClick={handleExport}>
+            <Download /> Export design tokens
           </Button>
         </div>
       </section>

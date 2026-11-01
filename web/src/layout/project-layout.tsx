@@ -171,9 +171,10 @@ function SubNavItem({ label, href }: SubItem) {
   const match = useMatch(href)
   return (
     <SidebarMenuButton
+    size={'lg'}
       render={<Link to={href}>{label}</Link>}
       isActive={match !== null}
-      className="pl-6"
+      className="pl-6 rounded-full"
     />
   )
 }
@@ -195,7 +196,7 @@ function ProjectNav({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger
           render={
-            <SidebarMenuButton {...props}>
+            <SidebarMenuButton {...props} size={'lg'} className="rounded-full">
               <Icon />
               {label}
               <ChevronDown
@@ -223,6 +224,8 @@ function ProjectNav({
     <SidebarMenuButton
       {...props}
       isActive={match !== null}
+      size={'lg'}
+      className="rounded-full"
       render={
         disabled ? (
           <span className="text-muted-foreground">
