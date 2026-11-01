@@ -991,7 +991,7 @@ async function importTokens(t) {
   figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-8));
 }
 
-figma.showUI(__html__, { width: 360, height: 260 });
+figma.showUI(__html__, { width: 380, height: 300 });
 
 figma.ui.onmessage = async function (t) {
   try {

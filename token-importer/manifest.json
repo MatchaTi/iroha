@@ -1,5 +1,5 @@
 {
-  "name": "Token Importer",
+  "name": "Token Generator",
   "id": "1695342218869292207",
   "api": "1.0.0",
   "main": "code.js",

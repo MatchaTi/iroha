@@ -1,12 +1,201 @@
-<textarea id="t" style="width:100%;height:150px" placeholder="Paste tokens JSON di sini"></textarea>
-<button id="b" style="margin-top:8px">Import</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* shadcn light mode tokens */
+  :root {
+    --background:        #ffffff;
+    --foreground:        #1c1c1c;
+    --card:              #ffffff;
+    --border:            #ebebeb;
+    --input:             #ebebeb;
+    --muted:             #f7f7f7;
+    --muted-foreground:  #737373;
+    --primary:           #2a2a2a;
+    --primary-foreground:#fbfbfb;
+    --ring:              #a3a3a3;
+    --radius:            0.625rem;
+  }
+
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    width: 30px;
+    height: 30px;
+    background: var(--primary);
+    border-radius: calc(var(--radius) * 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo svg { width: 16px; height: 16px; }
+
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    margin-top: 2px;
+  }
+
+  .textarea-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  textarea {
+    width: 100%;
+    height: 100%;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--foreground);
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 10px;
+    line-height: 1.65;
+    padding: 10px 12px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  textarea::placeholder { color: var(--muted-foreground); }
+
+  textarea:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 25%, transparent);
+    background: var(--card);
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status {
+    flex: 1;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    min-height: 14px;
+  }
+
+  .status.valid   { color: #16a34a; }
+  .status.invalid { color: #dc2626; }
+
+  button {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: calc(var(--radius) * 0.8);
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  button:hover  { opacity: 0.85; }
+  button:active { transform: scale(0.97); }
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 1.657-1.343 3-3 3h-1.5a1.5 1.5 0 0 0 0 3H18" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="6.5" cy="11.5" r="1.5" fill="#fff"/>
+      <circle cx="9.5" cy="7.5"  r="1.5" fill="#fff"/>
+      <circle cx="14.5" cy="7.5" r="1.5" fill="#fff"/>
+      <circle cx="17.5" cy="11.5" r="1.5" fill="#fff"/>
+    </svg>
+  </div>
+  <div>
+    <div class="title">Iroha Token Importer</div>
+    <div class="subtitle">Paste your project JSON to generate design system</div>
+  </div>
+</div>
+
+<div class="textarea-wrap">
+  <textarea id="t" placeholder="Paste tokens JSON here..."></textarea>
+</div>
+
+<div class="footer">
+  <span class="status" id="status">Waiting for input…</span>
+  <button id="b" disabled>Import</button>
+</div>
+
 <script>
-  document.getElementById("b").onclick = function () {
+  var textarea = document.getElementById("t");
+  var btn      = document.getElementById("b");
+  var status   = document.getElementById("status");
+
+  textarea.addEventListener("input", function () {
+    var val = textarea.value.trim();
+    if (!val) {
+      status.textContent = "Waiting for input…";
+      status.className = "status";
+      btn.disabled = true;
+      return;
+    }
     try {
-      var data = JSON.parse(document.getElementById("t").value);
+      JSON.parse(val);
+      status.textContent = "✓ Valid JSON — ready to import";
+      status.className = "status valid";
+      btn.disabled = false;
+    } catch (e) {
+      status.textContent = "✗ Invalid JSON";
+      status.className = "status invalid";
+      btn.disabled = true;
+    }
+  });
+
+  btn.onclick = function () {
+    try {
+      var data = JSON.parse(textarea.value);
+      btn.textContent = "Importing…";
+      btn.disabled = true;
       parent.postMessage({ pluginMessage: data }, "*");
     } catch (e) {
-      alert("JSON tidak valid");
+      status.textContent = "✗ Invalid JSON";
+      status.className = "status invalid";
     }
   };
 </script>
+
+</body>
+</html>
