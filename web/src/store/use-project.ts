@@ -123,6 +123,21 @@ export type DesignSwitch = {
   size: number
 }
 
+export type DesignRadioState = "default" | "checked" | "disabled"
+
+export type DesignRadio = {
+  state: DesignRadioState
+  // color refs: "transparent" or "purpose::level"
+  background: string
+  foreground: string // inner dot color
+  border: string
+  // token refs
+  cornerId: string
+  shadowId: string
+  // size (square, px)
+  size: number
+}
+
 export type DesignInput = {
   state: DesignInputState
   // color refs: "transparent" or "purpose::level"
@@ -178,6 +193,7 @@ export type Project = {
   designBadge: DesignBadge[]
   designCheckbox: DesignCheckbox[]
   designSwitch: DesignSwitch[]
+  designRadio: DesignRadio[]
   templateTypography: string
   templateColorPalette: string
 }

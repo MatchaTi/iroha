@@ -123,6 +123,10 @@ export function ProjectLayout() {
           label: "Switch",
           href: `/projects/${id}/switch`,
         },
+        {
+          label: "Radio",
+          href: `/projects/${id}/radio`,
+        },
       ],
     },
     {

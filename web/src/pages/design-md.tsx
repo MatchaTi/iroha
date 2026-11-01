@@ -220,6 +220,21 @@ function generateMarkdown(project: Project): string {
     lines.push("")
   }
 
+  // Radio
+  if (project.designRadio?.length > 0) {
+    const shared = project.designRadio[0]
+    lines.push("### Radio")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.size}px size`
+    )
+    for (const radio of project.designRadio) {
+      lines.push(
+        `- **${radio.state}**: bg ${resolveColor(radio.background, palettes)}, dot ${resolveColor(radio.foreground, palettes)}, border ${resolveColor(radio.border, palettes)}`
+      )
+    }
+    lines.push("")
+  }
+
   // ── Do's and Don'ts ──
   lines.push("## Do's and Don'ts")
   lines.push(

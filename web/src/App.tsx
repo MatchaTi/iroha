@@ -13,6 +13,7 @@ import { DSInput } from "./pages/ds-input"
 import { DSBadge } from "./pages/ds-badge"
 import { DSCheckbox } from "./pages/ds-checkbox"
 import { DSSwitch } from "./pages/ds-switch"
+import { DSRadio } from "./pages/ds-radio"
 import { DesignMD } from "./pages/design-md"
 
 export function App() {
@@ -35,6 +36,7 @@ export function App() {
           <Route path="/projects/:id/badge" element={<DSBadge />} />
           <Route path="/projects/:id/checkbox" element={<DSCheckbox />} />
           <Route path="/projects/:id/switch" element={<DSSwitch />} />
+          <Route path="/projects/:id/radio" element={<DSRadio />} />
           <Route path="/projects/:id/design-md" element={<DesignMD />} />
         </Route>
       </Route>

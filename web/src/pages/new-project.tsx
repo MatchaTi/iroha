@@ -10,6 +10,7 @@ import {
   resolveDesignButtonStarterPacks,
   resolveDesignCheckboxStarterPacks,
   resolveDesignInputStarterPacks,
+  resolveDesignRadioStarterPacks,
   resolveDesignSwitchStarterPacks,
   SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
@@ -66,6 +67,7 @@ export function NewProject() {
         ),
         designCheckbox: resolveDesignCheckboxStarterPacks(corners, shadows),
         designSwitch: resolveDesignSwitchStarterPacks(corners, shadows),
+        designRadio: resolveDesignRadioStarterPacks(corners, shadows),
         templateTypography: "one",
         templateColorPalette: "one",
       })
