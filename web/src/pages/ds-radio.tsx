@@ -79,39 +79,70 @@ interface ResolvedRadio {
   state: DesignRadioState
 }
 
-function RadioPreview({ radio }: { radio: ResolvedRadio }) {
-  const dotSize = Math.round(radio.size * 0.5)
+function RadioPreview({
+  radio,
+  other,
+}: {
+  radio: ResolvedRadio
+  other?: ResolvedRadio
+}) {
+  const options = ["Option 1", "Option 2", "Option 3"]
+  // Interactive radio group: click an option to select it (radio semantics —
+  // a selection moves between options and never deselects)
+  const interactive = other !== undefined && radio.state !== "disabled"
+  const [selected, setSelected] = useState<number | null>(
+    radio.state === "checked" ? 0 : null
+  )
+  // Selected items use the "checked" config, unselected use the "default" one.
+  // For the checked row those are this row / its complement; for the default
+  // row it's the opposite; for the disabled row everything uses this row.
+  const checkedCfg = radio.state === "checked" ? radio : (other ?? radio)
+  const defaultCfg = radio.state === "checked" ? (other ?? radio) : radio
+  const itemOpacity = radio.state === "disabled" ? 0.5 : 1
+
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className="relative inline-flex shrink-0 items-center justify-center transition-all select-none"
-        style={{
-          backgroundColor: radio.background,
-          border: `1px solid ${radio.border === "transparent" ? "transparent" : radio.border}`,
-          borderRadius: radio.radius >= 9999 ? 9999 : radio.radius,
-          width: radio.size,
-          height: radio.size,
-          boxShadow: radio.shadow === "none" ? "none" : radio.shadow,
-          opacity: radio.state === "disabled" ? 0.5 : 1,
-        }}
-      >
-        {radio.state === "checked" && (
-          <span
-            className="absolute inset-0 m-auto rounded-full"
-            style={{
-              backgroundColor: radio.foreground,
-              width: dotSize,
-              height: dotSize,
-            }}
-          />
-        )}
-      </span>
-      <span
-        className="text-sm"
-        style={{ opacity: radio.state === "disabled" ? 0.5 : 1 }}
-      >
-        Radio
-      </span>
+    <div className="flex flex-col items-start gap-3">
+      {options.map((label, index) => {
+        const isSelected = selected === index
+        const shown = isSelected ? checkedCfg : defaultCfg
+        const dotSize = Math.round(shown.size * 0.5)
+        return (
+          <div
+            key={label}
+            onClick={interactive ? () => setSelected(index) : undefined}
+            className={
+              "flex items-center gap-2" + (interactive ? " cursor-pointer" : "")
+            }
+          >
+            <span
+              className="relative inline-flex shrink-0 items-center justify-center transition-all select-none"
+              style={{
+                backgroundColor: shown.background,
+                border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
+                borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
+                width: shown.size,
+                height: shown.size,
+                boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
+                opacity: itemOpacity,
+              }}
+            >
+              {isSelected && (
+                <span
+                  className="absolute inset-0 m-auto rounded-full"
+                  style={{
+                    backgroundColor: shown.foreground,
+                    width: dotSize,
+                    height: dotSize,
+                  }}
+                />
+              )}
+            </span>
+            <span className="text-sm" style={{ opacity: itemOpacity }}>
+              {label}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -362,6 +393,7 @@ function SharedTokensEditor({
 interface RadioRowProps {
   state: DesignRadioState
   radio: DesignRadio | undefined
+  otherResolved: ResolvedRadio | undefined
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
@@ -371,6 +403,7 @@ interface RadioRowProps {
 function RadioRow({
   state,
   radio,
+  otherResolved,
   palettes,
   corners,
   shadows,
@@ -383,7 +416,7 @@ function RadioRow({
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <RadioPreview radio={resolved} />
+        <RadioPreview radio={resolved} other={otherResolved} />
       </div>
 
       {/* Editor */}
@@ -504,11 +537,22 @@ export function DSRadio() {
                 const radio = project.designRadio.find(
                   (radio) => radio.state === state
                 )
+                // Clicking a preview toggles it to the complementary state
+                const complementary =
+                  state === "default" ? "checked" : "default"
+                const otherRadio = project.designRadio.find(
+                  (x) => x.state === complementary
+                )
                 return (
                   <RadioRow
                     key={state}
                     state={state}
                     radio={radio}
+                    otherResolved={
+                      otherRadio
+                        ? resolveRadio(otherRadio, palettes, corners, shadows)
+                        : undefined
+                    }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}

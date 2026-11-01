@@ -84,32 +84,46 @@ interface ResolvedCheckbox {
   state: DesignCheckboxState
 }
 
-function CheckboxPreview({ cb }: { cb: ResolvedCheckbox }) {
+function CheckboxPreview({
+  cb,
+  other,
+}: {
+  cb: ResolvedCheckbox
+  other?: ResolvedCheckbox
+}) {
   const iconSize = Math.round(cb.size * 0.6)
+  // Interactive: click flips between this state and the default state
+  const interactive = other !== undefined && cb.state !== "disabled"
+  const [flipped, setFlipped] = useState(false)
+  const shown = flipped && other ? other : cb
   return (
     <div className="flex items-center gap-2">
       <span
-        className="relative inline-flex shrink-0 items-center justify-center transition-all select-none"
+        onClick={interactive ? () => setFlipped(!flipped) : undefined}
+        className={
+          "relative inline-flex shrink-0 items-center justify-center transition-all select-none" +
+          (interactive ? " cursor-pointer" : "")
+        }
         style={{
-          backgroundColor: cb.background,
-          border: `1px solid ${cb.border === "transparent" ? "transparent" : cb.border}`,
-          borderRadius: cb.radius >= 9999 ? 9999 : cb.radius,
-          width: cb.size,
-          height: cb.size,
-          boxShadow: cb.shadow === "none" ? "none" : cb.shadow,
-          opacity: cb.state === "disabled" ? 0.5 : 1,
+          backgroundColor: shown.background,
+          border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
+          borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
+          width: shown.size,
+          height: shown.size,
+          boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
+          opacity: shown.state === "disabled" ? 0.5 : 1,
         }}
       >
-        {cb.state === "checked" && (
-          <Check strokeWidth={3} size={iconSize} color={cb.foreground} />
+        {shown.state === "checked" && (
+          <Check strokeWidth={3} size={iconSize} color={shown.foreground} />
         )}
-        {cb.state === "indeterminate" && (
-          <Minus strokeWidth={3} size={iconSize} color={cb.foreground} />
+        {shown.state === "indeterminate" && (
+          <Minus strokeWidth={3} size={iconSize} color={shown.foreground} />
         )}
       </span>
       <span
         className="text-sm"
-        style={{ opacity: cb.state === "disabled" ? 0.5 : 1 }}
+        style={{ opacity: shown.state === "disabled" ? 0.5 : 1 }}
       >
         Checkbox
       </span>
@@ -366,6 +380,7 @@ function SharedTokensEditor({
 interface CheckboxRowProps {
   state: DesignCheckboxState
   cb: DesignCheckbox | undefined
+  otherResolved: ResolvedCheckbox | undefined
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
@@ -375,6 +390,7 @@ interface CheckboxRowProps {
 function CheckboxRow({
   state,
   cb,
+  otherResolved,
   palettes,
   corners,
   shadows,
@@ -387,7 +403,7 @@ function CheckboxRow({
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <CheckboxPreview cb={resolved} />
+        <CheckboxPreview cb={resolved} other={otherResolved} />
       </div>
 
       {/* Editor */}
@@ -508,11 +524,22 @@ export function DSCheckbox() {
                 const cb = project.designCheckbox.find(
                   (cb) => cb.state === state
                 )
+                // Clicking a preview toggles it to the complementary state
+                const complementary =
+                  state === "default" ? "checked" : "default"
+                const otherCb = project.designCheckbox.find(
+                  (x) => x.state === complementary
+                )
                 return (
                   <CheckboxRow
                     key={state}
                     state={state}
                     cb={cb}
+                    otherResolved={
+                      otherCb
+                        ? resolveCheckbox(otherCb, palettes, corners, shadows)
+                        : undefined
+                    }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}

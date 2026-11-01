@@ -79,32 +79,46 @@ interface ResolvedSwitch {
   state: DesignSwitchState
 }
 
-function SwitchPreview({ sw }: { sw: ResolvedSwitch }) {
+function SwitchPreview({
+  sw,
+  other,
+}: {
+  sw: ResolvedSwitch
+  other?: ResolvedSwitch
+}) {
   const height = sw.size
   const width = Math.round(height * 1.75)
   const inset = Math.max(2, Math.round(height / 6))
   const thumbSize = Math.max(4, height - 2 * inset - 2)
+  // Interactive: click flips between this state and the default state
+  const interactive = other !== undefined && sw.state !== "disabled"
+  const [flipped, setFlipped] = useState(false)
+  const shown = flipped && other ? other : sw
 
   return (
     <div className="flex items-center gap-3">
       <span
-        className="relative inline-flex shrink-0 items-center transition-all select-none"
+        onClick={interactive ? () => setFlipped(!flipped) : undefined}
+        className={
+          "relative inline-flex shrink-0 items-center transition-all select-none" +
+          (interactive ? " cursor-pointer" : "")
+        }
         style={{
-          backgroundColor: sw.background,
-          border: `1px solid ${sw.border === "transparent" ? "transparent" : sw.border}`,
-          borderRadius: sw.radius >= 9999 ? 9999 : sw.radius,
+          backgroundColor: shown.background,
+          border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
+          borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
           width,
           height,
           padding: inset,
-          justifyContent: sw.state === "checked" ? "flex-end" : "flex-start",
-          boxShadow: sw.shadow === "none" ? "none" : sw.shadow,
-          opacity: sw.state === "disabled" ? 0.5 : 1,
+          justifyContent: shown.state === "checked" ? "flex-end" : "flex-start",
+          boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
+          opacity: shown.state === "disabled" ? 0.5 : 1,
         }}
       >
         <span
           className="inline-flex shrink-0 rounded-full transition-all"
           style={{
-            backgroundColor: sw.foreground,
+            backgroundColor: shown.foreground,
             width: thumbSize,
             height: thumbSize,
           }}
@@ -112,7 +126,7 @@ function SwitchPreview({ sw }: { sw: ResolvedSwitch }) {
       </span>
       <span
         className="text-sm"
-        style={{ opacity: sw.state === "disabled" ? 0.5 : 1 }}
+        style={{ opacity: shown.state === "disabled" ? 0.5 : 1 }}
       >
         Switch
       </span>
@@ -366,6 +380,7 @@ function SharedTokensEditor({
 interface SwitchRowProps {
   state: DesignSwitchState
   sw: DesignSwitch | undefined
+  otherResolved: ResolvedSwitch | undefined
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
@@ -375,6 +390,7 @@ interface SwitchRowProps {
 function SwitchRow({
   state,
   sw,
+  otherResolved,
   palettes,
   corners,
   shadows,
@@ -387,7 +403,7 @@ function SwitchRow({
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <SwitchPreview sw={resolved} />
+        <SwitchPreview sw={resolved} other={otherResolved} />
       </div>
 
       {/* Editor */}
@@ -503,11 +519,22 @@ export function DSSwitch() {
             <TabsContent value="states">
               {STATES.map((state) => {
                 const sw = project.designSwitch.find((sw) => sw.state === state)
+                // Clicking a preview toggles it to the complementary state
+                const complementary =
+                  state === "default" ? "checked" : "default"
+                const otherSw = project.designSwitch.find(
+                  (x) => x.state === complementary
+                )
                 return (
                   <SwitchRow
                     key={state}
                     state={state}
                     sw={sw}
+                    otherResolved={
+                      otherSw
+                        ? resolveSwitch(otherSw, palettes, corners, shadows)
+                        : undefined
+                    }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}

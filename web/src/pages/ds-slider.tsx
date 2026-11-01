@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -69,17 +69,45 @@ interface ResolvedSlider {
   thumbSize: number
 }
 
-// Static value for the preview (0–100%)
-const PREVIEW_VALUE = 50
+// Static initial value for the live preview (0–100%)
+const PREVIEW_INITIAL = 50
 
 function SliderPreview({ sl }: { sl: ResolvedSlider }) {
+  const [value, setValue] = useState(PREVIEW_INITIAL)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+
+  const updateValue = (clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const pct = ((clientX - rect.left) / rect.width) * 100
+    setValue(Math.min(100, Math.max(0, pct)))
+  }
+
   return (
     <div
-      className="relative flex w-full max-w-sm items-center"
+      role="slider"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(value)}
+      tabIndex={0}
+      className="relative flex w-full max-w-sm cursor-pointer touch-none items-center select-none"
       style={{ height: sl.thumbSize }}
+      onPointerDown={(e) => {
+        draggingRef.current = true
+        e.currentTarget.setPointerCapture(e.pointerId)
+        updateValue(e.clientX)
+      }}
+      onPointerMove={(e) => {
+        if (draggingRef.current) updateValue(e.clientX)
+      }}
+      onPointerUp={() => {
+        draggingRef.current = false
+      }}
     >
       {/* Track + fill */}
       <div
+        ref={trackRef}
         className="relative w-full overflow-hidden"
         style={{
           height: sl.height,
@@ -90,7 +118,7 @@ function SliderPreview({ sl }: { sl: ResolvedSlider }) {
         <div
           className="absolute inset-y-0 left-0"
           style={{
-            width: `${PREVIEW_VALUE}%`,
+            width: `${value}%`,
             backgroundColor: sl.foreground,
           }}
         />
@@ -102,7 +130,9 @@ function SliderPreview({ sl }: { sl: ResolvedSlider }) {
           width: sl.thumbSize,
           height: sl.thumbSize,
           backgroundColor: sl.thumb,
-          left: `calc(${PREVIEW_VALUE}% - ${sl.thumbSize / 2}px)`,
+          left: `calc(${value}% - ${sl.thumbSize / 2}px)`,
+          top: "50%",
+          transform: "translateY(-50%)",
           boxShadow: sl.thumbShadow === "none" ? "none" : sl.thumbShadow,
         }}
       />
@@ -429,7 +459,16 @@ export function DSSlider() {
         ) : (
           <div className="grid border-b last:border-b-0 md:grid-cols-4">
             {/* Preview */}
-            <div className="flex min-h-24 items-center px-6 py-8 md:col-span-3">
+            <div className="flex min-h-24 flex-col items-start justify-center gap-6 px-6 py-8 md:col-span-3">
+              <SliderPreview
+                sl={resolveSlider(
+                  project.designSlider,
+                  palettes,
+                  corners,
+                  shadows
+                )}
+              />
+
               <SliderPreview
                 sl={resolveSlider(
                   project.designSlider,
