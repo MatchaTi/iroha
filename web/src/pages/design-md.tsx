@@ -162,10 +162,14 @@ function generateMarkdown(project: Project): string {
 
   // Input
   if (project.designInput?.length > 0) {
+    const shared = project.designInput[0]
     lines.push("### Input")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, typography ${resolveTypoName(shared.typographyId, typographies)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.paddingX}×${shared.paddingY}px padding`
+    )
     for (const inp of project.designInput) {
       lines.push(
-        `- **${inp.state}**: bg ${resolveColor(inp.background, palettes)}, fg ${resolveColor(inp.foreground, palettes)}, border ${resolveColor(inp.border, palettes)}, placeholder ${resolveColor(inp.placeholder, palettes)}, label ${resolveColor(inp.label, palettes)}, helper ${resolveColor(inp.helper, palettes)}, radius ${resolveCornerRadius(inp.cornerId, corners)}, ${resolveTypoName(inp.typographyId, typographies)}, shadow ${resolveShadowName(inp.shadowId, shadows)}`
+        `- **${inp.state}**: bg ${resolveColor(inp.background, palettes)}, fg ${resolveColor(inp.foreground, palettes)}, border ${resolveColor(inp.border, palettes)}, placeholder ${resolveColor(inp.placeholder, palettes)}, label ${resolveColor(inp.label, palettes)}, helper ${resolveColor(inp.helper, palettes)}`
       )
     }
     lines.push("")
@@ -173,10 +177,14 @@ function generateMarkdown(project: Project): string {
 
   // Badge
   if (project.designBadge?.length > 0) {
+    const shared = project.designBadge[0]
     lines.push("### Badge")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, typography ${resolveTypoName(shared.typographyId, typographies)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.paddingX}×${shared.paddingY}px padding`
+    )
     for (const badge of project.designBadge) {
       lines.push(
-        `- **${badge.variant}**: bg ${resolveColor(badge.background, palettes)}, fg ${resolveColor(badge.foreground, palettes)}, border ${resolveColor(badge.border, palettes)}, radius ${resolveCornerRadius(badge.cornerId, corners)}, ${resolveTypoName(badge.typographyId, typographies)}, shadow ${resolveShadowName(badge.shadowId, shadows)}, ${badge.paddingX}×${badge.paddingY}px`
+        `- **${badge.variant}**: bg ${resolveColor(badge.background, palettes)}, fg ${resolveColor(badge.foreground, palettes)}, border ${resolveColor(badge.border, palettes)}`
       )
     }
     lines.push("")
