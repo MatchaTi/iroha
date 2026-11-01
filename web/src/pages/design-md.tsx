@@ -235,6 +235,20 @@ function generateMarkdown(project: Project): string {
     lines.push("")
   }
 
+  // Slider
+  if (project.designSlider) {
+    const sl = project.designSlider
+    lines.push("### Slider")
+    lines.push(
+      `- **Track**: bg ${resolveColor(sl.background, palettes)}, radius ${resolveCornerRadius(sl.cornerId, corners)}, ${sl.height}px height`
+    )
+    lines.push(`- **Range Fill**: bg ${resolveColor(sl.foreground, palettes)}`)
+    lines.push(
+      `- **Thumb**: bg ${resolveColor(sl.thumb, palettes)}, shadow ${resolveShadowName(sl.thumbShadowId, shadows)}, ${sl.thumbSize}px size`
+    )
+    lines.push("")
+  }
+
   // ── Do's and Don'ts ──
   lines.push("## Do's and Don'ts")
   lines.push(

@@ -127,6 +127,10 @@ export function ProjectLayout() {
           label: "Radio",
           href: `/projects/${id}/radio`,
         },
+        {
+          label: "Slider",
+          href: `/projects/${id}/slider`,
+        },
       ],
     },
     {

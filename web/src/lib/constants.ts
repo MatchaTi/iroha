@@ -6,6 +6,7 @@ import type {
   DesignCheckbox,
   DesignInput,
   DesignRadio,
+  DesignSlider,
   DesignSwitch,
   Shadow,
   Typography,
@@ -861,6 +862,38 @@ export function resolveDesignRadioStarterPacks(
       size: pack.size,
     }
   })
+}
+
+export const DESIGN_SLIDER_STARTER_PACKS = {
+  background: "muted::200",
+  foreground: "primary::500",
+  thumb: "background::50",
+  cornerName: "Extra Large",
+  thumbShadowName: "Shadow Small",
+  height: 4,
+  thumbSize: 16,
+}
+
+/** Resolve slider starter pack name refs to actual token IDs */
+export function resolveDesignSliderStarterPacks(
+  corners: Corner[],
+  shadows: Shadow[]
+): DesignSlider {
+  const corner = corners.find(
+    (c) => c.name === DESIGN_SLIDER_STARTER_PACKS.cornerName
+  )
+  const thumbShadow = shadows.find(
+    (s) => s.name === DESIGN_SLIDER_STARTER_PACKS.thumbShadowName
+  )
+  return {
+    background: DESIGN_SLIDER_STARTER_PACKS.background,
+    foreground: DESIGN_SLIDER_STARTER_PACKS.foreground,
+    thumb: DESIGN_SLIDER_STARTER_PACKS.thumb,
+    cornerId: corner?.id ?? corners[0]?.id ?? "",
+    thumbShadowId: thumbShadow?.id ?? "none",
+    height: DESIGN_SLIDER_STARTER_PACKS.height,
+    thumbSize: DESIGN_SLIDER_STARTER_PACKS.thumbSize,
+  }
 }
 
 export const DESIGN_SWITCH_STARTER_PACKS: (Omit<

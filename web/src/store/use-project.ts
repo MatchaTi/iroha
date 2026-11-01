@@ -138,6 +138,19 @@ export type DesignRadio = {
   size: number
 }
 
+export type DesignSlider = {
+  // color refs: "transparent" or "purpose::level"
+  background: string // track
+  foreground: string // range fill
+  thumb: string
+  // token refs
+  cornerId: string // track radius
+  thumbShadowId: string
+  // geometry
+  height: number // track height (px)
+  thumbSize: number
+}
+
 export type DesignInput = {
   state: DesignInputState
   // color refs: "transparent" or "purpose::level"
@@ -194,6 +207,7 @@ export type Project = {
   designCheckbox: DesignCheckbox[]
   designSwitch: DesignSwitch[]
   designRadio: DesignRadio[]
+  designSlider: DesignSlider
   templateTypography: string
   templateColorPalette: string
 }
