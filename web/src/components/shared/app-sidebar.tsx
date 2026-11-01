@@ -1,3 +1,6 @@
+import { PROJECT_NAME_JP } from "@/lib/constants"
+import { useProject } from "@/store/use-project"
+import { cn } from "cn"
 import {
   CircleSmall,
   Home,
@@ -7,6 +10,9 @@ import {
   Sun,
   type LucideIcon,
 } from "lucide-react"
+import { Link, useMatch } from "react-router"
+import { useTheme } from "../theme-provider"
+import { Kbd } from "../ui/kbd"
 import {
   Sidebar,
   SidebarContent,
@@ -20,12 +26,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "../ui/sidebar"
-import { Link, useMatch } from "react-router"
-import { PROJECT_NAME_JP } from "@/lib/constants"
-import { useProject } from "@/store/use-project"
-import { cn } from "cn"
-import { useTheme } from "../theme-provider"
-import { Kbd } from "../ui/kbd"
 import { GithubIcon } from "./github-icon"
 
 export function AppSidebar() {
@@ -60,18 +60,19 @@ function Header() {
 }
 
 function Content() {
-  const { setOpenMobile } = useSidebar()
+  const { setOpenMobile, open } = useSidebar()
 
   return (
     <SidebarContent>
       <SidebarGroup>
         <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
-          <NavItem label="Home" href="/" icon={Home} />
+          <NavItem label="Home" href="/" icon={Home} open={open}/>
           <NavItem
             label="New Project"
             href="/new"
             icon={Plus}
+            open={open}
             onClick={() => setOpenMobile(false)}
           />
         </SidebarGroupContent>
@@ -88,9 +89,13 @@ function Content() {
 
 function Footer() {
   const { theme, setTheme } = useTheme()
+  const {open} = useSidebar()
+
   return (
     <SidebarFooter>
       <SidebarMenuButton
+      size={open ? "lg" : 'default'}
+      className="rounded-full"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       >
         {theme === "dark" ? (
@@ -106,6 +111,8 @@ function Footer() {
       </SidebarMenuButton>
       <SidebarMenuButton
         tooltip="View on Github"
+        className="rounded-full"
+        size={open ? "lg" : 'default'}
         render={
           <a
             href="https://github.com/MatchaTi/iroha"
@@ -123,11 +130,13 @@ function Footer() {
 
 function Projects() {
   const projects = useProject((state) => state.projects)
-  const { setOpenMobile } = useSidebar()
+  const { setOpenMobile, open } = useSidebar()
 
   if (!projects || projects.length === 0) {
     return (
-      <SidebarMenuButton tooltip="No projects" isActive={false}>
+      <SidebarMenuButton tooltip="No projects" isActive={false} 
+      size={open ? 'lg' : 'default'}
+      >
         No projects yet
       </SidebarMenuButton>
     )
@@ -140,6 +149,7 @@ function Projects() {
       label={project.name}
       href={`/projects/${project.id}`}
       icon={CircleSmall}
+      size={open ? 'lg' : 'default'}
     />
   ))
 }
@@ -148,15 +158,18 @@ type NavItemProps = {
   label: string
   href: string
   icon: LucideIcon
+  open?: boolean
 } & React.ComponentProps<typeof SidebarMenuButton>
 
-function NavItem({ label, href, icon, ...props }: NavItemProps) {
+function NavItem({ label, href, icon, open,  ...props }: NavItemProps) {
   const match = useMatch(`${href}/*`)
   const Icon = icon
 
   return (
     <SidebarMenu key={label}>
       <SidebarMenuButton
+      className="rounded-full"
+        size={open ? "lg" : 'default'}
         {...props}
         tooltip={label}
         isActive={!!match}
