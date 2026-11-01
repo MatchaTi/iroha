@@ -67,7 +67,7 @@ function Content() {
       <SidebarGroup>
         <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
-          <NavItem label="Home" href="/" icon={Home} open={open}/>
+          <NavItem label="Home" href="/" icon={Home} open={open} />
           <NavItem
             label="New Project"
             href="/new"
@@ -89,13 +89,13 @@ function Content() {
 
 function Footer() {
   const { theme, setTheme } = useTheme()
-  const {open} = useSidebar()
+  const { open } = useSidebar()
 
   return (
     <SidebarFooter>
       <SidebarMenuButton
-      size={open ? "lg" : 'default'}
-      className="rounded-full"
+        size={open ? "lg" : "default"}
+        className="rounded-full"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       >
         {theme === "dark" ? (
@@ -112,7 +112,7 @@ function Footer() {
       <SidebarMenuButton
         tooltip="View on Github"
         className="rounded-full"
-        size={open ? "lg" : 'default'}
+        size={open ? "lg" : "default"}
         render={
           <a
             href="https://github.com/MatchaTi/iroha"
@@ -134,8 +134,10 @@ function Projects() {
 
   if (!projects || projects.length === 0) {
     return (
-      <SidebarMenuButton tooltip="No projects" isActive={false} 
-      size={open ? 'lg' : 'default'}
+      <SidebarMenuButton
+        tooltip="No projects"
+        isActive={false}
+        size={open ? "lg" : "default"}
       >
         No projects yet
       </SidebarMenuButton>
@@ -149,7 +151,7 @@ function Projects() {
       label={project.name}
       href={`/projects/${project.id}`}
       icon={CircleSmall}
-      size={open ? 'lg' : 'default'}
+      size={open ? "lg" : "default"}
     />
   ))
 }
@@ -161,15 +163,15 @@ type NavItemProps = {
   open?: boolean
 } & React.ComponentProps<typeof SidebarMenuButton>
 
-function NavItem({ label, href, icon, open,  ...props }: NavItemProps) {
+function NavItem({ label, href, icon, open, ...props }: NavItemProps) {
   const match = useMatch(`${href}/*`)
   const Icon = icon
 
   return (
     <SidebarMenu key={label}>
       <SidebarMenuButton
-      className="rounded-full"
-        size={open ? "lg" : 'default'}
+        className="rounded-full"
+        size={open ? "lg" : "default"}
         {...props}
         tooltip={label}
         isActive={!!match}

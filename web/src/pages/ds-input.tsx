@@ -18,6 +18,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -39,6 +40,10 @@ import { MousePointerClick } from "lucide-react"
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATES: DesignInputState[] = ["default", "focus", "error", "disabled"]
+
+function formatRadius(r: number) {
+  return r >= 99 ? "Full" : `${r}px`
+}
 
 // ─── Token resolvers ──────────────────────────────────────────────────────────
 
@@ -187,7 +192,10 @@ function ColorTokenSelect({
           className="size-5 shrink-0 rounded-full border"
           style={{ backgroundColor: hex }}
         />
-        <Select value={value} onValueChange={onChange}>
+        <Select
+          value={value}
+          onValueChange={(v) => onChange(v ?? "transparent")}
+        >
           <SelectTrigger className="flex-1">
             <SelectValue>{displayLabel}</SelectValue>
           </SelectTrigger>
@@ -221,43 +229,15 @@ function ColorTokenSelect({
   )
 }
 
-// ─── InputEditor ──────────────────────────────────────────────────────────────
+// ─── StateEditor (per-state: colors) ─────────────────────────────────────────
 
-interface InputEditorProps {
+interface StateEditorProps {
   inp: DesignInput
   onCommit: (updated: Partial<DesignInput>) => void
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
 }
 
-function InputEditor({
-  inp,
-  onCommit,
-  palettes,
-  corners,
-  shadows,
-  typographies,
-}: InputEditorProps) {
-  const [paddingX, setPaddingX] = useState(String(inp.paddingX))
-  const [paddingY, setPaddingY] = useState(String(inp.paddingY))
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") e.currentTarget.blur()
-  }
-
-  const commitNumber = (
-    raw: string,
-    key: "paddingX" | "paddingY",
-    setter: (v: string) => void,
-    fallback: number
-  ) => {
-    const parsed = parseFloat(raw)
-    if (!isNaN(parsed) && parsed >= 0) onCommit({ [key]: parsed })
-    else setter(String(fallback))
-  }
-
+function StateEditor({ inp, onCommit, palettes }: StateEditorProps) {
   return (
     <div className="flex flex-col gap-3">
       {/* Colors */}
@@ -297,93 +277,103 @@ function InputEditor({
         palettes={palettes}
         onChange={(v) => onCommit({ helper: v })}
       />
+    </div>
+  )
+}
 
-      <Separator />
+// ─── SharedTokensEditor ───────────────────────────────────────────────────────
 
-      {/* Corner */}
+function SharedTokensEditor({
+  shared,
+  corners,
+  shadows,
+  typographies,
+  onCommit,
+}: {
+  shared: Pick<
+    DesignInput,
+    "cornerId" | "typographyId" | "shadowId" | "paddingX" | "paddingY"
+  >
+  corners: Corner[]
+  shadows: ShadowType[]
+  typographies: Typography[]
+  onCommit: (
+    updated: Partial<
+      Pick<
+        DesignInput,
+        "cornerId" | "typographyId" | "shadowId" | "paddingX" | "paddingY"
+      >
+    >
+  ) => void
+}) {
+  const [paddingX, setPaddingX] = useState(String(shared.paddingX))
+  const [paddingY, setPaddingY] = useState(String(shared.paddingY))
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") e.currentTarget.blur()
+  }
+
+  const commitNumber = (
+    raw: string,
+    key: "paddingX" | "paddingY",
+    setter: (v: string) => void,
+    fallback: number
+  ) => {
+    const parsed = parseFloat(raw)
+    if (!isNaN(parsed) && parsed >= 0) onCommit({ [key]: parsed })
+    else setter(String(fallback))
+  }
+
+  return (
+    <div className="flex max-w-sm flex-col gap-4 p-6">
+      <p className="text-xs text-muted-foreground">
+        These tokens apply to all input states.
+      </p>
+
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Corner Radius
         </FieldLabel>
         <Select
-          value={inp.cornerId}
-          onValueChange={(v) => onCommit({ cornerId: v })}
+          value={shared.cornerId}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ cornerId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
               {(() => {
-                const c = corners.find((c) => c.id === inp.cornerId)
-                return c
-                  ? `${c.name} - ${c.radius >= 99 ? "Full" : `${c.radius}px`}`
-                  : "Custom"
+                const c = corners.find((c) => c.id === shared.cornerId)
+                return c ? `${c.name} - ${formatRadius(c.radius)}` : "Custom"
               })()}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {corners.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name} - {c.radius >= 99 ? "Full" : `${c.radius}px`}
+                {c.name} - {formatRadius(c.radius)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </Field>
 
-      {/* Padding */}
-      <div className="grid grid-cols-2 gap-2">
-        <Field>
-          <FieldLabel className="text-xs text-muted-foreground">
-            Padding X
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupAddon>
-              <Expand className="rotate-90" />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={paddingX}
-              onChange={(e) => setPaddingX(e.target.value)}
-              onBlur={() =>
-                commitNumber(paddingX, "paddingX", setPaddingX, inp.paddingX)
-              }
-              onKeyDown={handleKeyDown}
-            />
-          </InputGroup>
-        </Field>
-        <Field>
-          <FieldLabel className="text-xs text-muted-foreground">
-            Padding Y
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupAddon>
-              <Expand />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={paddingY}
-              onChange={(e) => setPaddingY(e.target.value)}
-              onBlur={() =>
-                commitNumber(paddingY, "paddingY", setPaddingY, inp.paddingY)
-              }
-              onKeyDown={handleKeyDown}
-            />
-          </InputGroup>
-        </Field>
-      </div>
-
       <Separator />
 
-      {/* Typography */}
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Typography
         </FieldLabel>
         <Select
-          value={inp.typographyId}
-          onValueChange={(v) => onCommit({ typographyId: v })}
+          value={shared.typographyId}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ typographyId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
               {(() => {
-                const t = typographies.find((t) => t.id === inp.typographyId)
+                const t = typographies.find((t) => t.id === shared.typographyId)
                 return t
                   ? `${t.name} - ${t.fontSize}px / ${t.fontWeight}`
                   : "Custom"
@@ -405,20 +395,21 @@ function InputEditor({
 
       <Separator />
 
-      {/* Shadow */}
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Shadow
         </FieldLabel>
         <Select
-          value={inp.shadowId}
-          onValueChange={(v) => onCommit({ shadowId: v })}
+          value={shared.shadowId}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ shadowId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
-              {inp.shadowId === "none"
+              {shared.shadowId === "none"
                 ? "None"
-                : (shadows.find((s) => s.id === inp.shadowId)?.name ??
+                : (shadows.find((s) => s.id === shared.shadowId)?.name ??
                   "Custom")}
             </SelectValue>
           </SelectTrigger>
@@ -432,6 +423,48 @@ function InputEditor({
           </SelectContent>
         </Select>
       </Field>
+
+      <Separator />
+
+      {/* Padding */}
+      <div className="grid grid-cols-2 gap-2">
+        <Field>
+          <FieldLabel className="text-xs text-muted-foreground">
+            Padding X
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupAddon>
+              <Expand className="rotate-90" />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={paddingX}
+              onChange={(e) => setPaddingX(e.target.value)}
+              onBlur={() =>
+                commitNumber(paddingX, "paddingX", setPaddingX, shared.paddingX)
+              }
+              onKeyDown={handleKeyDown}
+            />
+          </InputGroup>
+        </Field>
+        <Field>
+          <FieldLabel className="text-xs text-muted-foreground">
+            Padding Y
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupAddon>
+              <Expand />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={paddingY}
+              onChange={(e) => setPaddingY(e.target.value)}
+              onBlur={() =>
+                commitNumber(paddingY, "paddingY", setPaddingY, shared.paddingY)
+              }
+              onKeyDown={handleKeyDown}
+            />
+          </InputGroup>
+        </Field>
+      </div>
     </div>
   )
 }
@@ -472,14 +505,7 @@ function InputRow({
         <p className="mb-3 text-xs font-medium text-muted-foreground capitalize">
           {state}
         </p>
-        <InputEditor
-          inp={inp}
-          palettes={palettes}
-          corners={corners}
-          shadows={shadows}
-          typographies={typographies}
-          onCommit={onCommit}
-        />
+        <StateEditor inp={inp} palettes={palettes} onCommit={onCommit} />
       </div>
     </div>
   )
@@ -504,6 +530,20 @@ export function DSInput() {
     })
   }
 
+  const commitShared = (
+    updated: Partial<
+      Pick<
+        DesignInput,
+        "cornerId" | "typographyId" | "shadowId" | "paddingX" | "paddingY"
+      >
+    >
+  ) => {
+    if (!project) return
+    updateProject(id!, {
+      designInput: project.designInput.map((i) => ({ ...i, ...updated })),
+    })
+  }
+
   const resetToDefault = () => {
     if (!project) return
     updateProject(id!, {
@@ -520,6 +560,37 @@ export function DSInput() {
   const shadows = project?.shadow ?? []
   const typographies = project?.typography ?? []
 
+  // Shared token display values — only when every state agrees
+  const firstInp = project?.designInput[0]
+  const shared =
+    firstInp && project?.designInput
+      ? {
+          cornerId: project.designInput.every(
+            (i) => i.cornerId === firstInp.cornerId
+          )
+            ? firstInp.cornerId
+            : "",
+          typographyId: project.designInput.every(
+            (i) => i.typographyId === firstInp.typographyId
+          )
+            ? firstInp.typographyId
+            : "",
+          shadowId: project.designInput.every(
+            (i) => i.shadowId === firstInp.shadowId
+          )
+            ? firstInp.shadowId
+            : "",
+          paddingX: firstInp.paddingX,
+          paddingY: firstInp.paddingY,
+        }
+      : {
+          cornerId: "",
+          typographyId: "",
+          shadowId: "",
+          paddingX: 12,
+          paddingY: 8,
+        }
+
   return (
     <main>
       <section className="flex flex-wrap items-center justify-between gap-2 p-4">
@@ -527,11 +598,9 @@ export function DSInput() {
           <h1 className="heading">Input</h1>
           <p>Customize input styles for each state in your design system</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={resetToDefault}>
-            <RotateCcw /> Reset
-          </Button>
-        </div>
+        <Button variant="outline" onClick={resetToDefault}>
+          <RotateCcw /> Reset
+        </Button>
       </section>
 
       <section className="border-t">
@@ -553,21 +622,45 @@ export function DSInput() {
             </EmptyContent>
           </Empty>
         ) : (
-          STATES.map((state) => {
-            const inp = project.designInput.find((i) => i.state === state)
-            return (
-              <InputRow
-                key={state}
-                state={state}
-                inp={inp}
-                palettes={palettes}
+          <Tabs defaultValue="states">
+            {/* Tab nav */}
+            <div className="border-b px-4 pt-4">
+              <TabsList variant="line">
+                <TabsTrigger value="states">States</TabsTrigger>
+                <TabsTrigger value="shared">Shared Tokens</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* ── States tab ── */}
+            <TabsContent value="states">
+              {STATES.map((state) => {
+                const inp = project.designInput.find((i) => i.state === state)
+                return (
+                  <InputRow
+                    key={state}
+                    state={state}
+                    inp={inp}
+                    palettes={palettes}
+                    corners={corners}
+                    shadows={shadows}
+                    typographies={typographies}
+                    onCommit={(updated) => handleCommit(state, updated)}
+                  />
+                )
+              })}
+            </TabsContent>
+
+            {/* ── Shared tokens tab ── */}
+            <TabsContent value="shared">
+              <SharedTokensEditor
+                shared={shared}
                 corners={corners}
                 shadows={shadows}
                 typographies={typographies}
-                onCommit={(updated) => handleCommit(state, updated)}
+                onCommit={commitShared}
               />
-            )
-          })
+            </TabsContent>
+          </Tabs>
         )}
       </section>
     </main>

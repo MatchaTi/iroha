@@ -5,6 +5,8 @@ import {
   type DesignButton,
   type DesignButtonVariant,
   type DesignButtonSize,
+  type DesignButtonVariantConfig,
+  type DesignButtonSizeConfig,
   type ColorPalette,
   type Corner,
   type Shadow as ShadowType,
@@ -52,29 +54,31 @@ const VARIANTS: DesignButtonVariant[] = [
   "link",
 ]
 
-const SIZES: DesignButtonSize[] = ["xs", "sm", "default", "lg"]
+function formatRadius(r: number) {
+  return r >= 99 ? "Full" : `${r}px`
+}
 
 // ─── Token resolvers ──────────────────────────────────────────────────────────
 
-/** Resolve "primary::500" → hex, "transparent" → "transparent", null/undefined → fallback */
 function resolveColor(
   ref: string | null | undefined,
   palettes: ColorPalette[]
 ): string {
   if (!ref) return "#000000"
   if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref // old format — raw hex
+  if (!ref.includes("::")) return ref
   const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
+  return (
+    palettes
+      .find((p) => p.purpose === purpose)
+      ?.colors.find((c) => c.level === level)?.hex ?? "#000000"
+  )
 }
 
-/** Resolve cornerId → radius */
 function resolveCorner(id: string, corners: Corner[]): number {
   return corners.find((c) => c.id === id)?.radius ?? 0
 }
 
-/** Resolve typographyId → Typography */
 function resolveTypography(
   id: string,
   typos: Typography[]
@@ -82,7 +86,6 @@ function resolveTypography(
   return typos.find((t) => t.id === id)
 }
 
-/** Resolve shadowId → CSS string */
 function resolveShadow(id: string, shadows: ShadowType[]): string {
   if (id === "none") return "none"
   const s = shadows.find((s) => s.id === id)
@@ -91,40 +94,48 @@ function resolveShadow(id: string, shadows: ShadowType[]): string {
 
 // ─── ButtonPreview ────────────────────────────────────────────────────────────
 
-interface ResolvedButton {
-  background: string
-  foreground: string
-  border: string
-  radius: number
-  fontFamily: string
-  fontSize: number
-  fontWeight: string
-  paddingX: number
-  paddingY: number
-  shadow: string
-  variant: DesignButtonVariant
-}
+function ButtonPreview({
+  variantConfig,
+  sizeConfig,
+  btn,
+  palettes,
+  corners,
+  shadows,
+  typographies,
+}: {
+  variantConfig: DesignButtonVariantConfig
+  sizeConfig: DesignButtonSizeConfig
+  btn: DesignButton
+  palettes: ColorPalette[]
+  corners: Corner[]
+  shadows: ShadowType[]
+  typographies: Typography[]
+}) {
+  const typo = resolveTypography(btn.typographyId, typographies)
+  const radius = resolveCorner(btn.cornerId, corners)
+  const bg = resolveColor(variantConfig.background, palettes)
+  const fg = resolveColor(variantConfig.foreground, palettes)
+  const border = resolveColor(variantConfig.border, palettes)
 
-function ButtonPreview({ btn }: { btn: ResolvedButton }) {
   return (
     <div
-      className="inline-flex cursor-default items-center justify-center transition-all select-none"
+      className="inline-flex cursor-default items-center justify-center whitespace-nowrap select-none"
       style={{
-        backgroundColor:
-          btn.background === "transparent" ? "transparent" : btn.background,
-        color: btn.foreground,
-        border: `1px solid ${btn.border === "transparent" ? "transparent" : btn.border}`,
-        borderRadius: btn.radius >= 9999 ? 9999 : btn.radius,
-        fontFamily: btn.fontFamily,
-        fontSize: btn.fontSize,
-        fontWeight: btn.fontWeight,
-        paddingLeft: btn.paddingX,
-        paddingRight: btn.paddingX,
-        paddingTop: btn.paddingY,
-        paddingBottom: btn.paddingY,
-        boxShadow: btn.shadow === "none" ? "none" : btn.shadow,
-        textDecoration: btn.variant === "link" ? "underline" : "none",
-        textUnderlineOffset: btn.variant === "link" ? "4px" : undefined,
+        backgroundColor: bg === "transparent" ? "transparent" : bg,
+        color: fg,
+        border: `1px solid ${border === "transparent" ? "transparent" : border}`,
+        borderRadius: radius >= 9999 ? 9999 : radius,
+        fontFamily: typo?.fontFamily,
+        fontSize: typo?.fontSize ?? 14,
+        fontWeight: typo?.fontWeight ?? "Medium",
+        paddingLeft: sizeConfig.paddingX,
+        paddingRight: sizeConfig.paddingX,
+        paddingTop: sizeConfig.paddingY,
+        paddingBottom: sizeConfig.paddingY,
+        boxShadow: resolveShadow(btn.shadowId, shadows),
+        textDecoration: variantConfig.variant === "link" ? "underline" : "none",
+        textUnderlineOffset:
+          variantConfig.variant === "link" ? "4px" : undefined,
       }}
     >
       Button
@@ -132,35 +143,11 @@ function ButtonPreview({ btn }: { btn: ResolvedButton }) {
   )
 }
 
-/** Resolve a DesignButton from token refs to actual values */
-function resolveButton(
-  btn: DesignButton,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedButton {
-  const typo = resolveTypography(btn.typographyId, typographies)
-  return {
-    background: resolveColor(btn.background, palettes),
-    foreground: resolveColor(btn.foreground, palettes),
-    border: resolveColor(btn.border, palettes),
-    radius: resolveCorner(btn.cornerId, corners),
-    fontFamily: typo?.fontFamily ?? "sans-serif",
-    fontSize: typo?.fontSize ?? 14,
-    fontWeight: typo?.fontWeight ?? "Regular",
-    paddingX: btn.paddingX,
-    paddingY: btn.paddingY,
-    shadow: resolveShadow(btn.shadowId, shadows),
-    variant: btn.variant,
-  }
-}
-
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
 function ColorTokenSelect({
   label,
-  value, // "primary::500" or "transparent"
+  value,
   palettes,
   onChange,
 }: {
@@ -178,7 +165,6 @@ function ColorTokenSelect({
   const matchedPalette = palettes.find((p) => p.purpose === purpose)
   const matchedColor = matchedPalette?.colors.find((c) => c.level === level)
   const hex = isTransparent ? undefined : (matchedColor?.hex ?? "#000000")
-
   const displayLabel = isTransparent
     ? "Transparent"
     : matchedPalette
@@ -193,7 +179,10 @@ function ColorTokenSelect({
           className="size-5 shrink-0 rounded-full border"
           style={{ backgroundColor: hex }}
         />
-        <Select value={value} onValueChange={onChange}>
+        <Select
+          value={value}
+          onValueChange={(v) => onChange(v ?? "transparent")}
+        >
           <SelectTrigger className="flex-1">
             <SelectValue>{displayLabel}</SelectValue>
           </SelectTrigger>
@@ -227,27 +216,236 @@ function ColorTokenSelect({
   )
 }
 
-// ─── ButtonEditor ─────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
-interface ButtonEditorProps {
-  btn: DesignButton
-  onCommit: (updated: Partial<DesignButton>) => void
-  palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
+export function DSButton() {
+  const { id } = useParams<{ id: string }>()
+  const project = useProject((state) => state.projects.find((p) => p.id === id))
+  const updateProject = useProject((state) => state.updateProject)
+
+  if (!project?.designButton) return null
+
+  // Guard: localStorage might still have old array format
+  const btn = Array.isArray(project.designButton) ? null : project.designButton
+  const palettes = project.colorPalette ?? []
+  const corners = project.corner ?? []
+  const shadows = project.shadow ?? []
+  const typographies = project.typography ?? []
+
+  const commitShared = (
+    updated: Partial<
+      Pick<DesignButton, "cornerId" | "typographyId" | "shadowId">
+    >
+  ) => {
+    if (!btn) return
+    updateProject(id!, { designButton: { ...btn, ...updated } })
+  }
+
+  const commitVariant = (
+    variant: DesignButtonVariant,
+    updated: Partial<DesignButtonVariantConfig>
+  ) => {
+    if (!btn) return
+    updateProject(id!, {
+      designButton: {
+        ...btn,
+        variants: btn.variants.map((v) =>
+          v.variant === variant ? { ...v, ...updated } : v
+        ),
+      },
+    })
+  }
+
+  const commitSize = (
+    size: DesignButtonSize,
+    updated: Partial<DesignButtonSizeConfig>
+  ) => {
+    if (!btn) return
+    updateProject(id!, {
+      designButton: {
+        ...btn,
+        sizes: btn.sizes.map((s) =>
+          s.size === size ? { ...s, ...updated } : s
+        ),
+      },
+    })
+  }
+
+  const resetToDefault = () => {
+    updateProject(id!, {
+      designButton: resolveDesignButtonStarterPacks(
+        corners,
+        shadows,
+        typographies
+      ),
+    })
+  }
+
+  return (
+    <main>
+      <section className="flex flex-wrap items-center justify-between gap-2 p-4">
+        <div className="space-y-2">
+          <h1 className="heading">Button</h1>
+          <p>
+            Customize button styles for each variant and size in your design
+            system
+          </p>
+        </div>
+        <Button variant="outline" onClick={resetToDefault}>
+          <RotateCcw /> Reset
+        </Button>
+      </section>
+
+      <section className="border-t">
+        {!btn ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MousePointerClick />
+              </EmptyMedia>
+              <EmptyTitle>No button styles yet</EmptyTitle>
+              <EmptyDescription>
+                Reset to load the default button styles.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button onClick={resetToDefault}>
+                <RotateCcw /> Load Defaults
+              </Button>
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <Tabs defaultValue="variants">
+            {/* Tab nav */}
+            <div className="border-b px-4 pt-4">
+              <TabsList variant="line">
+                <TabsTrigger value="variants">Variants</TabsTrigger>
+                <TabsTrigger value="sizes">Sizes</TabsTrigger>
+                <TabsTrigger value="shared">Shared Tokens</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* ── Variants tab ── */}
+            <TabsContent value="variants">
+              {VARIANTS.map((variant) => {
+                const vc = btn.variants.find((v) => v.variant === variant)
+                if (!vc) return null
+                return (
+                  <div
+                    key={variant}
+                    className="grid border-b last:border-b-0 md:grid-cols-4"
+                  >
+                    {/* Preview — all sizes */}
+                    <div className="flex min-h-24 flex-col gap-4 px-6 py-6 md:col-span-3">
+                      <p className="text-xs font-medium text-muted-foreground capitalize">
+                        {variant}
+                      </p>
+                      <div className="flex flex-wrap items-end gap-3">
+                        {btn.sizes.map((sc) => (
+                          <div
+                            key={sc.size}
+                            className="flex flex-col items-center gap-1.5"
+                          >
+                            <ButtonPreview
+                              variantConfig={vc}
+                              sizeConfig={sc}
+                              btn={btn}
+                              palettes={palettes}
+                              corners={corners}
+                              shadows={shadows}
+                              typographies={typographies}
+                            />
+                            <span className="font-mono text-[10px] text-muted-foreground">
+                              {sc.size}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Color editor */}
+                    <div className="flex flex-col gap-3 border-t px-4 py-4 md:border-t-0 md:border-l">
+                      <ColorTokenSelect
+                        label="Background"
+                        value={vc.background}
+                        palettes={palettes}
+                        onChange={(v) =>
+                          commitVariant(variant, { background: v })
+                        }
+                      />
+                      <ColorTokenSelect
+                        label="Foreground"
+                        value={vc.foreground}
+                        palettes={palettes}
+                        onChange={(v) =>
+                          commitVariant(variant, { foreground: v })
+                        }
+                      />
+                      <ColorTokenSelect
+                        label="Border"
+                        value={vc.border}
+                        palettes={palettes}
+                        onChange={(v) => commitVariant(variant, { border: v })}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </TabsContent>
+
+            {/* ── Sizes tab ── */}
+            <TabsContent value="sizes">
+              {btn.sizes.map((sc) => (
+                <SizeRow
+                  key={sc.size}
+                  sizeConfig={sc}
+                  btn={btn}
+                  palettes={palettes}
+                  corners={corners}
+                  shadows={shadows}
+                  typographies={typographies}
+                  onCommit={(updated) => commitSize(sc.size, updated)}
+                />
+              ))}
+            </TabsContent>
+
+            {/* ── Shared tokens tab ── */}
+            <TabsContent value="shared">
+              <SharedEditor
+                btn={btn}
+                corners={corners}
+                shadows={shadows}
+                typographies={typographies}
+                onCommit={commitShared}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
+      </section>
+    </main>
+  )
 }
 
-function ButtonEditor({
+// ─── SizeRow ──────────────────────────────────────────────────────────────────
+
+function SizeRow({
+  sizeConfig,
   btn,
-  onCommit,
   palettes,
   corners,
   shadows,
   typographies,
-}: ButtonEditorProps) {
-  const [paddingX, setPaddingX] = useState(String(btn.paddingX))
-  const [paddingY, setPaddingY] = useState(String(btn.paddingY))
+  onCommit,
+}: {
+  sizeConfig: DesignButtonSizeConfig
+  btn: DesignButton
+  palettes: ColorPalette[]
+  corners: Corner[]
+  shadows: ShadowType[]
+  typographies: Typography[]
+  onCommit: (updated: Partial<DesignButtonSizeConfig>) => void
+}) {
+  const [paddingX, setPaddingX] = useState(String(sizeConfig.paddingX))
+  const [paddingY, setPaddingY] = useState(String(sizeConfig.paddingY))
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") e.currentTarget.blur()
@@ -265,108 +463,150 @@ function ButtonEditor({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Colors */}
-      <ColorTokenSelect
-        label="Background"
-        value={btn.background}
-        palettes={palettes}
-        onChange={(v) => onCommit({ background: v })}
-      />
-      <ColorTokenSelect
-        label="Foreground"
-        value={btn.foreground}
-        palettes={palettes}
-        onChange={(v) => onCommit({ foreground: v })}
-      />
-      <ColorTokenSelect
-        label="Border"
-        value={btn.border}
-        palettes={palettes}
-        onChange={(v) => onCommit({ border: v })}
-      />
+    <div className="grid border-b md:grid-cols-4">
+      {/* Preview — all variants at this size */}
+      <div className="flex min-h-24 flex-col gap-4 px-6 py-6 md:col-span-3">
+        <p className="text-xs font-medium text-muted-foreground capitalize">
+          {sizeConfig.size}
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          {VARIANTS.slice(0, 5).map((variant) => {
+            const vc = btn.variants.find((v) => v.variant === variant)
+            if (!vc) return null
+            return (
+              <ButtonPreview
+                key={variant}
+                variantConfig={vc}
+                sizeConfig={sizeConfig}
+                btn={btn}
+                palettes={palettes}
+                corners={corners}
+                shadows={shadows}
+                typographies={typographies}
+              />
+            )
+          })}
+        </div>
+      </div>
+      {/* Padding editor */}
+      <div className="flex flex-col gap-3 border-t px-4 py-4 md:border-t-0 md:border-l">
+        <div className="grid grid-cols-2 gap-2">
+          <Field>
+            <FieldLabel className="text-xs text-muted-foreground">
+              Padding X
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupAddon>
+                <Expand className="rotate-90" />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={paddingX}
+                onChange={(e) => setPaddingX(e.target.value)}
+                onBlur={() =>
+                  commitNumber(
+                    paddingX,
+                    "paddingX",
+                    setPaddingX,
+                    sizeConfig.paddingX
+                  )
+                }
+                onKeyDown={handleKeyDown}
+              />
+            </InputGroup>
+          </Field>
+          <Field>
+            <FieldLabel className="text-xs text-muted-foreground">
+              Padding Y
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupAddon>
+                <Expand />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={paddingY}
+                onChange={(e) => setPaddingY(e.target.value)}
+                onBlur={() =>
+                  commitNumber(
+                    paddingY,
+                    "paddingY",
+                    setPaddingY,
+                    sizeConfig.paddingY
+                  )
+                }
+                onKeyDown={handleKeyDown}
+              />
+            </InputGroup>
+          </Field>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-      <Separator />
+// ─── SharedEditor ─────────────────────────────────────────────────────────────
 
-      {/* Corner */}
+function SharedEditor({
+  btn,
+  corners,
+  shadows,
+  typographies,
+  onCommit,
+}: {
+  btn: DesignButton
+  corners: Corner[]
+  shadows: ShadowType[]
+  typographies: Typography[]
+  onCommit: (
+    updated: Partial<
+      Pick<DesignButton, "cornerId" | "typographyId" | "shadowId">
+    >
+  ) => void
+}) {
+  return (
+    <div className="flex max-w-sm flex-col gap-4 p-6">
+      <p className="text-xs text-muted-foreground">
+        These tokens apply to all variants and sizes.
+      </p>
+
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Corner Radius
         </FieldLabel>
         <Select
           value={btn.cornerId}
-          onValueChange={(v) => onCommit({ cornerId: v })}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ cornerId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
               {(() => {
                 const c = corners.find((c) => c.id === btn.cornerId)
-                return c
-                  ? `${c.name} - ${c.radius >= 99 ? "Full" : `${c.radius}px`}`
-                  : "Custom"
+                return c ? `${c.name} - ${formatRadius(c.radius)}` : "Custom"
               })()}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {corners.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name} - {c.radius >= 99 ? "Full" : `${c.radius}px`}
+                {c.name} - {formatRadius(c.radius)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </Field>
 
-      {/* Padding */}
-      <div className="grid grid-cols-2 gap-2">
-        <Field>
-          <FieldLabel className="text-xs text-muted-foreground">
-            Padding X
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupAddon>
-              <Expand className="rotate-90" />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={paddingX}
-              onChange={(e) => setPaddingX(e.target.value)}
-              onBlur={() =>
-                commitNumber(paddingX, "paddingX", setPaddingX, btn.paddingX)
-              }
-              onKeyDown={handleKeyDown}
-            />
-          </InputGroup>
-        </Field>
-        <Field>
-          <FieldLabel className="text-xs text-muted-foreground">
-            Padding Y
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupAddon>
-              <Expand />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={paddingY}
-              onChange={(e) => setPaddingY(e.target.value)}
-              onBlur={() =>
-                commitNumber(paddingY, "paddingY", setPaddingY, btn.paddingY)
-              }
-              onKeyDown={handleKeyDown}
-            />
-          </InputGroup>
-        </Field>
-      </div>
-
       <Separator />
 
-      {/* Typography */}
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Typography
         </FieldLabel>
         <Select
           value={btn.typographyId}
-          onValueChange={(v) => onCommit({ typographyId: v })}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ typographyId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
@@ -393,14 +633,15 @@ function ButtonEditor({
 
       <Separator />
 
-      {/* Shadow */}
       <Field>
         <FieldLabel className="text-xs text-muted-foreground">
           Shadow
         </FieldLabel>
         <Select
           value={btn.shadowId}
-          onValueChange={(v) => onCommit({ shadowId: v })}
+          onValueChange={(v) => {
+            if (v !== null) onCommit({ shadowId: v })
+          }}
         >
           <SelectTrigger>
             <SelectValue>
@@ -421,187 +662,5 @@ function ButtonEditor({
         </Select>
       </Field>
     </div>
-  )
-}
-
-// ─── ButtonRow ────────────────────────────────────────────────────────────────
-
-interface ButtonRowProps {
-  variant: DesignButtonVariant
-  buttons: DesignButton[]
-  palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
-  onCommit: (size: DesignButtonSize, updated: Partial<DesignButton>) => void
-}
-
-function ButtonRow({
-  variant,
-  buttons,
-  palettes,
-  corners,
-  shadows,
-  typographies,
-  onCommit,
-}: ButtonRowProps) {
-  return (
-    <div className="grid border-b last:border-b-0 md:grid-cols-4">
-      <div className="flex min-h-32 flex-col gap-6 px-6 py-8 md:col-span-3">
-        <p className="text-xs font-medium text-muted-foreground capitalize">
-          {variant}
-        </p>
-        <div className="flex flex-wrap items-end gap-4">
-          {SIZES.map((size) => {
-            const btn = buttons.find((b) => b.size === size)
-            if (!btn) return null
-            const resolved = resolveButton(
-              btn,
-              palettes,
-              corners,
-              shadows,
-              typographies
-            )
-            return (
-              <div key={size} className="flex flex-col items-center gap-2">
-                <ButtonPreview btn={resolved} />
-                <span className="font-mono text-[10px] text-muted-foreground">
-                  {size}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="flex flex-col border-t px-4 py-4 md:border-t-0 md:border-l">
-        <Tabs defaultValue="default">
-          <TabsList className="mb-3 w-full">
-            {SIZES.map((size) => (
-              <TabsTrigger
-                key={size}
-                value={size}
-                className="flex-1 capitalize"
-              >
-                {size}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {SIZES.map((size) => {
-            const btn = buttons.find((b) => b.size === size)
-            if (!btn) return null
-            return (
-              <TabsContent key={size} value={size}>
-                <ButtonEditor
-                  btn={btn}
-                  palettes={palettes}
-                  corners={corners}
-                  shadows={shadows}
-                  typographies={typographies}
-                  onCommit={(updated) => onCommit(size, updated)}
-                />
-              </TabsContent>
-            )
-          })}
-        </Tabs>
-      </div>
-    </div>
-  )
-}
-
-// ─── DSButton page ────────────────────────────────────────────────────────────
-
-export function DSButton() {
-  const { id } = useParams<{ id: string }>()
-  const project = useProject((state) => state.projects.find((p) => p.id === id))
-  const updateProject = useProject((state) => state.updateProject)
-
-  const handleCommit = (
-    variant: DesignButtonVariant,
-    size: DesignButtonSize,
-    updated: Partial<DesignButton>
-  ) => {
-    if (!project) return
-    updateProject(id!, {
-      designButton: project.designButton.map((b) =>
-        b.variant === variant && b.size === size ? { ...b, ...updated } : b
-      ),
-    })
-  }
-
-  const resetToDefault = () => {
-    if (!project) return
-    updateProject(id!, {
-      designButton: resolveDesignButtonStarterPacks(
-        project.corner ?? [],
-        project.shadow ?? [],
-        project.typography ?? []
-      ),
-    })
-  }
-
-  const palettes = project?.colorPalette ?? []
-  const corners = project?.corner ?? []
-  const shadows = project?.shadow ?? []
-  const typographies = project?.typography ?? []
-
-  return (
-    <main>
-      <section className="flex flex-wrap items-center justify-between gap-2 p-4">
-        <div className="space-y-2">
-          <h1 className="heading">Button</h1>
-          <p>
-            Customize button styles for each variant and size in your design
-            system
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={resetToDefault}>
-            <RotateCcw /> Reset
-          </Button>
-        </div>
-      </section>
-
-      <section className="border-t">
-        {!project?.designButton || project.designButton.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <MousePointerClick />
-              </EmptyMedia>
-              <EmptyTitle>No button styles yet</EmptyTitle>
-              <EmptyDescription>
-                Reset to load the default button styles.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button onClick={resetToDefault}>
-                <RotateCcw /> Load Defaults
-              </Button>
-            </EmptyContent>
-          </Empty>
-        ) : (
-          VARIANTS.map((variant) => {
-            const buttons = (project.designButton ?? []).filter(
-              (b) => b.variant === variant
-            )
-            return (
-              <ButtonRow
-                key={variant}
-                variant={variant}
-                buttons={buttons}
-                palettes={palettes}
-                corners={corners}
-                shadows={shadows}
-                typographies={typographies}
-                onCommit={(size, updated) =>
-                  handleCommit(variant, size, updated)
-                }
-              />
-            )
-          })
-        )}
-      </section>
-    </main>
   )
 }

@@ -47,9 +47,21 @@ export function NewProject() {
         colorPalette: COLOR_PALETTE_STARTER_PACKS,
         corner: corners,
         shadow: shadows,
-        designButton: resolveDesignButtonStarterPacks(corners, shadows, typography),
-        designInput: resolveDesignInputStarterPacks(corners, shadows, typography),
-        designBadge: resolveDesignBadgeStarterPacks(corners, shadows, typography),
+        designButton: resolveDesignButtonStarterPacks(
+          corners,
+          shadows,
+          typography
+        ),
+        designInput: resolveDesignInputStarterPacks(
+          corners,
+          shadows,
+          typography
+        ),
+        designBadge: resolveDesignBadgeStarterPacks(
+          corners,
+          shadows,
+          typography
+        ),
         templateTypography: "one",
         templateColorPalette: "one",
       })

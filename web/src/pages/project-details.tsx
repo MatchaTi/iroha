@@ -194,19 +194,6 @@ export function ProjectDetails() {
     primaryPalette?.colors.filter((c) => c.level !== "500") ?? []
 
   // Button samples — all variants × all sizes
-  const BUTTON_VARIANTS = [
-    "default",
-    "outline",
-    "secondary",
-    "ghost",
-    "destructive",
-    "error",
-    "warning",
-    "success",
-    "link",
-  ] as const
-  const BUTTON_SIZES = ["xs", "sm", "default", "lg"] as const
-
   // Input per state
   const INPUT_STATES = ["default", "focus", "error", "disabled"] as const
 
@@ -269,7 +256,7 @@ export function ProjectDetails() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel size={'lg'}>Cancel</AlertDialogCancel>
+                <AlertDialogCancel size={"lg"}>Cancel</AlertDialogCancel>
                 <Button variant="destructive" size="lg" onClick={handleDelete}>
                   <Trash /> Delete
                 </Button>
@@ -435,65 +422,70 @@ export function ProjectDetails() {
       )}
 
       {/* ── Button ── */}
-      {project.designButton.length > 0 && (
+      {project.designButton.variants.length > 0 && (
         <Section
           title="Buttons"
           description="Button styles for each variant and size"
         >
           <div className="space-y-6">
-            {BUTTON_SIZES.map((size) => {
-              const btns = BUTTON_VARIANTS.map((variant) =>
-                project.designButton.find(
-                  (b) => b.variant === variant && b.size === size
-                )
-              ).filter(Boolean)
-              if (!btns.length) return null
-              return (
-                <div key={size} className="space-y-2">
-                  <p className="font-mono text-xs text-muted-foreground capitalize">
-                    Size: {size}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {btns.map((btn) => {
-                      if (!btn) return null
-                      const typo = resolveTypography(
-                        btn.typographyId,
-                        typographies
-                      )
-                      const radius = resolveCorner(btn.cornerId, corners)
-                      return (
-                        <span
-                          key={btn.variant}
-                          className="inline-flex cursor-default items-center justify-center select-none"
-                          style={{
-                            backgroundColor:
-                              resolveColor(btn.background, palettes) ===
-                              "transparent"
-                                ? "transparent"
-                                : resolveColor(btn.background, palettes),
-                            color: resolveColor(btn.foreground, palettes),
-                            border: `1px solid ${resolveColor(btn.border, palettes) === "transparent" ? "transparent" : resolveColor(btn.border, palettes)}`,
-                            borderRadius: radius >= 9999 ? 9999 : radius,
-                            fontFamily: typo?.fontFamily,
-                            fontSize: typo?.fontSize ?? 14,
-                            fontWeight: typo?.fontWeight,
-                            paddingLeft: btn.paddingX,
-                            paddingRight: btn.paddingX,
-                            paddingTop: btn.paddingY,
-                            paddingBottom: btn.paddingY,
-                            boxShadow: resolveShadow(btn.shadowId, shadows),
-                            textDecoration:
-                              btn.variant === "link" ? "underline" : "none",
-                          }}
-                        >
-                          Button
-                        </span>
-                      )
-                    })}
-                  </div>
+            {project.designButton.sizes.map((sizeConfig) => (
+              <div key={sizeConfig.size} className="space-y-2">
+                <p className="font-mono text-xs text-muted-foreground capitalize">
+                  Size: {sizeConfig.size}
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {project.designButton.variants.map((variantConfig) => {
+                    const typo = resolveTypography(
+                      project.designButton.typographyId,
+                      typographies
+                    )
+                    const radius = resolveCorner(
+                      project.designButton.cornerId,
+                      corners
+                    )
+                    return (
+                      <span
+                        key={variantConfig.variant}
+                        className="inline-flex cursor-default items-center justify-center select-none"
+                        style={{
+                          backgroundColor:
+                            resolveColor(variantConfig.background, palettes) ===
+                            "transparent"
+                              ? "transparent"
+                              : resolveColor(
+                                  variantConfig.background,
+                                  palettes
+                                ),
+                          color: resolveColor(
+                            variantConfig.foreground,
+                            palettes
+                          ),
+                          border: `1px solid ${resolveColor(variantConfig.border, palettes) === "transparent" ? "transparent" : resolveColor(variantConfig.border, palettes)}`,
+                          borderRadius: radius >= 9999 ? 9999 : radius,
+                          fontFamily: typo?.fontFamily,
+                          fontSize: typo?.fontSize ?? 14,
+                          fontWeight: typo?.fontWeight,
+                          paddingLeft: sizeConfig.paddingX,
+                          paddingRight: sizeConfig.paddingX,
+                          paddingTop: sizeConfig.paddingY,
+                          paddingBottom: sizeConfig.paddingY,
+                          boxShadow: resolveShadow(
+                            project.designButton.shadowId,
+                            shadows
+                          ),
+                          textDecoration:
+                            variantConfig.variant === "link"
+                              ? "underline"
+                              : "none",
+                        }}
+                      >
+                        Button
+                      </span>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </Section>
       )}

@@ -1,5 +1,5 @@
-import type React from "react";
-import { cn } from "@/lib/utils";
+import type React from "react"
+import { cn } from "@/lib/utils"
 
 export interface CursorProps extends React.ComponentProps<"span"> {
   /**
@@ -8,7 +8,7 @@ export interface CursorProps extends React.ComponentProps<"span"> {
    *
    * @default "var(--primary)"
    */
-  color?: string;
+  color?: string
 }
 
 /**
@@ -20,23 +20,23 @@ export interface CursorProps extends React.ComponentProps<"span"> {
  * @cssvar --cursor-color The pointer's and the body's colour (`var(--primary)`).
  */
 export const Cursor = (props: CursorProps) => {
-  const { className, color, style, ...rest } = props;
+  const { className, color, style, ...rest } = props
 
   return (
     <span
       className={cn(
-        "pointer-events-none relative inline-flex select-none flex-col items-start",
+        "pointer-events-none relative inline-flex flex-col items-start select-none",
         className
       )}
       data-slot="cursor"
       style={{ "--cursor-color": color, ...style } as React.CSSProperties}
       {...rest}
     />
-  );
-};
+  )
+}
 
 export const CursorPointer = (props: React.ComponentProps<"svg">) => {
-  const { className, ...rest } = props;
+  const { className, ...rest } = props
 
   return (
     <svg
@@ -58,17 +58,17 @@ export const CursorPointer = (props: React.ComponentProps<"svg">) => {
         fill="currentColor"
       />
     </svg>
-  );
-};
+  )
+}
 
 export const CursorBody = (props: React.ComponentProps<"span">) => {
-  const { className, ...rest } = props;
+  const { className, ...rest } = props
 
   return (
     <span
       className={cn(
         "relative ms-3.5 flex flex-col",
-        "whitespace-nowrap rounded-xl py-1 ps-2.5 pe-3 text-xs",
+        "rounded-xl py-1 ps-2.5 pe-3 text-xs whitespace-nowrap",
         "bg-(--cursor-color,var(--primary))",
         // Dark text on a light colour, light text on a dark one.
         "text-[oklch(from_var(--cursor-color,var(--primary))_calc((0.65_-_l)_*_100)_0_0)]",
@@ -81,11 +81,11 @@ export const CursorBody = (props: React.ComponentProps<"span">) => {
       data-slot="cursor-body"
       {...rest}
     />
-  );
-};
+  )
+}
 
 export const CursorName = (props: React.ComponentProps<"span">) => {
-  const { className, ...rest } = props;
+  const { className, ...rest } = props
 
   return (
     <span
@@ -93,11 +93,11 @@ export const CursorName = (props: React.ComponentProps<"span">) => {
       data-slot="cursor-name"
       {...rest}
     />
-  );
-};
+  )
+}
 
 export const CursorMessage = (props: React.ComponentProps<"span">) => {
-  const { className, ...rest } = props;
+  const { className, ...rest } = props
 
   return (
     <span
@@ -105,5 +105,5 @@ export const CursorMessage = (props: React.ComponentProps<"span">) => {
       data-slot="cursor-message"
       {...rest}
     />
-  );
-};
+  )
+}

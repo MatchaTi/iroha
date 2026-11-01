@@ -143,12 +143,19 @@ function generateMarkdown(project: Project): string {
   lines.push("")
 
   // Button
-  if (project.designButton?.length > 0) {
+  const db = project.designButton
+  if (db && !Array.isArray(db)) {
     lines.push("### Button")
-    for (const btn of project.designButton) {
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(db.cornerId, corners)}, typography ${resolveTypoName(db.typographyId, typographies)}, shadow ${resolveShadowName(db.shadowId, shadows)}`
+    )
+    for (const v of db.variants) {
       lines.push(
-        `- **${btn.variant} (${btn.size})**: bg ${resolveColor(btn.background, palettes)}, fg ${resolveColor(btn.foreground, palettes)}, border ${resolveColor(btn.border, palettes)}, radius ${resolveCornerRadius(btn.cornerId, corners)}, ${resolveTypoName(btn.typographyId, typographies)}, shadow ${resolveShadowName(btn.shadowId, shadows)}, ${btn.paddingX}×${btn.paddingY}px`
+        `- **${v.variant}**: bg ${resolveColor(v.background, palettes)}, fg ${resolveColor(v.foreground, palettes)}, border ${resolveColor(v.border, palettes)}`
       )
+    }
+    for (const s of db.sizes) {
+      lines.push(`- **${s.size}**: ${s.paddingX}×${s.paddingY}px`)
     }
     lines.push("")
   }

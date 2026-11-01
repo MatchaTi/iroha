@@ -66,20 +66,28 @@ export type DesignButtonVariant =
 
 export type DesignButtonSize = "xs" | "sm" | "default" | "lg"
 
-export type DesignButton = {
+export type DesignButtonVariantConfig = {
   variant: DesignButtonVariant
-  size: DesignButtonSize
-  // color refs: "transparent" or "paletteId::level"
   background: string
   foreground: string
   border: string
-  // token refs
-  cornerId: string
-  typographyId: string
-  shadowId: string // "none" or shadow.id
-  // spacing
+}
+
+export type DesignButtonSizeConfig = {
+  size: DesignButtonSize
   paddingX: number
   paddingY: number
+}
+
+export type DesignButton = {
+  // shared tokens — same across all variants & sizes
+  cornerId: string
+  typographyId: string
+  shadowId: string
+  // per-variant colors
+  variants: DesignButtonVariantConfig[]
+  // per-size spacing
+  sizes: DesignButtonSizeConfig[]
 }
 
 export type DesignInputState = "default" | "focus" | "error" | "disabled"
@@ -134,7 +142,7 @@ export type Project = {
   colorPalette: ColorPalette[]
   corner: Corner[]
   shadow: Shadow[]
-  designButton: DesignButton[]
+  designButton: DesignButton
   designInput: DesignInput[]
   designBadge: DesignBadge[]
   templateTypography: string

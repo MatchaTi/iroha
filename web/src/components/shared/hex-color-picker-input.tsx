@@ -19,7 +19,10 @@ interface HexColorPickerInputProps {
 
 const HEX_REGEX = /^#[0-9a-fA-F]{6}$/
 
-export function HexColorPickerInput({ value, onChange }: HexColorPickerInputProps) {
+export function HexColorPickerInput({
+  value,
+  onChange,
+}: HexColorPickerInputProps) {
   const commitText = (raw: string) => {
     const clean = raw.startsWith("#") ? raw : `#${raw}`
     if (HEX_REGEX.test(clean)) {
@@ -37,11 +40,16 @@ export function HexColorPickerInput({ value, onChange }: HexColorPickerInputProp
     <div className="flex items-center gap-2">
       <Popover>
         <PopoverTrigger
-          className="size-9 shrink-0 rounded-md border shadow-sm transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="size-9 shrink-0 rounded-md border shadow-sm transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           style={{ backgroundColor: value }}
           aria-label="Pick color"
         />
-        <PopoverContent className="w-auto gap-2 p-3" side="bottom" align="start" sideOffset={8}>
+        <PopoverContent
+          className="w-auto gap-2 p-3"
+          side="bottom"
+          align="start"
+          sideOffset={8}
+        >
           <HexColorPicker color={value} onChange={onChange} />
           <Input
             className="font-mono text-xs"

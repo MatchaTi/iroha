@@ -170,9 +170,13 @@ export function Corner() {
     })
   }
 
-  const primaryColor = project?.colorPalette.find(color => color.purpose === 'primary')
-  const anchorColor = primaryColor?.colors.find(color => color.level === '500')
-  console.log( anchorColor)
+  const primaryColor = project?.colorPalette.find(
+    (color) => color.purpose === "primary"
+  )
+  const anchorColor = primaryColor?.colors.find(
+    (color) => color.level === "500"
+  )
+  console.log(anchorColor)
 
   return (
     <main>
