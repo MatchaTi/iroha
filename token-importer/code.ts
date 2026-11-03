@@ -989,6 +989,374 @@ async function importTokens(t) {
   }
 
   figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-8));
+
+  // ── Helper: cari primary/500 hex ──────────────────────────────────────────
+  var activePrimary = (function() {
+    if (!t.colorPalette) return "#6366F1";
+    for (var pal of t.colorPalette) {
+      if (pal.purpose === "primary") {
+        for (var clr of pal.colors) {
+          if (clr.level === "500") return clr.hex;
+        }
+      }
+    }
+    return "#6366F1";
+  })();
+  var activePrimary100 = (function() {
+    if (!t.colorPalette) return "#E0E7FF";
+    for (var pal of t.colorPalette) {
+      if (pal.purpose === "primary") {
+        for (var clr of pal.colors) {
+          if (clr.level === "100") return clr.hex;
+        }
+      }
+    }
+    return "#E0E7FF";
+  })();
+  var fg500 = (function() {
+    if (!t.colorPalette) return "#1A1A1A";
+    for (var pal of t.colorPalette) {
+      if (pal.purpose === "foreground") {
+        for (var clr of pal.colors) {
+          if (clr.level === "500") return clr.hex;
+        }
+      }
+    }
+    return "#1A1A1A";
+  })();
+
+  var BORDER_COLOR = "#D1D5DB";
+  var TRACK_OFF    = "#D1D5DB";
+  var THUMB_COLOR  = "#FFFFFF";
+
+  // ── Frame 8: Checkbox ──────────────────────────────────────────────────────
+  {
+    var cbStates = ["Unchecked", "Checked", "Indeterminate", "Disabled"];
+    var cbComps: ComponentNode[] = [];
+
+    for (var state of cbStates) {
+      var cbComp = figma.createComponent();
+      cbComp.name = "State=" + state;
+      cbComp.layoutMode = "HORIZONTAL";
+      cbComp.primaryAxisSizingMode = "AUTO";
+      cbComp.counterAxisSizingMode = "AUTO";
+      cbComp.counterAxisAlignItems = "CENTER";
+      cbComp.itemSpacing = 8;
+      cbComp.fills = [];
+
+      var isChecked  = state === "Checked";
+      var isIndet    = state === "Indeterminate";
+      var isDisabled = state === "Disabled";
+      var isActive   = isChecked || isIndet;
+
+      // Box — pakai Frame agar bisa berisi icon, dengan auto-layout CENTER
+      var cbBox = makeFrame("Box", "HORIZONTAL", 0, 0);
+      cbBox.resize(18, 18);
+      cbBox.cornerRadius = 4;
+      cbBox.primaryAxisAlignItems = "CENTER";
+      cbBox.counterAxisAlignItems = "CENTER";
+      cbBox.fills = isActive ? solid(activePrimary) : [];
+      cbBox.strokes = isActive
+        ? []
+        : [{ type: "SOLID", color: hexToRgb(isDisabled ? TRACK_OFF : BORDER_COLOR) }];
+      cbBox.strokeWeight = 1.5;
+      cbBox.opacity = isDisabled ? 0.4 : 1;
+      cbComp.appendChild(cbBox);
+
+      // Icon di dalam box — pakai frame kecil sebagai centang/dash
+      if (isChecked) {
+        // Centang: dua rectangle membentuk ✓
+        var iconWrap = makeFrame("Icon", "NONE", 0, 0);
+        iconWrap.resize(10, 8);
+        iconWrap.fills = [];
+        var leg1 = figma.createRectangle();
+        leg1.resize(4, 2); leg1.cornerRadius = 1;
+        leg1.fills = solid(THUMB_COLOR);
+        leg1.rotation = -45; leg1.x = 0; leg1.y = 5;
+        iconWrap.appendChild(leg1);
+        var leg2 = figma.createRectangle();
+        leg2.resize(7, 2); leg2.cornerRadius = 1;
+        leg2.fills = solid(THUMB_COLOR);
+        leg2.rotation = 45; leg2.x = 2; leg2.y = 3;
+        iconWrap.appendChild(leg2);
+        cbBox.appendChild(iconWrap);
+      } else if (isIndet) {
+        // Dash: rectangle horizontal
+        var dash = figma.createRectangle();
+        dash.name = "Dash";
+        dash.resize(10, 2);
+        dash.cornerRadius = 1;
+        dash.fills = solid(THUMB_COLOR);
+        cbBox.appendChild(dash);
+      }
+
+      // Label
+      var labelProp = cbComp.addComponentProperty("Label", "TEXT", "Checkbox");
+      var cbLabel = figma.createText();
+      cbLabel.name = "Label";
+      cbLabel.fontName = { family: "Inter", style: "Regular" };
+      cbLabel.fontSize = 14;
+      cbLabel.characters = "Checkbox";
+      cbLabel.fills = solid(isDisabled ? TRACK_OFF : fg500);
+      cbComp.appendChild(cbLabel);
+      cbLabel.componentPropertyReferences = { characters: labelProp };
+
+      cbComps.push(cbComp);
+    }
+
+    var cbSet = figma.combineAsVariants(cbComps, figma.currentPage);
+    cbSet.name = "Checkbox";
+    cbSet.fills = [];
+    cbSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+    cbSet.strokeWeight = 2; cbSet.dashPattern = [8, 4]; cbSet.strokeAlign = "INSIDE";
+
+    var cbPad = 32, cbGap = 24, cbX = cbPad, cbMaxH = 0;
+    for (var ci = 0; ci < cbSet.children.length; ci++) {
+      var ch = cbSet.children[ci] as FrameNode;
+      ch.x = cbX; ch.y = cbPad;
+      cbX += ch.width + cbGap;
+      if (ch.height > cbMaxH) cbMaxH = ch.height;
+    }
+    cbSet.resize(cbX - cbGap + cbPad, cbMaxH + cbPad * 2);
+
+    var frameCheckbox = makeSectionFrame("Checkbox", "Checkbox",
+      "Selection control for binary on/off choices");
+    frameCheckbox.appendChild(cbSet);
+    figma.currentPage.appendChild(frameCheckbox);
+  }
+
+  // ── Frame 9: Radio ────────────────────────────────────────────────────────
+  {
+    var rdStates = ["Unselected", "Selected", "Disabled"];
+    var rdComps: ComponentNode[] = [];
+
+    for (var state of rdStates) {
+      var rdComp = figma.createComponent();
+      rdComp.name = "State=" + state;
+      rdComp.layoutMode = "HORIZONTAL";
+      rdComp.primaryAxisSizingMode = "AUTO";
+      rdComp.counterAxisSizingMode = "AUTO";
+      rdComp.counterAxisAlignItems = "CENTER";
+      rdComp.itemSpacing = 8;
+      rdComp.fills = [];
+
+      var rdSelected = state === "Selected";
+      var rdDisabled = state === "Disabled";
+
+      // Outer circle — pakai Frame bulat penuh agar bisa berisi dot
+      var rdOuter = makeFrame("Circle", "NONE", 0, 0);
+      rdOuter.resize(18, 18);
+      rdOuter.cornerRadius = 999;
+      rdOuter.fills = [];
+      rdOuter.strokes = [{ type: "SOLID",
+        color: hexToRgb(rdSelected ? activePrimary : rdDisabled ? TRACK_OFF : BORDER_COLOR) }];
+      rdOuter.strokeWeight = 1.5;
+      rdOuter.opacity = rdDisabled ? 0.4 : 1;
+
+      // Inner dot di tengah outer
+      if (rdSelected) {
+        var rdDot = makeFrame("Dot", "NONE", 0, 0);
+        rdDot.resize(8, 8);
+        rdDot.cornerRadius = 999;
+        rdDot.fills = solid(activePrimary);
+        rdDot.x = 5;
+        rdDot.y = 5;
+        rdOuter.appendChild(rdDot);
+      }
+
+      rdComp.appendChild(rdOuter);
+
+      // Label
+      var rdLabelProp = rdComp.addComponentProperty("Label", "TEXT", "Radio");
+      var rdLabel = figma.createText();
+      rdLabel.name = "Label";
+      rdLabel.fontName = { family: "Inter", style: "Regular" };
+      rdLabel.fontSize = 14;
+      rdLabel.characters = "Radio";
+      rdLabel.fills = solid(rdDisabled ? TRACK_OFF : fg500);
+      rdComp.appendChild(rdLabel);
+      rdLabel.componentPropertyReferences = { characters: rdLabelProp };
+
+      rdComps.push(rdComp);
+    }
+
+    var rdSet = figma.combineAsVariants(rdComps, figma.currentPage);
+    rdSet.name = "Radio";
+    rdSet.fills = [];
+    rdSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+    rdSet.strokeWeight = 2; rdSet.dashPattern = [8, 4]; rdSet.strokeAlign = "INSIDE";
+
+    var rdPad = 32, rdGap = 24, rdX = rdPad, rdMaxH = 0;
+    for (var ci = 0; ci < rdSet.children.length; ci++) {
+      var ch = rdSet.children[ci] as FrameNode;
+      ch.x = rdX; ch.y = rdPad;
+      rdX += ch.width + rdGap;
+      if (ch.height > rdMaxH) rdMaxH = ch.height;
+    }
+    rdSet.resize(rdX - rdGap + rdPad, rdMaxH + rdPad * 2);
+
+    var frameRadio = makeSectionFrame("Radio", "Radio",
+      "Single-selection control within a group of options");
+    frameRadio.appendChild(rdSet);
+    figma.currentPage.appendChild(frameRadio);
+  }
+
+  // ── Frame 10: Switch ──────────────────────────────────────────────────────
+  {
+    var swStates = ["Off", "On", "Disabled Off", "Disabled On"];
+    var swComps: ComponentNode[] = [];
+
+    for (var state of swStates) {
+      var swComp = figma.createComponent();
+      swComp.name = "State=" + state;
+      swComp.layoutMode = "HORIZONTAL";
+      swComp.primaryAxisSizingMode = "AUTO";
+      swComp.counterAxisSizingMode = "AUTO";
+      swComp.counterAxisAlignItems = "CENTER";
+      swComp.itemSpacing = 10;
+      swComp.fills = [];
+
+      var swOn       = state === "On" || state === "Disabled On";
+      var swDisabled = state === "Disabled Off" || state === "Disabled On";
+
+      var swTrack = makeFrame("Track", "NONE", 0, 0);
+      swTrack.resize(44, 24);
+      swTrack.cornerRadius = 12;
+      swTrack.fills = swOn ? solid(activePrimary) : solid(TRACK_OFF);
+      swTrack.opacity = swDisabled ? 0.4 : 1;
+      swComp.appendChild(swTrack);
+
+      var swThumbFrame = makeFrame("Thumb", "NONE", 0, 0);
+      swThumbFrame.resize(18, 18);
+      swThumbFrame.fills = solid(THUMB_COLOR);
+      swThumbFrame.cornerRadius = 999;
+      swThumbFrame.x = swOn ? 23 : 3;
+      swThumbFrame.y = 3;
+      swTrack.appendChild(swThumbFrame);
+
+      var swLabelProp = swComp.addComponentProperty("Label", "TEXT", "Switch");
+      var swLabel = figma.createText();
+      swLabel.name = "Label";
+      swLabel.fontName = { family: "Inter", style: "Regular" };
+      swLabel.fontSize = 14;
+      swLabel.characters = "Switch";
+      swLabel.fills = solid(swDisabled ? TRACK_OFF : fg500);
+      swComp.appendChild(swLabel);
+      swLabel.componentPropertyReferences = { characters: swLabelProp };
+
+      swComps.push(swComp);
+    }
+
+    var swSet = figma.combineAsVariants(swComps, figma.currentPage);
+    swSet.name = "Switch";
+    swSet.fills = [];
+    swSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+    swSet.strokeWeight = 2; swSet.dashPattern = [8, 4]; swSet.strokeAlign = "INSIDE";
+
+    var swPad = 32, swGap = 24, swX = swPad, swMaxH = 0;
+    for (var ci = 0; ci < swSet.children.length; ci++) {
+      var ch = swSet.children[ci] as FrameNode;
+      ch.x = swX; ch.y = swPad;
+      swX += ch.width + swGap;
+      if (ch.height > swMaxH) swMaxH = ch.height;
+    }
+    swSet.resize(swX - swGap + swPad, swMaxH + swPad * 2);
+
+    var frameSwitch = makeSectionFrame("Switch", "Switch",
+      "Toggle control for enabling or disabling a setting");
+    frameSwitch.appendChild(swSet);
+    figma.currentPage.appendChild(frameSwitch);
+  }
+
+  // ── Frame 11: Slider ──────────────────────────────────────────────────────
+  {
+    var sl = t.designSlider;
+    var sliderValues = [0, 25, 50, 75, 100];
+    var sliderComps: ComponentNode[] = [];
+    var TRACK_W = 200;
+    // Baca dari store, fallback jika tidak ada
+    var TRACK_H  = (sl && sl.height > 0)    ? sl.height    : 4;
+    var THUMB_D  = (sl && sl.thumbSize > 0)  ? sl.thumbSize : 0; // 0 = tidak ada thumb
+
+    var trackColor  = sl ? resolveColorRef(sl.background)  : TRACK_OFF;
+    var fillColor   = sl ? resolveColorRef(sl.foreground)   : activePrimary;
+    var thumbColor  = sl ? resolveColorRef(sl.thumb)        : activePrimary;
+    var trackRadius = sl ? resolveCornerRef(sl.cornerId)    : 2;
+    var thumbEffects: DropShadowEffect[] = sl ? resolveShadowRef(sl.thumbShadowId) : [];
+
+    for (var val of sliderValues) {
+      var fillW = Math.round((val / 100) * TRACK_W);
+      var compH = Math.max(THUMB_D, TRACK_H) + 4;
+
+      var slComp = figma.createComponent();
+      slComp.name = "Value=" + val + "%";
+      slComp.layoutMode = "NONE";
+      slComp.resize(TRACK_W + THUMB_D, compH);
+      slComp.fills = [];
+
+      var thumbOff = THUMB_D / 2;
+      var trackY = (compH - TRACK_H) / 2;
+
+      // Track background
+      var trackBg = figma.createRectangle();
+      trackBg.name = "Track";
+      trackBg.resize(TRACK_W, TRACK_H);
+      trackBg.cornerRadius = trackRadius > 9000 ? 9999 : trackRadius;
+      trackBg.fills = trackColor ? solid(trackColor) : solid(TRACK_OFF);
+      trackBg.x = thumbOff;
+      trackBg.y = trackY;
+      slComp.appendChild(trackBg);
+
+      // Track fill
+      if (fillW > 0) {
+        var trackFill = figma.createRectangle();
+        trackFill.name = "Fill";
+        trackFill.resize(fillW, TRACK_H);
+        trackFill.cornerRadius = trackRadius > 9000 ? 9999 : trackRadius;
+        trackFill.fills = fillColor ? solid(fillColor) : solid(activePrimary);
+        trackFill.x = thumbOff;
+        trackFill.y = trackY;
+        slComp.appendChild(trackFill);
+      }
+
+      // Thumb — hanya jika thumbSize > 0
+      if (THUMB_D > 0) {
+        var slThumb = makeFrame("Thumb", "NONE", 0, 0);
+        slThumb.resize(THUMB_D, THUMB_D);
+        slThumb.cornerRadius = 999;
+        slThumb.fills = thumbColor ? solid(thumbColor) : solid(activePrimary);
+        if (thumbEffects.length) slThumb.effects = thumbEffects;
+        slThumb.x = thumbOff + fillW - THUMB_D / 2;
+        slThumb.y = (compH - THUMB_D) / 2;
+        slComp.appendChild(slThumb);
+      }
+
+      sliderComps.push(slComp);
+    }
+
+    var slSet = figma.combineAsVariants(sliderComps, figma.currentPage);
+    slSet.name = "Slider";
+    slSet.fills = [];
+    slSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+    slSet.strokeWeight = 2; slSet.dashPattern = [8, 4]; slSet.strokeAlign = "INSIDE";
+
+    var slPad = 32, slGap = 24, slY2 = slPad, slMaxW = 0;
+    for (var ci = 0; ci < slSet.children.length; ci++) {
+      var ch = slSet.children[ci] as FrameNode;
+      ch.x = slPad;
+      ch.y = slY2;
+      slY2 += ch.height + slGap;
+      if (ch.width > slMaxW) slMaxW = ch.width;
+    }
+    slSet.resize(slMaxW + slPad * 2, slY2 - slGap + slPad);
+
+    var frameSlider = makeSectionFrame("Slider", "Slider",
+      "Range input control for selecting a value along a track");
+    frameSlider.appendChild(slSet);
+    figma.currentPage.appendChild(frameSlider);
+  }
+
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.children.slice(-12));
 }
 
 figma.showUI(__html__, { width: 380, height: 300 });
