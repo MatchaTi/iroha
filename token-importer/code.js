@@ -103,13 +103,11 @@ function makeSectionFrame(name, title, description) {
 // Template "one" — horizontal sliding cards, warna full, level + hex + rgb di dalam card
 // Template "two" — square swatches per shade, label Name-Level + hex di bawah
 var COLOR_TEMPLATES = {
-    one: async function (palettes) {
+    one: async function (palettes, varMap) {
         var wrap = makeFrame("Color · Template One", "VERTICAL", 40);
         for (var palette of palettes) {
             var group = makeFrame("Palette · " + palette.name, "VERTICAL", 12);
-            // Header: "Primary - Primary"
             group.appendChild(makeText(cap(palette.name) + " - " + cap(palette.purpose), 13, "Regular", "#1A1A1A", "Header"));
-            // Row kartu warna
             var row = makeFrame("Shades", "HORIZONTAL", 0);
             var sorted = palette.colors.slice().sort(function (a, b) {
                 return parseInt(a.level) - parseInt(b.level);
@@ -126,8 +124,20 @@ var COLOR_TEMPLATES = {
                 card.resize(96, 128);
                 card.paddingLeft = card.paddingRight = card.paddingTop = card.paddingBottom = 12;
                 card.primaryAxisAlignItems = "SPACE_BETWEEN";
-                card.fills = solid(c.hex);
-                // Corner radius: rounded hanya di ujung kiri/kanan
+                // Bind fill ke variable jika tersedia
+                var varKey = palette.purpose + "::" + c.level;
+                var colorVar = varMap[varKey];
+                if (colorVar) {
+                    try {
+                        card.fills = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: hexToRgb(c.hex) }, "color", colorVar)];
+                    }
+                    catch (e) {
+                        card.fills = solid(c.hex);
+                    }
+                }
+                else {
+                    card.fills = solid(c.hex);
+                }
                 if (isFirst && isLast) {
                     card.cornerRadius = 12;
                 }
@@ -141,9 +151,7 @@ var COLOR_TEMPLATES = {
                 }
                 var fg = readableOn(c.hex);
                 var fgMuted = fg === "#1A1A1A" ? "#6B6B6B" : "#AAAAAA";
-                // Level di atas
                 card.appendChild(makeText(c.level, 11, "Medium", fg, "Level", "Google Sans Flex"));
-                // Hex + RGB di bawah
                 var bottom = makeFrame("Bottom", "VERTICAL", 2);
                 bottom.fills = [];
                 bottom.appendChild(makeText(c.hex.toUpperCase(), 9, "Regular", fg, "Hex", "Source Code Pro"));
@@ -156,11 +164,10 @@ var COLOR_TEMPLATES = {
         }
         return wrap;
     },
-    two: async function (palettes) {
+    two: async function (palettes, varMap) {
         var wrap = makeFrame("Color · Template Two", "VERTICAL", 40);
         for (var palette of palettes) {
             var group = makeFrame("Palette · " + palette.name, "VERTICAL", 12);
-            // Header: "Primary - Primary"
             group.appendChild(makeText(cap(palette.name) + " - " + cap(palette.purpose), 13, "Regular", "#1A1A1A", "Header"));
             // Row square swatches
             var row = makeFrame("Shades", "HORIZONTAL", 8);
@@ -169,12 +176,24 @@ var COLOR_TEMPLATES = {
             });
             for (var c of sorted) {
                 var swatch = makeFrame("Swatch · " + c.level, "VERTICAL", 6);
-                // Square color box
+                // Square color box — bind ke variable
                 var box = figma.createRectangle();
                 box.name = "Color";
                 box.resize(88, 88);
                 box.cornerRadius = 10;
-                box.fills = solid(c.hex);
+                var vk2 = palette.purpose + "::" + c.level;
+                var cv2 = varMap[vk2];
+                if (cv2) {
+                    try {
+                        box.fills = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: hexToRgb(c.hex) }, "color", cv2)];
+                    }
+                    catch (e) {
+                        box.fills = solid(c.hex);
+                    }
+                }
+                else {
+                    box.fills = solid(c.hex);
+                }
                 swatch.appendChild(box);
                 // Label bawah
                 var labels = makeFrame("Labels", "VERTICAL", 2);
@@ -313,6 +332,8 @@ async function importTokens(t) {
     figma.currentPage.backgrounds = [{ type: "SOLID", color: hexToRgb(canvasBg) }];
     // -- Color Palettes: paint styles + optional variables per shade --
     var palettesForTemplate = [];
+    // Map "PaletteName/Level" → Variable untuk binding komponen
+    var colorVarMap = {};
     if (t.colorPalette && t.colorPalette.length) {
         var varCollection = null;
         var modeId = null;
@@ -332,9 +353,10 @@ async function importTokens(t) {
                     try {
                         var v = figma.variables.createVariable(cap(palette.name) + "/" + c.level, varCollection, "COLOR");
                         v.setValueForMode(modeId, hexToRgb(c.hex));
-                        paintStyle.paints = [
-                            figma.variables.setBoundVariableForPaint({ type: "SOLID", color: hexToRgb(c.hex) }, "color", v)
-                        ];
+                        var boundPaint = figma.variables.setBoundVariableForPaint({ type: "SOLID", color: hexToRgb(c.hex) }, "color", v);
+                        paintStyle.paints = [boundPaint];
+                        // Simpan ke map dengan key "purpose::level" agar mudah di-lookup
+                        colorVarMap[palette.purpose + "::" + c.level] = v;
                     }
                     catch (e) {
                         paintStyle.paints = solid(c.hex);
@@ -381,7 +403,7 @@ async function importTokens(t) {
     // -- Frame 3: Color Palette --
     if (palettesForTemplate.length) {
         var frameColors = makeSectionFrame("Color Palette", "Color Palette", "Define color tokens for consistent use of color across your design system");
-        frameColors.appendChild(await colorFn(palettesForTemplate));
+        frameColors.appendChild(await colorFn(palettesForTemplate, colorVarMap));
         figma.currentPage.appendChild(frameColors);
     }
     // -- Corner: variable FLOAT + frame --
@@ -493,6 +515,7 @@ async function importTokens(t) {
         figma.currentPage.appendChild(frameShadow);
     }
     // ── Shared token resolvers (dipakai button, input, badge, dll) ──
+    // Resolve color ref ke hex string (untuk kalkulasi)
     function resolveColorRef(ref) {
         if (!ref || ref === "transparent")
             return null;
@@ -509,6 +532,25 @@ async function importTokens(t) {
             }
         }
         return "#000000";
+    }
+    // Resolve color ref ke SolidPaint[] — bind ke variable jika tersedia
+    function resolveColorPaint(ref) {
+        if (!ref || ref === "transparent")
+            return [];
+        // Raw hex tanpa "::" — pakai solid langsung tanpa binding
+        if (!ref.includes("::"))
+            return ref ? solid(ref) : [];
+        var hex = resolveColorRef(ref);
+        if (!hex)
+            return [];
+        var variable = colorVarMap[ref];
+        if (variable) {
+            try {
+                return [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: hexToRgb(hex) }, "color", variable)];
+            }
+            catch (e) { }
+        }
+        return solid(hex);
     }
     function resolveCornerRef(id) {
         for (var cr of (t.corner || [])) {
@@ -544,14 +586,40 @@ async function importTokens(t) {
         return null;
     }
     // -- Frame 5: Button Components --
-    if (t.designButton && t.designButton.length) {
-        var SIZES_ORDER = ["xs", "sm", "default", "lg"];
-        var VARIANTS_ORDER = [
-            "default", "outline", "secondary", "ghost",
-            "destructive", "error", "warning", "success", "link"
-        ];
+    // designButton pada store terbaru berbentuk object:
+    // { cornerId, typographyId, shadowId, variants: [...], sizes: [...] }
+    // Versi lama masih berupa array config. Keduanya didukung di sini.
+    var buttonDefs = [];
+    if (Array.isArray(t.designButton)) {
+        buttonDefs = t.designButton;
+    }
+    else if (t.designButton && Array.isArray(t.designButton.variants)) {
+        var buttonSizes = (Array.isArray(t.designButton.sizes) && t.designButton.sizes.length)
+            ? t.designButton.sizes
+            : [{ size: "default", paddingX: 12, paddingY: 8 }];
+        for (var variantCfg of t.designButton.variants) {
+            for (var sizeCfg of buttonSizes) {
+                buttonDefs.push({
+                    variant: variantCfg.variant,
+                    size: sizeCfg.size,
+                    background: variantCfg.background,
+                    foreground: variantCfg.foreground,
+                    border: variantCfg.border,
+                    paddingX: sizeCfg.paddingX,
+                    paddingY: sizeCfg.paddingY,
+                    cornerId: t.designButton.cornerId,
+                    typographyId: t.designButton.typographyId,
+                    shadowId: t.designButton.shadowId,
+                });
+            }
+        }
+    }
+    if (buttonDefs.length) {
         var components = [];
-        for (var btn of t.designButton) {
+        for (var btn of buttonDefs) {
+            var btnSize = btn.size || "default";
+            var btnPadX = typeof btn.paddingX === "number" ? btn.paddingX : 12;
+            var btnPadY = typeof btn.paddingY === "number" ? btn.paddingY : 8;
             var bgHex = resolveColorRef(btn.background);
             var fgHex = resolveColorRef(btn.foreground);
             var borderHex = resolveColorRef(btn.border);
@@ -584,18 +652,18 @@ async function importTokens(t) {
             }
             // Buat component
             var comp = figma.createComponent();
-            comp.name = "Variant=" + cap(btn.variant) + ", Size=" + btn.size;
+            comp.name = "Variant=" + cap(btn.variant) + ", Size=" + btnSize;
             comp.layoutMode = "HORIZONTAL";
             comp.primaryAxisSizingMode = "AUTO";
             comp.counterAxisSizingMode = "AUTO";
             comp.primaryAxisAlignItems = "CENTER";
             comp.counterAxisAlignItems = "CENTER";
-            comp.paddingLeft = comp.paddingRight = btn.paddingX;
-            comp.paddingTop = comp.paddingBottom = btn.paddingY;
+            comp.paddingLeft = comp.paddingRight = Math.max(btnPadX, 8);
+            comp.paddingTop = comp.paddingBottom = Math.max(btnPadY, 4);
             comp.cornerRadius = radius > 9000 ? 9999 : radius;
-            comp.fills = bgHex ? solid(bgHex) : [];
+            comp.fills = resolveColorPaint(btn.background);
             comp.strokes = borderHex && borderHex !== "transparent"
-                ? [{ type: "SOLID", color: hexToRgb(borderHex) }]
+                ? resolveColorPaint(btn.border)
                 : [];
             comp.strokeWeight = 1;
             comp.strokeAlign = "INSIDE";
@@ -605,7 +673,8 @@ async function importTokens(t) {
             var txt = figma.createText();
             txt.fontName = { family: fontFamily, style: figmaFontStyle };
             txt.fontSize = fontSize;
-            txt.fills = fgHex ? solid(fgHex) : solid("#000000");
+            var fgPaints = resolveColorPaint(btn.foreground);
+            txt.fills = fgPaints.length > 0 ? fgPaints : solid("#ffffff");
             txt.characters = "Button";
             if (btn.variant === "link") {
                 txt.textDecoration = "UNDERLINE";
@@ -616,63 +685,82 @@ async function importTokens(t) {
         }
         // Gabungkan jadi ComponentSet
         if (components.length > 0) {
-            var compSet = figma.combineAsVariants(components, figma.currentPage);
-            compSet.name = "Button";
-            compSet.fills = [];
-            compSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
-            compSet.strokeWeight = 2;
-            compSet.dashPattern = [8, 4];
-            compSet.strokeAlign = "INSIDE";
-            // Susun manual: tiap variant = satu baris, size xs→lg kiri ke kanan
-            var sizeOrder = { xs: 0, sm: 1, "default": 2, lg: 3 };
-            var variantOrder = ["Default", "Outline", "Secondary", "Ghost", "Destructive", "Error", "Warning", "Success", "Link"];
-            var colGap = 16, rowGap = 24;
-            var padH = 32, padV = 32;
-            // Kelompokkan children per variant
-            var byVariant = {};
-            for (var ci = 0; ci < compSet.children.length; ci++) {
-                var ch = compSet.children[ci];
-                ch.primaryAxisSizingMode = "AUTO";
-                ch.counterAxisSizingMode = "AUTO";
-                var vm = ch.name.match(/Variant=([^,]+)/);
-                var sm2 = ch.name.match(/Size=(\w+)/);
-                var vk = vm ? vm[1] : "Other";
-                var sk = sm2 ? sm2[1] : "default";
-                if (!byVariant[vk])
-                    byVariant[vk] = [];
-                byVariant[vk].push({ node: ch, sizeKey: sk });
+            var compSet;
+            try {
+                compSet = figma.combineAsVariants(components, figma.currentPage);
             }
-            // Posisikan tiap node
-            var curY = padV;
-            var maxRowWidth = 0;
-            for (var ri = 0; ri < variantOrder.length; ri++) {
-                var vk = variantOrder[ri];
-                if (!byVariant[vk])
-                    continue;
-                var row = byVariant[vk].sort(function (a, b) {
-                    return (sizeOrder[a.sizeKey] || 0) - (sizeOrder[b.sizeKey] || 0);
-                });
-                var curX = padH;
-                var maxH = 0;
-                for (var si = 0; si < row.length; si++) {
-                    var node = row[si].node;
-                    node.x = curX;
-                    node.y = curY;
-                    curX += node.width + colGap;
-                    if (node.height > maxH)
-                        maxH = node.height;
+            catch (e) {
+                figma.notify("Button: " + e.message, { error: true, timeout: 4000 });
+                // Jangan return — lanjutkan ke komponen lain
+                for (var ci2 = 0; ci2 < components.length; ci2++) {
+                    try {
+                        components[ci2].remove();
+                    }
+                    catch (_) { }
                 }
-                var rowWidth = curX - colGap + padH;
-                if (rowWidth > maxRowWidth)
-                    maxRowWidth = rowWidth;
-                curY += maxH + rowGap;
+                compSet = null;
             }
-            // Resize compSet agar pas dengan konten
-            compSet.resize(maxRowWidth, curY - rowGap + padV);
-            // Buat frame wrapper
-            var frameBtn = makeSectionFrame("Button", "Button", "Customize button styles for each variant and size in your design system");
-            frameBtn.appendChild(compSet);
-            figma.currentPage.appendChild(frameBtn);
+            if (!compSet) {
+                // skip frame button
+            }
+            else {
+                compSet.name = "Button";
+                compSet.fills = [];
+                compSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+                compSet.strokeWeight = 2;
+                compSet.dashPattern = [8, 4];
+                compSet.strokeAlign = "INSIDE";
+                // Susun manual: tiap variant = satu baris, size xs→lg kiri ke kanan
+                var sizeOrder = { xs: 0, sm: 1, "default": 2, lg: 3 };
+                var variantOrder = ["Default", "Outline", "Secondary", "Ghost", "Destructive", "Error", "Warning", "Success", "Link"];
+                var colGap = 16, rowGap = 24;
+                var padH = 32, padV = 32;
+                // Kelompokkan children per variant
+                var byVariant = {};
+                for (var ci = 0; ci < compSet.children.length; ci++) {
+                    var ch = compSet.children[ci];
+                    ch.primaryAxisSizingMode = "AUTO";
+                    ch.counterAxisSizingMode = "AUTO";
+                    var vm = ch.name.match(/Variant=([^,]+)/);
+                    var sm2 = ch.name.match(/Size=(\w+)/);
+                    var vk = vm ? vm[1] : "Other";
+                    var sk = sm2 ? sm2[1] : "default";
+                    if (!byVariant[vk])
+                        byVariant[vk] = [];
+                    byVariant[vk].push({ node: ch, sizeKey: sk });
+                }
+                // Posisikan tiap node
+                var curY = padV;
+                var maxRowWidth = 0;
+                for (var ri = 0; ri < variantOrder.length; ri++) {
+                    var vk = variantOrder[ri];
+                    if (!byVariant[vk])
+                        continue;
+                    var row = byVariant[vk].sort(function (a, b) {
+                        return (sizeOrder[a.sizeKey] || 0) - (sizeOrder[b.sizeKey] || 0);
+                    });
+                    var curX = padH;
+                    var maxH = 0;
+                    for (var si = 0; si < row.length; si++) {
+                        var node = row[si].node;
+                        node.x = curX;
+                        node.y = curY;
+                        curX += node.width + colGap;
+                        if (node.height > maxH)
+                            maxH = node.height;
+                    }
+                    var rowWidth = curX - colGap + padH;
+                    if (rowWidth > maxRowWidth)
+                        maxRowWidth = rowWidth;
+                    curY += maxH + rowGap;
+                }
+                // Resize compSet agar pas dengan konten
+                compSet.resize(maxRowWidth, curY - rowGap + padV);
+                // Buat frame wrapper
+                var frameBtn = makeSectionFrame("Button", "Button", "Customize button styles for each variant and size in your design system");
+                frameBtn.appendChild(compSet);
+                figma.currentPage.appendChild(frameBtn);
+            } // end if compSet
         }
     }
     // -- Frame 6: Input Components --
@@ -727,7 +815,7 @@ async function importTokens(t) {
             labelTxt.fontName = { family: iFontFamily, style: iFontStyle };
             labelTxt.fontSize = iFontSize > 12 ? iFontSize - 2 : iFontSize;
             labelTxt.characters = "Label";
-            labelTxt.fills = iLabelHex ? solid(iLabelHex) : solid("#000000");
+            labelTxt.fills = resolveColorPaint(inp.label);
             iComp.appendChild(labelTxt);
             labelTxt.componentPropertyReferences = {
                 characters: labelTextProp,
@@ -744,9 +832,9 @@ async function importTokens(t) {
             iField.paddingTop = iField.paddingBottom = inp.paddingY;
             iField.counterAxisAlignItems = "CENTER";
             iField.cornerRadius = iRadius > 9000 ? 9999 : iRadius;
-            iField.fills = iBgHex ? solid(iBgHex) : [];
+            iField.fills = resolveColorPaint(inp.background);
             iField.strokes = iBorderHex && iBorderHex !== "transparent"
-                ? [{ type: "SOLID", color: hexToRgb(iBorderHex) }] : [];
+                ? resolveColorPaint(inp.border) : [];
             iField.strokeWeight = 1;
             iField.strokeAlign = "INSIDE";
             iField.effects = iEffects;
@@ -755,7 +843,7 @@ async function importTokens(t) {
             iPlaceholder.fontName = { family: iFontFamily, style: iFontStyle };
             iPlaceholder.fontSize = iFontSize;
             iPlaceholder.characters = "Placeholder";
-            iPlaceholder.fills = iPhHex ? solid(iPhHex) : solid("#9CA3AF");
+            iPlaceholder.fills = resolveColorPaint(inp.placeholder);
             iField.appendChild(iPlaceholder);
             iPlaceholder.layoutGrow = 1;
             iComp.appendChild(iField);
@@ -765,7 +853,7 @@ async function importTokens(t) {
             iHelper.fontName = { family: iFontFamily, style: iFontStyle };
             iHelper.fontSize = iFontSize > 10 ? iFontSize - 4 : iFontSize;
             iHelper.characters = "Helper text";
-            iHelper.fills = iHelperHex ? solid(iHelperHex) : solid("#6B7280");
+            iHelper.fills = resolveColorPaint(inp.helper);
             iComp.appendChild(iHelper);
             iHelper.componentPropertyReferences = {
                 characters: helperTextProp,
@@ -846,9 +934,9 @@ async function importTokens(t) {
             bComp.paddingLeft = bComp.paddingRight = badge.paddingX;
             bComp.paddingTop = bComp.paddingBottom = badge.paddingY;
             bComp.cornerRadius = bRadius > 9000 ? 9999 : bRadius;
-            bComp.fills = bBgHex ? solid(bBgHex) : [];
+            bComp.fills = resolveColorPaint(badge.background);
             bComp.strokes = bBorderHex && bBorderHex !== "transparent"
-                ? [{ type: "SOLID", color: hexToRgb(bBorderHex) }] : [];
+                ? resolveColorPaint(badge.border) : [];
             bComp.strokeWeight = 1;
             bComp.strokeAlign = "INSIDE";
             bComp.effects = bEffects;
@@ -859,7 +947,7 @@ async function importTokens(t) {
             bTxt.fontName = { family: bFontFamily, style: bFontStyle };
             bTxt.fontSize = bFontSize;
             bTxt.characters = "Badge";
-            bTxt.fills = bFgHex ? solid(bFgHex) : solid("#000000");
+            bTxt.fills = resolveColorPaint(badge.foreground);
             bComp.appendChild(bTxt);
             bTxt.componentPropertyReferences = { characters: bLabelProp };
             badgeComponents.push(bComp);
@@ -939,104 +1027,127 @@ async function importTokens(t) {
         }
         return "#1A1A1A";
     })();
+    // Paint helpers — bound ke variable jika tersedia
+    function primaryPaint500() {
+        return resolveColorPaint("primary::500");
+    }
+    function primaryPaint100() {
+        return resolveColorPaint("primary::100");
+    }
+    function fgPaint() {
+        return resolveColorPaint("foreground::500");
+    }
     var BORDER_COLOR = "#D1D5DB";
     var TRACK_OFF = "#D1D5DB";
     var THUMB_COLOR = "#FFFFFF";
     // ── Frame 8: Checkbox ──────────────────────────────────────────────────────
-    {
-        var cbStates = ["Unchecked", "Checked", "Indeterminate", "Disabled"];
+    if (t.designCheckbox && t.designCheckbox.length) {
+        var cbStatesOrder = ["default", "checked", "indeterminate", "disabled"];
         var cbComps = [];
-        for (var state of cbStates) {
+        // Urutkan state agar posisi di component set konsisten
+        var cbConfigs = t.designCheckbox.slice().sort(function (a, b) {
+            var ai = cbStatesOrder.indexOf(a.state);
+            var bi = cbStatesOrder.indexOf(b.state);
+            return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+        });
+        for (var cb of cbConfigs) {
+            var cbState = cb.state || "default";
+            var cbSize = (typeof cb.size === "number" && cb.size > 0) ? cb.size : 16;
+            var cbRadius = resolveCornerRef(cb.cornerId);
+            var cbEffects = resolveShadowRef(cb.shadowId);
+            var cbDisabled = cbState === "disabled";
+            var cbActive = cbState === "checked" || cbState === "indeterminate";
             var cbComp = figma.createComponent();
-            cbComp.name = "State=" + state;
+            cbComp.name = "State=" + cap(cbState);
             cbComp.layoutMode = "HORIZONTAL";
             cbComp.primaryAxisSizingMode = "AUTO";
             cbComp.counterAxisSizingMode = "AUTO";
             cbComp.counterAxisAlignItems = "CENTER";
             cbComp.itemSpacing = 8;
             cbComp.fills = [];
-            var isChecked = state === "Checked";
-            var isIndet = state === "Indeterminate";
-            var isDisabled = state === "Disabled";
-            var isActive = isChecked || isIndet;
-            // Box — pakai Frame agar bisa berisi icon, dengan auto-layout CENTER
-            var cbBox = makeFrame("Box", "HORIZONTAL", 0, 0);
-            cbBox.resize(18, 18);
-            cbBox.cornerRadius = 4;
-            cbBox.primaryAxisAlignItems = "CENTER";
-            cbBox.counterAxisAlignItems = "CENTER";
-            cbBox.fills = isActive ? solid(activePrimary) : [];
-            cbBox.strokes = isActive
-                ? []
-                : [{ type: "SOLID", color: hexToRgb(isDisabled ? TRACK_OFF : BORDER_COLOR) }];
-            cbBox.strokeWeight = 1.5;
-            cbBox.opacity = isDisabled ? 0.4 : 1;
+            // Box — pakai frame agar icon bisa diposisikan di tengah
+            var cbBox = makeFrame("Box", "NONE", 0, 0);
+            cbBox.resize(cbSize, cbSize);
+            cbBox.cornerRadius = cbRadius > 9000 ? 9999 : cbRadius;
+            cbBox.fills = resolveColorPaint(cb.background);
+            cbBox.strokes = (cb.border && cb.border !== "transparent")
+                ? resolveColorPaint(cb.border)
+                : [];
+            cbBox.strokeWeight = 1;
+            cbBox.strokeAlign = "INSIDE";
+            cbBox.effects = cbEffects;
+            cbBox.opacity = cbDisabled ? 0.5 : 1;
+            // Icon centang / minus
+            if (cbActive) {
+                var cbIconPaints = resolveColorPaint(cb.foreground);
+                if (!cbIconPaints || cbIconPaints.length === 0) {
+                    cbIconPaints = solid("#FFFFFF");
+                }
+                if (cbState === "checked") {
+                    var checkIcon = figma.createVector();
+                    checkIcon.name = "Check";
+                    checkIcon.vectorPaths = [
+                        { windingRule: "NONZERO", data: "M 0 4 L 4 8 L 12 0" }
+                    ];
+                    checkIcon.fills = [];
+                    checkIcon.resize(cbSize * 0.6, cbSize * 0.4);
+                    checkIcon.x = (cbSize - checkIcon.width) / 2;
+                    checkIcon.y = (cbSize - checkIcon.height) / 2;
+                    checkIcon.strokes = cbIconPaints;
+                    checkIcon.strokeWeight = Math.max(1.5, cbSize * 0.1);
+                    checkIcon.strokeCap = "ROUND";
+                    checkIcon.strokeJoin = "ROUND";
+                    cbBox.appendChild(checkIcon);
+                }
+                else {
+                    var dash = figma.createRectangle();
+                    dash.name = "Minus";
+                    dash.resize(cbSize * 0.6, Math.max(2, cbSize * 0.12));
+                    dash.cornerRadius = 999;
+                    dash.fills = cbIconPaints;
+                    dash.x = (cbSize - dash.width) / 2;
+                    dash.y = (cbSize - dash.height) / 2;
+                    cbBox.appendChild(dash);
+                }
+            }
             cbComp.appendChild(cbBox);
-            // Icon di dalam box — pakai frame kecil sebagai centang/dash
-            if (isChecked) {
-                // Centang: dua rectangle membentuk ✓
-                var iconWrap = makeFrame("Icon", "NONE", 0, 0);
-                iconWrap.resize(10, 8);
-                iconWrap.fills = [];
-                var leg1 = figma.createRectangle();
-                leg1.resize(4, 2);
-                leg1.cornerRadius = 1;
-                leg1.fills = solid(THUMB_COLOR);
-                leg1.rotation = -45;
-                leg1.x = 0;
-                leg1.y = 5;
-                iconWrap.appendChild(leg1);
-                var leg2 = figma.createRectangle();
-                leg2.resize(7, 2);
-                leg2.cornerRadius = 1;
-                leg2.fills = solid(THUMB_COLOR);
-                leg2.rotation = 45;
-                leg2.x = 2;
-                leg2.y = 3;
-                iconWrap.appendChild(leg2);
-                cbBox.appendChild(iconWrap);
-            }
-            else if (isIndet) {
-                // Dash: rectangle horizontal
-                var dash = figma.createRectangle();
-                dash.name = "Dash";
-                dash.resize(10, 2);
-                dash.cornerRadius = 1;
-                dash.fills = solid(THUMB_COLOR);
-                cbBox.appendChild(dash);
-            }
-            // Label
-            var labelProp = cbComp.addComponentProperty("Label", "TEXT", "Checkbox");
+            // Label + component property
+            var cbLabelProp = cbComp.addComponentProperty("Label", "TEXT", "Checkbox");
             var cbLabel = figma.createText();
             cbLabel.name = "Label";
             cbLabel.fontName = { family: "Inter", style: "Regular" };
             cbLabel.fontSize = 14;
             cbLabel.characters = "Checkbox";
-            cbLabel.fills = solid(isDisabled ? TRACK_OFF : fg500);
+            cbLabel.fills = cbDisabled
+                ? resolveColorPaint("muted::400")
+                : fgPaint();
+            cbLabel.opacity = cbDisabled ? 0.5 : 1;
             cbComp.appendChild(cbLabel);
-            cbLabel.componentPropertyReferences = { characters: labelProp };
+            cbLabel.componentPropertyReferences = { characters: cbLabelProp };
             cbComps.push(cbComp);
         }
-        var cbSet = figma.combineAsVariants(cbComps, figma.currentPage);
-        cbSet.name = "Checkbox";
-        cbSet.fills = [];
-        cbSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
-        cbSet.strokeWeight = 2;
-        cbSet.dashPattern = [8, 4];
-        cbSet.strokeAlign = "INSIDE";
-        var cbPad = 32, cbGap = 24, cbX = cbPad, cbMaxH = 0;
-        for (var ci = 0; ci < cbSet.children.length; ci++) {
-            var ch = cbSet.children[ci];
-            ch.x = cbX;
-            ch.y = cbPad;
-            cbX += ch.width + cbGap;
-            if (ch.height > cbMaxH)
-                cbMaxH = ch.height;
+        if (cbComps.length > 0) {
+            var cbSet = figma.combineAsVariants(cbComps, figma.currentPage);
+            cbSet.name = "Checkbox";
+            cbSet.fills = [];
+            cbSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+            cbSet.strokeWeight = 2;
+            cbSet.dashPattern = [8, 4];
+            cbSet.strokeAlign = "INSIDE";
+            var cbPad = 32, cbGap = 24, cbX = cbPad, cbMaxH = 0;
+            for (var ci = 0; ci < cbSet.children.length; ci++) {
+                var ch = cbSet.children[ci];
+                ch.x = cbX;
+                ch.y = cbPad;
+                cbX += ch.width + cbGap;
+                if (ch.height > cbMaxH)
+                    cbMaxH = ch.height;
+            }
+            cbSet.resize(cbX - cbGap + cbPad, cbMaxH + cbPad * 2);
+            var frameCheckbox = makeSectionFrame("Checkbox", "Checkbox", "Selection control for binary on/off choices");
+            frameCheckbox.appendChild(cbSet);
+            figma.currentPage.appendChild(frameCheckbox);
         }
-        cbSet.resize(cbX - cbGap + cbPad, cbMaxH + cbPad * 2);
-        var frameCheckbox = makeSectionFrame("Checkbox", "Checkbox", "Selection control for binary on/off choices");
-        frameCheckbox.appendChild(cbSet);
-        figma.currentPage.appendChild(frameCheckbox);
     }
     // ── Frame 9: Radio ────────────────────────────────────────────────────────
     {
@@ -1067,7 +1178,7 @@ async function importTokens(t) {
                 var rdDot = makeFrame("Dot", "NONE", 0, 0);
                 rdDot.resize(8, 8);
                 rdDot.cornerRadius = 999;
-                rdDot.fills = solid(activePrimary);
+                rdDot.fills = primaryPaint500();
                 rdDot.x = 5;
                 rdDot.y = 5;
                 rdOuter.appendChild(rdDot);
@@ -1080,7 +1191,7 @@ async function importTokens(t) {
             rdLabel.fontName = { family: "Inter", style: "Regular" };
             rdLabel.fontSize = 14;
             rdLabel.characters = "Radio";
-            rdLabel.fills = solid(rdDisabled ? TRACK_OFF : fg500);
+            rdLabel.fills = rdDisabled ? solid(TRACK_OFF) : fgPaint();
             rdComp.appendChild(rdLabel);
             rdLabel.componentPropertyReferences = { characters: rdLabelProp };
             rdComps.push(rdComp);
@@ -1124,7 +1235,7 @@ async function importTokens(t) {
             var swTrack = makeFrame("Track", "NONE", 0, 0);
             swTrack.resize(44, 24);
             swTrack.cornerRadius = 12;
-            swTrack.fills = swOn ? solid(activePrimary) : solid(TRACK_OFF);
+            swTrack.fills = swOn ? primaryPaint500() : solid(TRACK_OFF);
             swTrack.opacity = swDisabled ? 0.4 : 1;
             swComp.appendChild(swTrack);
             var swThumbFrame = makeFrame("Thumb", "NONE", 0, 0);
@@ -1140,7 +1251,7 @@ async function importTokens(t) {
             swLabel.fontName = { family: "Inter", style: "Regular" };
             swLabel.fontSize = 14;
             swLabel.characters = "Switch";
-            swLabel.fills = solid(swDisabled ? TRACK_OFF : fg500);
+            swLabel.fills = swDisabled ? solid(TRACK_OFF) : fgPaint();
             swComp.appendChild(swLabel);
             swLabel.componentPropertyReferences = { characters: swLabelProp };
             swComps.push(swComp);
@@ -1175,9 +1286,9 @@ async function importTokens(t) {
         // Baca dari store, fallback jika tidak ada
         var TRACK_H = (sl && sl.height > 0) ? sl.height : 4;
         var THUMB_D = (sl && sl.thumbSize > 0) ? sl.thumbSize : 0; // 0 = tidak ada thumb
-        var trackColor = sl ? resolveColorRef(sl.background) : TRACK_OFF;
-        var fillColor = sl ? resolveColorRef(sl.foreground) : activePrimary;
-        var thumbColor = sl ? resolveColorRef(sl.thumb) : activePrimary;
+        var trackColor = sl ? sl.background : "muted::200";
+        var fillColor = sl ? sl.foreground : "primary::500";
+        var thumbColor = sl ? sl.thumb : "primary::500";
         var trackRadius = sl ? resolveCornerRef(sl.cornerId) : 2;
         var thumbEffects = sl ? resolveShadowRef(sl.thumbShadowId) : [];
         for (var val of sliderValues) {
@@ -1195,7 +1306,7 @@ async function importTokens(t) {
             trackBg.name = "Track";
             trackBg.resize(TRACK_W, TRACK_H);
             trackBg.cornerRadius = trackRadius > 9000 ? 9999 : trackRadius;
-            trackBg.fills = trackColor ? solid(trackColor) : solid(TRACK_OFF);
+            trackBg.fills = resolveColorPaint(trackColor) || solid(TRACK_OFF);
             trackBg.x = thumbOff;
             trackBg.y = trackY;
             slComp.appendChild(trackBg);
@@ -1205,7 +1316,7 @@ async function importTokens(t) {
                 trackFill.name = "Fill";
                 trackFill.resize(fillW, TRACK_H);
                 trackFill.cornerRadius = trackRadius > 9000 ? 9999 : trackRadius;
-                trackFill.fills = fillColor ? solid(fillColor) : solid(activePrimary);
+                trackFill.fills = resolveColorPaint(fillColor) || solid(activePrimary);
                 trackFill.x = thumbOff;
                 trackFill.y = trackY;
                 slComp.appendChild(trackFill);
@@ -1215,7 +1326,7 @@ async function importTokens(t) {
                 var slThumb = makeFrame("Thumb", "NONE", 0, 0);
                 slThumb.resize(THUMB_D, THUMB_D);
                 slThumb.cornerRadius = 999;
-                slThumb.fills = thumbColor ? solid(thumbColor) : solid(activePrimary);
+                slThumb.fills = resolveColorPaint(thumbColor) || solid(activePrimary);
                 if (thumbEffects.length)
                     slThumb.effects = thumbEffects;
                 slThumb.x = thumbOff + fillW - THUMB_D / 2;
