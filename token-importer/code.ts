@@ -54,6 +54,48 @@ function toFigmaStyle(weight) {
   return map[(weight || "").toLowerCase()] || "Regular";
 }
 
+// Nama font di web memakai suffix " Variable" (mis. "Inter Variable"),
+// sedangkan Figma biasanya mendaftarkan family tanpa suffix tersebut.
+// Coba nama asli dulu, lalu alias yang lebih umum di Figma.
+function figmaFontCandidates(family) {
+  var list = [];
+  if (!family) return ["Inter"];
+  list.push(family);
+
+  var stripped = family.replace(/\s+Variable$/i, "").trim();
+  if (stripped && list.indexOf(stripped) < 0) list.push(stripped);
+
+  var lower = family.toLowerCase();
+  if (lower.indexOf("google sans") >= 0 && list.indexOf("Google Sans Flex") < 0) {
+    list.push("Google Sans Flex");
+  }
+  if (lower.indexOf("source code pro") >= 0 && list.indexOf("Source Code Pro") < 0) {
+    list.push("Source Code Pro");
+  }
+  if (lower.indexOf("inter") >= 0 && list.indexOf("Inter") < 0) {
+    list.push("Inter");
+  }
+  if (list.indexOf("Inter") < 0) list.push("Inter");
+
+  return list;
+}
+
+async function loadFigmaFont(family, style) {
+  var families = figmaFontCandidates(family);
+  var styles = [style || "Regular"];
+  if (styles.indexOf("Regular") < 0) styles.push("Regular");
+
+  for (var f = 0; f < families.length; f++) {
+    for (var s = 0; s < styles.length; s++) {
+      try {
+        await figma.loadFontAsync({ family: families[f], style: styles[s] });
+        return { family: families[f], style: styles[s] };
+      } catch (e) {}
+    }
+  }
+  return null;
+}
+
 function makeFrame(name: string, mode: "HORIZONTAL" | "VERTICAL" | "NONE", gap?: number, pad?: number): FrameNode {
   var f = figma.createFrame();
   f.name = name;
@@ -238,7 +280,7 @@ var TYPE_TEMPLATES = {
       // Nama style besar — pakai font aslinya
       var preview = figma.createText();
       preview.name = "Preview";
-      preview.fontName = { family: it.typo.fontFamily, style: it.figmaStyle };
+      preview.fontName = { family: it.figmaFamily || it.typo.fontFamily, style: it.figmaStyle };
       preview.fontSize = it.typo.fontSize;
       preview.characters = cap(it.typo.purpose) + " " + cap(it.typo.level);
       if (it.styleId) await preview.setTextStyleIdAsync(it.styleId);
@@ -284,7 +326,7 @@ var TYPE_TEMPLATES = {
       // Baris 2: preview teks besar dengan font aslinya
       var preview = figma.createText();
       preview.name = "Preview";
-      preview.fontName = { family: it.typo.fontFamily, style: it.figmaStyle };
+      preview.fontName = { family: it.figmaFamily || it.typo.fontFamily, style: it.figmaStyle };
       preview.fontSize = it.typo.fontSize;
       preview.characters = cap(it.typo.purpose) + " " + cap(it.typo.level);
       if (it.styleId) await preview.setTextStyleIdAsync(it.styleId);
@@ -406,15 +448,16 @@ async function importTokens(t) {
 
   // -- Typography: text styles --
   var typeItems = [];
+  // Map typography id → Figma text style id, untuk binding ke text di komponen
+  var typeStyleMap: Record<string, string> = {};
   for (var s of t.typography || []) {
     var figmaStyle = toFigmaStyle(s.fontWeight);
-    var font = { family: s.fontFamily, style: figmaStyle };
-    try {
-      await figma.loadFontAsync(font);
-    } catch (e) {
+    var loadedFont = await loadFigmaFont(s.fontFamily, figmaStyle);
+    if (!loadedFont) {
       figma.notify("Font tidak ditemukan: " + s.fontFamily + " " + figmaStyle + " (dilewati)", { timeout: 3000 });
       continue;
     }
+    var font = { family: loadedFont.family, style: loadedFont.style };
     var ts = figma.createTextStyle();
     ts.name = cap(s.purpose) + "/" + cap(s.level) + " · " + s.name;
     ts.fontName = font;
@@ -423,8 +466,36 @@ async function importTokens(t) {
     if (s.letterSpacing) {
       ts.letterSpacing = { unit: "PIXELS", value: s.letterSpacing };
     }
-    typeItems.push({ typo: s, figmaStyle: figmaStyle, styleId: ts.id });
+    typeItems.push({
+      typo: s,
+      figmaFamily: loadedFont.family,
+      figmaStyle: loadedFont.style,
+      styleId: ts.id,
+    });
+    typeStyleMap[s.id] = ts.id;
   }
+
+  function findTypeStyleId(purpose, level) {
+    for (var i = 0; i < typeItems.length; i++) {
+      if (typeItems[i].typo.purpose === purpose && typeItems[i].typo.level === level) {
+        return typeItems[i].styleId;
+      }
+    }
+    return null;
+  }
+
+  // Style default untuk label komponen yang tidak punya typographyId
+  // (checkbox, radio, switch). Prioritaskan Label Large → Label Medium →
+  // Body Medium → style pertama yang tersedia.
+  var defaultLabelStyleId = findTypeStyleId("label", "large")
+    || findTypeStyleId("label", "medium")
+    || findTypeStyleId("body", "medium")
+    || (typeItems.length ? typeItems[0].styleId : null);
+
+  // Style sekunder untuk helper text input.
+  var defaultHelperStyleId = findTypeStyleId("body", "small")
+    || findTypeStyleId("body", "medium")
+    || (typeItems.length ? typeItems[0].styleId : null);
 
   // -- Frame 1: Header --
   var frameHeader = makeSectionFrame(
@@ -644,6 +715,50 @@ async function importTokens(t) {
     return null;
   }
 
+  function resolveTypeStyleId(id) {
+    if (!id) return null;
+    return typeStyleMap[id] || null;
+  }
+
+  // Ambil style yang sudah dibuat. Kalau karena suatu hal style-nya belum ada
+  // (mis. font asli tidak tersedia), buat text style baru dengan font fallback
+  // supaya komponen tetap bisa di-bind ke typography.
+  async function ensureTypeStyleId(id) {
+    if (!id) return null;
+    if (typeStyleMap[id]) return typeStyleMap[id];
+
+    var typo = resolveTypoRef(id);
+    if (!typo) return null;
+
+    var style = toFigmaStyle(typo.fontWeight);
+    var loaded = await loadFigmaFont(typo.fontFamily, style);
+    if (!loaded) return null;
+
+    var ts = figma.createTextStyle();
+    ts.name = cap(typo.purpose) + "/" + cap(typo.level) + " · " + typo.name;
+    ts.fontName = { family: loaded.family, style: loaded.style };
+    ts.fontSize = typo.fontSize;
+    ts.lineHeight = { unit: "PIXELS", value: typo.lineHeight };
+    if (typo.letterSpacing) {
+      ts.letterSpacing = { unit: "PIXELS", value: typo.letterSpacing };
+    }
+
+    typeStyleMap[id] = ts.id;
+    return ts.id;
+  }
+
+  // Terapkan text style ke sebuah text node. Kalau style tidak tersedia,
+  // biarkan text node memakai font manual sebagai fallback.
+  async function bindTextStyle(node: TextNode, styleId: string | null) {
+    if (!styleId) return false;
+    try {
+      await node.setTextStyleIdAsync(styleId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // -- Frame 5: Button Components --
   // designButton pada store terbaru berbentuk object:
   // { cornerId, typographyId, shadowId, variants: [...], sizes: [...] }
@@ -690,22 +805,12 @@ async function importTokens(t) {
       var fontFamily = typo ? typo.fontFamily : "Inter";
       var fontSize = typo ? typo.fontSize : 14;
 
-      // Load font — fallback ke Inter Regular jika font/style tidak tersedia
-      var fontLoaded = false;
-      try {
-        await figma.loadFontAsync({ family: fontFamily, style: figmaFontStyle });
-        fontLoaded = true;
-      } catch(e) {}
-      if (!fontLoaded) {
-        // Coba style Regular dari font yang sama
-        try {
-          await figma.loadFontAsync({ family: fontFamily, style: "Regular" });
-          figmaFontStyle = "Regular";
-          fontLoaded = true;
-        } catch(e) {}
-      }
-      if (!fontLoaded) {
-        // Fallback total ke Inter Regular
+      // Load font — fallback ke alias Figma / Inter Regular
+      var loadedBtnFont = await loadFigmaFont(fontFamily, figmaFontStyle);
+      if (loadedBtnFont) {
+        fontFamily = loadedBtnFont.family;
+        figmaFontStyle = loadedBtnFont.style;
+      } else {
         fontFamily = "Inter";
         figmaFontStyle = "Regular";
       }
@@ -729,19 +834,23 @@ async function importTokens(t) {
       comp.strokeAlign = "INSIDE";
       comp.effects = effects;
 
-      // Text label dengan component property
+      // Text label dengan component property — bind ke text style typography
       var labelPropKey = comp.addComponentProperty("Label", "TEXT", "Button");
       var txt = figma.createText();
       txt.fontName = { family: fontFamily, style: figmaFontStyle };
       txt.fontSize = fontSize;
+      txt.characters = "Button";
       var fgPaints = resolveColorPaint(btn.foreground);
       txt.fills = fgPaints.length > 0 ? fgPaints : solid("#ffffff");
-      txt.characters = "Button";
       if (btn.variant === "link") {
         txt.textDecoration = "UNDERLINE";
       }
       comp.appendChild(txt);
       txt.componentPropertyReferences = { characters: labelPropKey };
+      // Bind setelah text node masuk ke component supaya textStyleId tersimpan.
+      // Kalau typographyId tidak valid, pakai style label default.
+      var btnStyleId = await ensureTypeStyleId(btn.typographyId) || defaultLabelStyleId;
+      await bindTextStyle(txt, btnStyleId);
 
       components.push(comp);
     }
@@ -843,14 +952,19 @@ async function importTokens(t) {
       var iFontStyle  = toFigmaStyle(iTypo ? iTypo.fontWeight : "400");
       var iFontFamily = iTypo ? iTypo.fontFamily : "Inter";
       var iFontSize   = iTypo ? iTypo.fontSize : 14;
+      var iStyleId       = await ensureTypeStyleId(inp.typographyId);
+      var iLabelStyleId  = findTypeStyleId("label", "large") || iStyleId || defaultLabelStyleId;
+      var iHelperStyleId = findTypeStyleId("body", "small") || iStyleId || defaultHelperStyleId;
 
       // Load font dengan fallback
-      var iFontLoaded = false;
-      try { await figma.loadFontAsync({ family: iFontFamily, style: iFontStyle }); iFontLoaded = true; } catch(e) {}
-      if (!iFontLoaded) {
-        try { await figma.loadFontAsync({ family: iFontFamily, style: "Regular" }); iFontStyle = "Regular"; iFontLoaded = true; } catch(e) {}
+      var loadedInputFont = await loadFigmaFont(iFontFamily, iFontStyle);
+      if (loadedInputFont) {
+        iFontFamily = loadedInputFont.family;
+        iFontStyle = loadedInputFont.style;
+      } else {
+        iFontFamily = "Inter";
+        iFontStyle = "Regular";
       }
-      if (!iFontLoaded) { iFontFamily = "Inter"; iFontStyle = "Regular"; }
 
       var iComp = figma.createComponent();
       iComp.name = "State=" + cap(inp.state);
@@ -878,6 +992,7 @@ async function importTokens(t) {
         characters: labelTextProp,
         visible: showLabelProp,
       };
+      await bindTextStyle(labelTxt, iLabelStyleId);
 
       // 2. Input field — frame dengan placeholder di dalamnya
       //    Tidak bisa bind componentPropertyReferences pada nested node,
@@ -905,6 +1020,7 @@ async function importTokens(t) {
       iPlaceholder.fills = resolveColorPaint(inp.placeholder);
       iField.appendChild(iPlaceholder);
       iPlaceholder.layoutGrow = 1;
+      await bindTextStyle(iPlaceholder, iStyleId);
 
       iComp.appendChild(iField);
 
@@ -920,6 +1036,7 @@ async function importTokens(t) {
         characters: helperTextProp,
         visible: showHelperProp,
       };
+      await bindTextStyle(iHelper, iHelperStyleId);
 
       inputComponents.push(iComp);
     }
@@ -975,14 +1092,17 @@ async function importTokens(t) {
       var bFontStyle  = toFigmaStyle(bTypo ? bTypo.fontWeight : "400");
       var bFontFamily = bTypo ? bTypo.fontFamily : "Inter";
       var bFontSize   = bTypo ? bTypo.fontSize : 12;
+      var bStyleId    = await ensureTypeStyleId(badge.typographyId);
 
       // Load font dengan fallback
-      var bFontLoaded = false;
-      try { await figma.loadFontAsync({ family: bFontFamily, style: bFontStyle }); bFontLoaded = true; } catch(e) {}
-      if (!bFontLoaded) {
-        try { await figma.loadFontAsync({ family: bFontFamily, style: "Regular" }); bFontStyle = "Regular"; bFontLoaded = true; } catch(e) {}
+      var loadedBadgeFont = await loadFigmaFont(bFontFamily, bFontStyle);
+      if (loadedBadgeFont) {
+        bFontFamily = loadedBadgeFont.family;
+        bFontStyle = loadedBadgeFont.style;
+      } else {
+        bFontFamily = "Inter";
+        bFontStyle = "Regular";
       }
-      if (!bFontLoaded) { bFontFamily = "Inter"; bFontStyle = "Regular"; }
 
       var bComp = figma.createComponent();
       bComp.name = "Variant=" + cap(badge.variant);
@@ -1012,6 +1132,7 @@ async function importTokens(t) {
       bTxt.fills = resolveColorPaint(badge.foreground);
       bComp.appendChild(bTxt);
       bTxt.componentPropertyReferences = { characters: bLabelProp };
+      await bindTextStyle(bTxt, bStyleId);
 
       badgeComponents.push(bComp);
     }
@@ -1193,6 +1314,7 @@ async function importTokens(t) {
       cbLabel.fontName = { family: "Inter", style: "Regular" };
       cbLabel.fontSize = 14;
       cbLabel.characters = "Checkbox";
+      await bindTextStyle(cbLabel, defaultLabelStyleId);
       cbLabel.fills = cbDisabled
         ? resolveColorPaint("muted::400")
         : fgPaint();
@@ -1274,6 +1396,7 @@ async function importTokens(t) {
       rdLabel.fontName = { family: "Inter", style: "Regular" };
       rdLabel.fontSize = 14;
       rdLabel.characters = "Radio";
+      await bindTextStyle(rdLabel, defaultLabelStyleId);
       rdLabel.fills = rdDisabled ? solid(TRACK_OFF) : fgPaint();
       rdComp.appendChild(rdLabel);
       rdLabel.componentPropertyReferences = { characters: rdLabelProp };
@@ -1341,6 +1464,7 @@ async function importTokens(t) {
       swLabel.fontName = { family: "Inter", style: "Regular" };
       swLabel.fontSize = 14;
       swLabel.characters = "Switch";
+      await bindTextStyle(swLabel, defaultLabelStyleId);
       swLabel.fills = swDisabled ? solid(TRACK_OFF) : fgPaint();
       swComp.appendChild(swLabel);
       swLabel.componentPropertyReferences = { characters: swLabelProp };
