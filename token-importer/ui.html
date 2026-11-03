@@ -41,7 +41,6 @@
   .logo {
     width: 30px;
     height: 30px;
-    background: var(--primary);
     border-radius: calc(var(--radius) * 0.8);
     display: flex;
     align-items: center;
@@ -49,7 +48,11 @@
     flex-shrink: 0;
   }
 
-  .logo svg { width: 16px; height: 16px; }
+  .logo svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
 
   .title {
     font-size: 13px;
@@ -136,14 +139,12 @@
 
 <div class="header">
   <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 1.657-1.343 3-3 3h-1.5a1.5 1.5 0 0 0 0 3H18" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="6.5" cy="11.5" r="1.5" fill="#fff"/>
-      <circle cx="9.5" cy="7.5"  r="1.5" fill="#fff"/>
-      <circle cx="14.5" cy="7.5" r="1.5" fill="#fff"/>
-      <circle cx="17.5" cy="11.5" r="1.5" fill="#fff"/>
-    </svg>
-  </div>
+  <svg viewBox="0 0 1000 1000" role="img" aria-label="Iroha Logo" xmlns="http://www.w3.org/2000/svg">
+    <rect x="97" y="97" width="566.667" height="566.667" rx="88" fill="#A9C9F0"/>
+    <rect x="217" y="217" width="566.667" height="566.667" rx="88" fill="#4E86D6"/>
+    <rect x="337" y="337" width="566.667" height="566.667" rx="88" fill="#0B2B57"/>
+  </svg>
+</div>
   <div>
     <div class="title">Iroha Token Importer</div>
     <div class="subtitle">Paste your project JSON to generate design system</div>

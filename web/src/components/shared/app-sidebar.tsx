@@ -5,10 +5,9 @@ import {
   CircleSmall,
   Home,
   Moon,
-  Palette,
   Plus,
   Sun,
-  type LucideIcon,
+  type LucideIcon
 } from "lucide-react"
 import { Link, useMatch } from "react-router"
 import { useTheme } from "../theme-provider"
@@ -45,8 +44,8 @@ function Header() {
     <SidebarHeader className="border-b">
       <div className="flex items-center">
         <SidebarMenuButton size="lg">
-          <div className="group flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <Palette className={cn(!open && "group-hover:hidden")} />
+          <div className="group flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
+            <img src={'/iroha-logo.svg'} alt="Iroha Logo" className={cn("size-5",!open && "group-hover:hidden")} />
             <SidebarTrigger
               className={cn("hidden", !open && "group-hover:flex")}
             />
