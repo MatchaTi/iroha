@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -7,8 +7,10 @@ import {
   type ColorPalette,
   type Corner,
   type Shadow as ShadowType,
+  type Typography,
 } from "@/store/use-project"
 import { resolveDesignCheckboxStarterPacks } from "@/lib/constants"
+import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -82,6 +84,7 @@ interface ResolvedCheckbox {
   size: number
   shadow: string
   state: DesignCheckboxState
+  labelStyle: CSSProperties
 }
 
 function CheckboxPreview({
@@ -123,7 +126,10 @@ function CheckboxPreview({
       </span>
       <span
         className="text-sm"
-        style={{ opacity: shown.state === "disabled" ? 0.5 : 1 }}
+        style={{
+          ...shown.labelStyle,
+          opacity: shown.state === "disabled" ? 0.5 : 1,
+        }}
       >
         Checkbox
       </span>
@@ -135,7 +141,8 @@ function resolveCheckbox(
   cb: DesignCheckbox,
   palettes: ColorPalette[],
   corners: Corner[],
-  shadows: ShadowType[]
+  shadows: ShadowType[],
+  typographies: Typography[]
 ): ResolvedCheckbox {
   return {
     background: resolveColor(cb.background, palettes),
@@ -145,6 +152,7 @@ function resolveCheckbox(
     size: cb.size,
     shadow: resolveShadow(cb.shadowId, shadows),
     state: cb.state,
+    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
   }
 }
 
@@ -384,6 +392,7 @@ interface CheckboxRowProps {
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
+  typographies: Typography[]
   onCommit: (updated: Partial<DesignCheckbox>) => void
 }
 
@@ -394,10 +403,11 @@ function CheckboxRow({
   palettes,
   corners,
   shadows,
+  typographies,
   onCommit,
 }: CheckboxRowProps) {
   if (!cb) return null
-  const resolved = resolveCheckbox(cb, palettes, corners, shadows)
+  const resolved = resolveCheckbox(cb, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
@@ -459,6 +469,7 @@ export function DSCheckbox() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
+  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstCb = project?.designCheckbox?.[0]
@@ -537,12 +548,19 @@ export function DSCheckbox() {
                     cb={cb}
                     otherResolved={
                       otherCb
-                        ? resolveCheckbox(otherCb, palettes, corners, shadows)
+                        ? resolveCheckbox(
+                            otherCb,
+                            palettes,
+                            corners,
+                            shadows,
+                            typographies
+                          )
                         : undefined
                     }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}
+                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )

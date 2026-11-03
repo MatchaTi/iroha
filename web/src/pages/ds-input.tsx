@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -10,6 +10,12 @@ import {
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignInputStarterPacks } from "@/lib/constants"
+import {
+  findTypographyById,
+  resolveHelperTypography,
+  resolveLabelTypography,
+  typographyStyle,
+} from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -63,13 +69,6 @@ function resolveCorner(id: string, corners: Corner[]): number {
   return corners.find((c) => c.id === id)?.radius ?? 0
 }
 
-function resolveTypography(
-  id: string,
-  typos: Typography[]
-): Typography | undefined {
-  return typos.find((t) => t.id === id)
-}
-
 function resolveShadow(id: string, shadows: ShadowType[]): string {
   if (id === "none") return "none"
   const s = shadows.find((s) => s.id === id)
@@ -86,9 +85,9 @@ interface ResolvedInput {
   label: string
   helper: string
   radius: number
-  fontFamily: string
-  fontSize: number
-  fontWeight: string
+  fieldStyle: CSSProperties
+  labelStyle: CSSProperties
+  helperStyle: CSSProperties
   paddingX: number
   paddingY: number
   shadow: string
@@ -98,7 +97,10 @@ interface ResolvedInput {
 function InputPreview({ inp }: { inp: ResolvedInput }) {
   return (
     <div className="flex w-full max-w-xs flex-col gap-1.5">
-      <label className="text-sm font-medium" style={{ color: inp.label }}>
+      <label
+        className="text-sm font-medium"
+        style={{ color: inp.label, ...inp.labelStyle }}
+      >
         Label
       </label>
       <input
@@ -111,9 +113,7 @@ function InputPreview({ inp }: { inp: ResolvedInput }) {
           color: inp.foreground,
           border: `1px solid ${inp.border}`,
           borderRadius: inp.radius >= 9999 ? 9999 : inp.radius,
-          fontFamily: inp.fontFamily,
-          fontSize: inp.fontSize,
-          fontWeight: inp.fontWeight,
+          ...inp.fieldStyle,
           paddingLeft: inp.paddingX,
           paddingRight: inp.paddingX,
           paddingTop: inp.paddingY,
@@ -122,7 +122,10 @@ function InputPreview({ inp }: { inp: ResolvedInput }) {
           width: "100%",
         }}
       />
-      <span className="text-xs" style={{ color: inp.helper }}>
+      <span
+        className="text-xs"
+        style={{ color: inp.helper, ...inp.helperStyle }}
+      >
         Helper text
       </span>
     </div>
@@ -136,7 +139,9 @@ function resolveInput(
   shadows: ShadowType[],
   typographies: Typography[]
 ): ResolvedInput {
-  const typo = resolveTypography(inp.typographyId, typographies)
+  const typo = findTypographyById(typographies, inp.typographyId)
+  const labelTypo = resolveLabelTypography(typographies, typo)
+  const helperTypo = resolveHelperTypography(typographies, typo)
   return {
     background: resolveColor(inp.background, palettes),
     foreground: resolveColor(inp.foreground, palettes),
@@ -145,9 +150,11 @@ function resolveInput(
     label: resolveColor(inp.label, palettes),
     helper: resolveColor(inp.helper, palettes),
     radius: resolveCorner(inp.cornerId, corners),
-    fontFamily: typo?.fontFamily ?? "sans-serif",
-    fontSize: typo?.fontSize ?? 14,
-    fontWeight: typo?.fontWeight ?? "Regular",
+    fieldStyle: typo
+      ? typographyStyle(typo)
+      : { fontFamily: "sans-serif", fontSize: 14, fontWeight: 400 },
+    labelStyle: typographyStyle(labelTypo),
+    helperStyle: typographyStyle(helperTypo),
     paddingX: inp.paddingX,
     paddingY: inp.paddingY,
     shadow: resolveShadow(inp.shadowId, shadows),

@@ -13,6 +13,7 @@ import {
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignButtonStarterPacks } from "@/lib/constants"
+import { findTypographyById, typographyStyle } from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -79,13 +80,6 @@ function resolveCorner(id: string, corners: Corner[]): number {
   return corners.find((c) => c.id === id)?.radius ?? 0
 }
 
-function resolveTypography(
-  id: string,
-  typos: Typography[]
-): Typography | undefined {
-  return typos.find((t) => t.id === id)
-}
-
 function resolveShadow(id: string, shadows: ShadowType[]): string {
   if (id === "none") return "none"
   const s = shadows.find((s) => s.id === id)
@@ -111,7 +105,7 @@ function ButtonPreview({
   shadows: ShadowType[]
   typographies: Typography[]
 }) {
-  const typo = resolveTypography(btn.typographyId, typographies)
+  const typo = findTypographyById(typographies, btn.typographyId)
   const radius = resolveCorner(btn.cornerId, corners)
   const bg = resolveColor(variantConfig.background, palettes)
   const fg = resolveColor(variantConfig.foreground, palettes)
@@ -125,9 +119,7 @@ function ButtonPreview({
         color: fg,
         border: `1px solid ${border === "transparent" ? "transparent" : border}`,
         borderRadius: radius >= 9999 ? 9999 : radius,
-        fontFamily: typo?.fontFamily,
-        fontSize: typo?.fontSize ?? 14,
-        fontWeight: typo?.fontWeight ?? "Medium",
+        ...(typo ? typographyStyle(typo) : { fontSize: 14, fontWeight: 500 }),
         paddingLeft: sizeConfig.paddingX,
         paddingRight: sizeConfig.paddingX,
         paddingTop: sizeConfig.paddingY,

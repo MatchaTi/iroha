@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -7,8 +7,10 @@ import {
   type ColorPalette,
   type Corner,
   type Shadow as ShadowType,
+  type Typography,
 } from "@/store/use-project"
 import { resolveDesignSwitchStarterPacks } from "@/lib/constants"
+import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -77,6 +79,7 @@ interface ResolvedSwitch {
   size: number
   shadow: string
   state: DesignSwitchState
+  labelStyle: CSSProperties
 }
 
 function SwitchPreview({
@@ -126,7 +129,10 @@ function SwitchPreview({
       </span>
       <span
         className="text-sm"
-        style={{ opacity: shown.state === "disabled" ? 0.5 : 1 }}
+        style={{
+          ...shown.labelStyle,
+          opacity: shown.state === "disabled" ? 0.5 : 1,
+        }}
       >
         Switch
       </span>
@@ -138,7 +144,8 @@ function resolveSwitch(
   sw: DesignSwitch,
   palettes: ColorPalette[],
   corners: Corner[],
-  shadows: ShadowType[]
+  shadows: ShadowType[],
+  typographies: Typography[]
 ): ResolvedSwitch {
   return {
     background: resolveColor(sw.background, palettes),
@@ -148,6 +155,7 @@ function resolveSwitch(
     size: sw.size,
     shadow: resolveShadow(sw.shadowId, shadows),
     state: sw.state,
+    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
   }
 }
 
@@ -384,6 +392,7 @@ interface SwitchRowProps {
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
+  typographies: Typography[]
   onCommit: (updated: Partial<DesignSwitch>) => void
 }
 
@@ -394,10 +403,11 @@ function SwitchRow({
   palettes,
   corners,
   shadows,
+  typographies,
   onCommit,
 }: SwitchRowProps) {
   if (!sw) return null
-  const resolved = resolveSwitch(sw, palettes, corners, shadows)
+  const resolved = resolveSwitch(sw, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
@@ -456,6 +466,7 @@ export function DSSwitch() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
+  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstSw = project?.designSwitch?.[0]
@@ -532,12 +543,19 @@ export function DSSwitch() {
                     sw={sw}
                     otherResolved={
                       otherSw
-                        ? resolveSwitch(otherSw, palettes, corners, shadows)
+                        ? resolveSwitch(
+                            otherSw,
+                            palettes,
+                            corners,
+                            shadows,
+                            typographies
+                          )
                         : undefined
                     }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}
+                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )

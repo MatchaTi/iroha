@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -10,6 +10,7 @@ import {
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignBadgeStarterPacks } from "@/lib/constants"
+import { findTypographyById, typographyStyle } from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -71,13 +72,6 @@ function resolveCorner(id: string, corners: Corner[]): number {
   return corners.find((c) => c.id === id)?.radius ?? 0
 }
 
-function resolveTypography(
-  id: string,
-  typos: Typography[]
-): Typography | undefined {
-  return typos.find((t) => t.id === id)
-}
-
 function resolveShadow(id: string, shadows: ShadowType[]): string {
   if (id === "none") return "none"
   const s = shadows.find((s) => s.id === id)
@@ -91,9 +85,7 @@ interface ResolvedBadge {
   foreground: string
   border: string
   radius: number
-  fontFamily: string
-  fontSize: number
-  fontWeight: string
+  fieldStyle: CSSProperties
   paddingX: number
   paddingY: number
   shadow: string
@@ -109,9 +101,7 @@ function BadgePreview({ badge }: { badge: ResolvedBadge }) {
         color: badge.foreground,
         border: `1px solid ${badge.border === "transparent" ? "transparent" : badge.border}`,
         borderRadius: badge.radius >= 9999 ? 9999 : badge.radius,
-        fontFamily: badge.fontFamily,
-        fontSize: badge.fontSize,
-        fontWeight: badge.fontWeight,
+        ...badge.fieldStyle,
         paddingLeft: badge.paddingX,
         paddingRight: badge.paddingX,
         paddingTop: badge.paddingY,
@@ -131,15 +121,15 @@ function resolveBadge(
   shadows: ShadowType[],
   typographies: Typography[]
 ): ResolvedBadge {
-  const typo = resolveTypography(badge.typographyId, typographies)
+  const typo = findTypographyById(typographies, badge.typographyId)
   return {
     background: resolveColor(badge.background, palettes),
     foreground: resolveColor(badge.foreground, palettes),
     border: resolveColor(badge.border, palettes),
     radius: resolveCorner(badge.cornerId, corners),
-    fontFamily: typo?.fontFamily ?? "sans-serif",
-    fontSize: typo?.fontSize ?? 12,
-    fontWeight: typo?.fontWeight ?? "Medium",
+    fieldStyle: typo
+      ? typographyStyle(typo)
+      : { fontFamily: "sans-serif", fontSize: 12, fontWeight: 500 },
     paddingX: badge.paddingX,
     paddingY: badge.paddingY,
     shadow: resolveShadow(badge.shadowId, shadows),

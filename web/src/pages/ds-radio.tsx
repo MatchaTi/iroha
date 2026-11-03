@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -7,8 +7,10 @@ import {
   type ColorPalette,
   type Corner,
   type Shadow as ShadowType,
+  type Typography,
 } from "@/store/use-project"
 import { resolveDesignRadioStarterPacks } from "@/lib/constants"
+import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -77,6 +79,7 @@ interface ResolvedRadio {
   size: number
   shadow: string
   state: DesignRadioState
+  labelStyle: CSSProperties
 }
 
 function RadioPreview({
@@ -137,7 +140,10 @@ function RadioPreview({
                 />
               )}
             </span>
-            <span className="text-sm" style={{ opacity: itemOpacity }}>
+            <span
+              className="text-sm"
+              style={{ ...shown.labelStyle, opacity: itemOpacity }}
+            >
               {label}
             </span>
           </div>
@@ -151,7 +157,8 @@ function resolveRadio(
   radio: DesignRadio,
   palettes: ColorPalette[],
   corners: Corner[],
-  shadows: ShadowType[]
+  shadows: ShadowType[],
+  typographies: Typography[]
 ): ResolvedRadio {
   return {
     background: resolveColor(radio.background, palettes),
@@ -161,6 +168,7 @@ function resolveRadio(
     size: radio.size,
     shadow: resolveShadow(radio.shadowId, shadows),
     state: radio.state,
+    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
   }
 }
 
@@ -397,6 +405,7 @@ interface RadioRowProps {
   palettes: ColorPalette[]
   corners: Corner[]
   shadows: ShadowType[]
+  typographies: Typography[]
   onCommit: (updated: Partial<DesignRadio>) => void
 }
 
@@ -407,10 +416,11 @@ function RadioRow({
   palettes,
   corners,
   shadows,
+  typographies,
   onCommit,
 }: RadioRowProps) {
   if (!radio) return null
-  const resolved = resolveRadio(radio, palettes, corners, shadows)
+  const resolved = resolveRadio(radio, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
@@ -472,6 +482,7 @@ export function DSRadio() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
+  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstRadio = project?.designRadio?.[0]
@@ -550,12 +561,19 @@ export function DSRadio() {
                     radio={radio}
                     otherResolved={
                       otherRadio
-                        ? resolveRadio(otherRadio, palettes, corners, shadows)
+                        ? resolveRadio(
+                            otherRadio,
+                            palettes,
+                            corners,
+                            shadows,
+                            typographies
+                          )
                         : undefined
                     }
                     palettes={palettes}
                     corners={corners}
                     shadows={shadows}
+                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )
