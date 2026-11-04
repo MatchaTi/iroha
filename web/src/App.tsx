@@ -18,11 +18,13 @@ import { DSRadio } from "./pages/ds-radio"
 import { DSSlider } from "./pages/ds-slider"
 import { DesignMD } from "./pages/design-md"
 import { BrandKit } from "./pages/brand-kit"
+import { About } from "./pages/about"
 
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
       <Route element={<DashboardLayout />}>
         <Route path="/new" element={<NewProject />} />
         <Route element={<ProjectLayout />}>
