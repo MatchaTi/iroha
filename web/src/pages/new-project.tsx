@@ -94,7 +94,6 @@ export function NewProject() {
         <Field>
           <FieldLabel htmlFor={fields.name.id}>Project Name</FieldLabel>
           <Input
-            className="p-8"
             {...getInputProps(fields.name, { type: "text" })}
             placeholder="Raana e.g"
           />
@@ -103,13 +102,15 @@ export function NewProject() {
         <Field>
           <FieldLabel htmlFor={fields.description.id}>Description</FieldLabel>
           <Textarea
-            className="min-h-[200px] p-8"
+            className="min-h-[200px]"
             {...getTextareaProps(fields.description)}
             placeholder="Description..."
           />
         </Field>
         <div className="flex justify-end">
-          <Button type="submit">Create Project</Button>
+          <Button type="submit" size={"lg"}>
+            Create Project
+          </Button>
         </div>
       </form>
     </main>
