@@ -1,7 +1,13 @@
+import type { Project } from "@/store/use-project"
 import { ComponentContainer } from "../shared/component-container"
+import { DesignButton } from "../shared/design-button"
 import { Field, FieldDescription, FieldLabel } from "../ui/field"
 
-export function PDEnv() {
+type Props = {
+  project: Project
+}
+
+export function PDEnv({ project }: Props) {
   return (
     <ComponentContainer className="p-6">
       <div className="space-y-6">
@@ -23,6 +29,14 @@ export function PDEnv() {
             <p>SECRET_KEY</p>
             <p className="text-muted-foreground">••••••••</p>
           </div>
+        </section>
+
+        <section className="flex items-center justify-between border-t pt-4">
+          <DesignButton project={project} variant={"secondary"}>
+            Edit
+          </DesignButton>
+
+          <DesignButton project={project}>Deploy</DesignButton>
         </section>
       </div>
     </ComponentContainer>

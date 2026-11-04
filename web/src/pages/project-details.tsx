@@ -210,7 +210,7 @@ export function ProjectDetails() {
             <PDComponents project={project} />
           </div>
           <div className="space-y-8">
-            <PDEnv />
+            <PDEnv project={project} />
             <PDProfile project={project} />
           </div>
           <div className="space-y-8">
