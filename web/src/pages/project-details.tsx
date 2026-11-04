@@ -193,7 +193,7 @@ export function ProjectDetails() {
         className={"min-h-0 w-full flex-1 rounded-xl border"}
         style={{ fontFamily: displayTypo?.fontFamily ?? "inherit" }}
       >
-        <div className="grid grid-cols-[repeat(8,_400px)] gap-8 p-4 lg:p-16">
+        <div className="grid min-w-max grid-cols-[repeat(8,_400px)] gap-8 p-4 lg:p-16">
           <div className="space-y-8">
             <PDColorPalette
               name={project.name}
