@@ -52,14 +52,6 @@ export function PDComponents({ project }: Props) {
             helper="Enter your full name."
           />
 
-          <DesignInput
-            project={project}
-            placeholder="Email"
-            className="min-w-full"
-            label="Email"
-            helper="Enter your email."
-          />
-
           <DesignTextarea
             project={project}
             placeholder="Tell us about yourself"
