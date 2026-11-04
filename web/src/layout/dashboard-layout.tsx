@@ -6,7 +6,7 @@ export function DashboardLayout() {
   return (
     <SidebarProvider defaultOpen={false}>
       <AppSidebar />
-      <div className="w-full">
+      <div className="min-w-0 flex-1">
         <Outlet />
       </div>
     </SidebarProvider>

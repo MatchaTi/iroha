@@ -165,7 +165,7 @@ export function ProjectLayout() {
         </div>
       </aside>
 
-      <section className="w-full">
+      <section className="min-w-0 flex-1">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-sidebar/50 px-4 py-2 backdrop-blur lg:hidden">
           <SidebarTrigger />
           <NavDrawer items={NAV_ITEMS} />
