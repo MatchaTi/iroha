@@ -123,7 +123,12 @@ function DesignCheckbox({
           />
         )}
       </span>
-      <span className="text-sm" style={labelStyle}>
+      <span
+        className="text-sm"
+        style={labelStyle}
+
+        onClick={canFlip ? () => setFlipped((value) => !value) : undefined}
+      >
         {label}
       </span>
     </div>
