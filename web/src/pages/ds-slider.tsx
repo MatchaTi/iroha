@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -8,6 +8,8 @@ import {
   type Shadow as ShadowType,
 } from "@/store/use-project"
 import { resolveDesignSliderStarterPacks } from "@/lib/constants"
+import { formatRadius } from "@/lib/design-tokens"
+import { DesignSlider as DesignSliderPreview } from "@/components/shared/design-slider"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -32,130 +34,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── SliderPreview ────────────────────────────────────────────────────────────
-
-interface ResolvedSlider {
-  background: string
-  foreground: string
-  thumb: string
-  radius: number
-  thumbShadow: string
-  height: number
-  thumbSize: number
-}
-
-// Static initial value for the live preview (0–100%)
-const PREVIEW_INITIAL = 50
-
-function SliderPreview({ sl }: { sl: ResolvedSlider }) {
-  const [value, setValue] = useState(PREVIEW_INITIAL)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const draggingRef = useRef(false)
-
-  const updateValue = (clientX: number) => {
-    const rect = trackRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const pct = ((clientX - rect.left) / rect.width) * 100
-    setValue(Math.min(100, Math.max(0, pct)))
-  }
-
-  return (
-    <div
-      role="slider"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(value)}
-      tabIndex={0}
-      className="relative flex w-full max-w-sm cursor-pointer touch-none items-center select-none"
-      style={{ height: sl.thumbSize }}
-      onPointerDown={(e) => {
-        draggingRef.current = true
-        e.currentTarget.setPointerCapture(e.pointerId)
-        updateValue(e.clientX)
-      }}
-      onPointerMove={(e) => {
-        if (draggingRef.current) updateValue(e.clientX)
-      }}
-      onPointerUp={() => {
-        draggingRef.current = false
-      }}
-    >
-      {/* Track + fill */}
-      <div
-        ref={trackRef}
-        className="relative w-full overflow-hidden"
-        style={{
-          height: sl.height,
-          borderRadius: sl.radius >= 9999 ? 9999 : sl.radius,
-          backgroundColor: sl.background,
-        }}
-      >
-        <div
-          className="absolute inset-y-0 left-0"
-          style={{
-            width: `${value}%`,
-            backgroundColor: sl.foreground,
-          }}
-        />
-      </div>
-      {/* Thumb */}
-      <div
-        className="absolute shrink-0 rounded-full"
-        style={{
-          width: sl.thumbSize,
-          height: sl.thumbSize,
-          backgroundColor: sl.thumb,
-          left: `calc(${value}% - ${sl.thumbSize / 2}px)`,
-          top: "50%",
-          transform: "translateY(-50%)",
-          boxShadow: sl.thumbShadow === "none" ? "none" : sl.thumbShadow,
-        }}
-      />
-    </div>
-  )
-}
-
-function resolveSlider(
-  sl: DesignSlider,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[]
-): ResolvedSlider {
-  return {
-    background: resolveColor(sl.background, palettes),
-    foreground: resolveColor(sl.foreground, palettes),
-    thumb: resolveColor(sl.thumb, palettes),
-    radius: resolveCorner(sl.cornerId, corners),
-    thumbShadow: resolveShadow(sl.thumbShadowId, shadows),
-    height: sl.height,
-    thumbSize: sl.thumbSize,
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -394,10 +272,6 @@ function SliderEditor({
   )
 }
 
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
 // ─── DSSlider page ────────────────────────────────────────────────────────────
 
 export function DSSlider() {
@@ -460,23 +334,8 @@ export function DSSlider() {
           <div className="grid border-b last:border-b-0 md:grid-cols-4">
             {/* Preview */}
             <div className="flex min-h-24 flex-col items-start justify-center gap-6 px-6 py-8 md:col-span-3">
-              <SliderPreview
-                sl={resolveSlider(
-                  project.designSlider,
-                  palettes,
-                  corners,
-                  shadows
-                )}
-              />
-
-              <SliderPreview
-                sl={resolveSlider(
-                  project.designSlider,
-                  palettes,
-                  corners,
-                  shadows
-                )}
-              />
+              <DesignSliderPreview project={project} />
+              <DesignSliderPreview project={project} />
             </div>
 
             {/* Editor */}

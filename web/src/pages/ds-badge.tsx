@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -6,11 +6,16 @@ import {
   type DesignBadgeVariant,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignBadgeStarterPacks } from "@/lib/constants"
-import { findTypographyById, typographyStyle } from "@/lib/typography"
+import { formatRadius } from "@/lib/design-tokens"
+import {
+  DesignBadge as DesignBadgePreview,
+  DESIGN_BADGE_VARIANTS,
+} from "@/components/shared/design-badge"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -37,104 +42,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Tag } from "lucide-react"
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const VARIANTS: DesignBadgeVariant[] = [
-  "default",
-  "secondary",
-  "destructive",
-  "error",
-  "warning",
-  "success",
-  "outline",
-]
-
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── BadgePreview ─────────────────────────────────────────────────────────────
-
-interface ResolvedBadge {
-  background: string
-  foreground: string
-  border: string
-  radius: number
-  fieldStyle: CSSProperties
-  paddingX: number
-  paddingY: number
-  shadow: string
-}
-
-function BadgePreview({ badge }: { badge: ResolvedBadge }) {
-  return (
-    <span
-      className="inline-flex items-center justify-center whitespace-nowrap transition-all select-none"
-      style={{
-        backgroundColor:
-          badge.background === "transparent" ? "transparent" : badge.background,
-        color: badge.foreground,
-        border: `1px solid ${badge.border === "transparent" ? "transparent" : badge.border}`,
-        borderRadius: badge.radius >= 9999 ? 9999 : badge.radius,
-        ...badge.fieldStyle,
-        paddingLeft: badge.paddingX,
-        paddingRight: badge.paddingX,
-        paddingTop: badge.paddingY,
-        paddingBottom: badge.paddingY,
-        boxShadow: badge.shadow === "none" ? "none" : badge.shadow,
-      }}
-    >
-      Badge
-    </span>
-  )
-}
-
-function resolveBadge(
-  badge: DesignBadge,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedBadge {
-  const typo = findTypographyById(typographies, badge.typographyId)
-  return {
-    background: resolveColor(badge.background, palettes),
-    foreground: resolveColor(badge.foreground, palettes),
-    border: resolveColor(badge.border, palettes),
-    radius: resolveCorner(badge.cornerId, corners),
-    fieldStyle: typo
-      ? typographyStyle(typo)
-      : { fontFamily: "sans-serif", fontSize: 12, fontWeight: 500 },
-    paddingX: badge.paddingX,
-    paddingY: badge.paddingY,
-    shadow: resolveShadow(badge.shadowId, shadows),
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -432,30 +339,29 @@ function SharedTokensEditor({
 interface BadgeRowProps {
   variant: DesignBadgeVariant
   badge: DesignBadge | undefined
+  project: Project
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
   onCommit: (updated: Partial<DesignBadge>) => void
 }
 
 function BadgeRow({
   variant,
   badge,
+  project,
   palettes,
-  corners,
-  shadows,
-  typographies,
   onCommit,
 }: BadgeRowProps) {
   if (!badge) return null
-  const resolved = resolveBadge(badge, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <BadgePreview badge={resolved} />
+        <DesignBadgePreview
+          project={project}
+          design={badge}
+          variant={variant}
+        />
       </div>
 
       {/* Editor */}
@@ -584,7 +490,7 @@ export function DSBadge() {
 
             {/* ── Variants tab ── */}
             <TabsContent value="variants">
-              {VARIANTS.map((variant) => {
+              {DESIGN_BADGE_VARIANTS.map((variant) => {
                 const badge = project.designBadge.find(
                   (b) => b.variant === variant
                 )
@@ -593,10 +499,8 @@ export function DSBadge() {
                     key={variant}
                     variant={variant}
                     badge={badge}
+                    project={project}
                     palettes={palettes}
-                    corners={corners}
-                    shadows={shadows}
-                    typographies={typographies}
                     onCommit={(updated) => handleCommit(variant, updated)}
                   />
                 )

@@ -9,11 +9,15 @@ import {
   type DesignButtonSizeConfig,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignButtonStarterPacks } from "@/lib/constants"
-import { findTypographyById, typographyStyle } from "@/lib/typography"
+import {
+  DesignButton as DesignButtonPreview,
+  DESIGN_BUTTON_VARIANTS,
+} from "@/components/shared/design-button"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -43,96 +47,8 @@ import { MousePointerClick } from "lucide-react"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const VARIANTS: DesignButtonVariant[] = [
-  "default",
-  "outline",
-  "secondary",
-  "ghost",
-  "destructive",
-  "error",
-  "warning",
-  "success",
-  "link",
-]
-
 function formatRadius(r: number) {
   return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  return (
-    palettes
-      .find((p) => p.purpose === purpose)
-      ?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-  )
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── ButtonPreview ────────────────────────────────────────────────────────────
-
-function ButtonPreview({
-  variantConfig,
-  sizeConfig,
-  btn,
-  palettes,
-  corners,
-  shadows,
-  typographies,
-}: {
-  variantConfig: DesignButtonVariantConfig
-  sizeConfig: DesignButtonSizeConfig
-  btn: DesignButton
-  palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
-}) {
-  const typo = findTypographyById(typographies, btn.typographyId)
-  const radius = resolveCorner(btn.cornerId, corners)
-  const bg = resolveColor(variantConfig.background, palettes)
-  const fg = resolveColor(variantConfig.foreground, palettes)
-  const border = resolveColor(variantConfig.border, palettes)
-
-  return (
-    <div
-      className="inline-flex cursor-default items-center justify-center whitespace-nowrap select-none"
-      style={{
-        backgroundColor: bg === "transparent" ? "transparent" : bg,
-        color: fg,
-        border: `1px solid ${border === "transparent" ? "transparent" : border}`,
-        borderRadius: radius >= 9999 ? 9999 : radius,
-        ...(typo ? typographyStyle(typo) : { fontSize: 14, fontWeight: 500 }),
-        paddingLeft: sizeConfig.paddingX,
-        paddingRight: sizeConfig.paddingX,
-        paddingTop: sizeConfig.paddingY,
-        paddingBottom: sizeConfig.paddingY,
-        boxShadow: resolveShadow(btn.shadowId, shadows),
-        textDecoration: variantConfig.variant === "link" ? "underline" : "none",
-        textUnderlineOffset:
-          variantConfig.variant === "link" ? "4px" : undefined,
-      }}
-    >
-      Button
-    </div>
-  )
 }
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
@@ -319,7 +235,7 @@ export function DSButton() {
 
             {/* ── Variants tab ── */}
             <TabsContent value="variants">
-              {VARIANTS.map((variant) => {
+              {DESIGN_BUTTON_VARIANTS.map((variant) => {
                 const vc = btn.variants.find((v) => v.variant === variant)
                 if (!vc) return null
                 return (
@@ -338,14 +254,11 @@ export function DSButton() {
                             key={sc.size}
                             className="flex flex-col items-center gap-1.5"
                           >
-                            <ButtonPreview
-                              variantConfig={vc}
-                              sizeConfig={sc}
-                              btn={btn}
-                              palettes={palettes}
-                              corners={corners}
-                              shadows={shadows}
-                              typographies={typographies}
+                            <DesignButtonPreview
+                              project={project}
+                              design={btn}
+                              variant={variant}
+                              size={sc.size}
                             />
                             <span className="font-mono text-[10px] text-muted-foreground">
                               {sc.size}
@@ -390,11 +303,7 @@ export function DSButton() {
                 <SizeRow
                   key={sc.size}
                   sizeConfig={sc}
-                  btn={btn}
-                  palettes={palettes}
-                  corners={corners}
-                  shadows={shadows}
-                  typographies={typographies}
+                  project={project}
                   onCommit={(updated) => commitSize(sc.size, updated)}
                 />
               ))}
@@ -421,19 +330,11 @@ export function DSButton() {
 
 function SizeRow({
   sizeConfig,
-  btn,
-  palettes,
-  corners,
-  shadows,
-  typographies,
+  project,
   onCommit,
 }: {
   sizeConfig: DesignButtonSizeConfig
-  btn: DesignButton
-  palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
+  project: Project
   onCommit: (updated: Partial<DesignButtonSizeConfig>) => void
 }) {
   const [paddingX, setPaddingX] = useState(String(sizeConfig.paddingX))
@@ -462,22 +363,14 @@ function SizeRow({
           {sizeConfig.size}
         </p>
         <div className="flex flex-wrap items-end gap-3">
-          {VARIANTS.slice(0, 5).map((variant) => {
-            const vc = btn.variants.find((v) => v.variant === variant)
-            if (!vc) return null
-            return (
-              <ButtonPreview
-                key={variant}
-                variantConfig={vc}
-                sizeConfig={sizeConfig}
-                btn={btn}
-                palettes={palettes}
-                corners={corners}
-                shadows={shadows}
-                typographies={typographies}
-              />
-            )
-          })}
+          {DESIGN_BUTTON_VARIANTS.slice(0, 5).map((variant) => (
+            <DesignButtonPreview
+              key={variant}
+              project={project}
+              variant={variant}
+              size={sizeConfig.size}
+            />
+          ))}
         </div>
       </div>
       {/* Padding editor */}

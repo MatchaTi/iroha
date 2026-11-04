@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -6,11 +6,15 @@ import {
   type DesignSwitchState,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
-  type Typography,
 } from "@/store/use-project"
 import { resolveDesignSwitchStarterPacks } from "@/lib/constants"
-import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
+import { formatRadius } from "@/lib/design-tokens"
+import {
+  DesignSwitch as DesignSwitchPreview,
+  DESIGN_SWITCH_STATES,
+} from "@/components/shared/design-switch"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -36,128 +40,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATES: DesignSwitchState[] = ["default", "checked", "disabled"]
-
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── SwitchPreview ────────────────────────────────────────────────────────────
-
-interface ResolvedSwitch {
-  background: string
-  foreground: string
-  border: string
-  radius: number
-  size: number
-  shadow: string
-  state: DesignSwitchState
-  labelStyle: CSSProperties
-}
-
-function SwitchPreview({
-  sw,
-  other,
-}: {
-  sw: ResolvedSwitch
-  other?: ResolvedSwitch
-}) {
-  const height = sw.size
-  const width = Math.round(height * 1.75)
-  const inset = Math.max(2, Math.round(height / 6))
-  const thumbSize = Math.max(4, height - 2 * inset - 2)
-  // Interactive: click flips between this state and the default state
-  const interactive = other !== undefined && sw.state !== "disabled"
-  const [flipped, setFlipped] = useState(false)
-  const shown = flipped && other ? other : sw
-
-  return (
-    <div className="flex items-center gap-3">
-      <span
-        onClick={interactive ? () => setFlipped(!flipped) : undefined}
-        className={
-          "relative inline-flex shrink-0 items-center transition-all select-none" +
-          (interactive ? " cursor-pointer" : "")
-        }
-        style={{
-          backgroundColor: shown.background,
-          border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
-          borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
-          width,
-          height,
-          padding: inset,
-          justifyContent: shown.state === "checked" ? "flex-end" : "flex-start",
-          boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
-          opacity: shown.state === "disabled" ? 0.5 : 1,
-        }}
-      >
-        <span
-          className="inline-flex shrink-0 rounded-full transition-all"
-          style={{
-            backgroundColor: shown.foreground,
-            width: thumbSize,
-            height: thumbSize,
-          }}
-        />
-      </span>
-      <span
-        className="text-sm"
-        style={{
-          ...shown.labelStyle,
-          opacity: shown.state === "disabled" ? 0.5 : 1,
-        }}
-      >
-        Switch
-      </span>
-    </div>
-  )
-}
-
-function resolveSwitch(
-  sw: DesignSwitch,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedSwitch {
-  return {
-    background: resolveColor(sw.background, palettes),
-    foreground: resolveColor(sw.foreground, palettes),
-    border: resolveColor(sw.border, palettes),
-    radius: resolveCorner(sw.cornerId, corners),
-    size: sw.size,
-    shadow: resolveShadow(sw.shadowId, shadows),
-    state: sw.state,
-    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -388,32 +270,19 @@ function SharedTokensEditor({
 interface SwitchRowProps {
   state: DesignSwitchState
   sw: DesignSwitch | undefined
-  otherResolved: ResolvedSwitch | undefined
+  project: Project
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
   onCommit: (updated: Partial<DesignSwitch>) => void
 }
 
-function SwitchRow({
-  state,
-  sw,
-  otherResolved,
-  palettes,
-  corners,
-  shadows,
-  typographies,
-  onCommit,
-}: SwitchRowProps) {
+function SwitchRow({ state, sw, project, palettes, onCommit }: SwitchRowProps) {
   if (!sw) return null
-  const resolved = resolveSwitch(sw, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <SwitchPreview sw={resolved} other={otherResolved} />
+        <DesignSwitchPreview project={project} design={sw} state={state} />
       </div>
 
       {/* Editor */}
@@ -466,7 +335,6 @@ export function DSSwitch() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
-  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstSw = project?.designSwitch?.[0]
@@ -528,34 +396,15 @@ export function DSSwitch() {
 
             {/* ── States tab ── */}
             <TabsContent value="states">
-              {STATES.map((state) => {
+              {DESIGN_SWITCH_STATES.map((state) => {
                 const sw = project.designSwitch.find((sw) => sw.state === state)
-                // Clicking a preview toggles it to the complementary state
-                const complementary =
-                  state === "default" ? "checked" : "default"
-                const otherSw = project.designSwitch.find(
-                  (x) => x.state === complementary
-                )
                 return (
                   <SwitchRow
                     key={state}
                     state={state}
                     sw={sw}
-                    otherResolved={
-                      otherSw
-                        ? resolveSwitch(
-                            otherSw,
-                            palettes,
-                            corners,
-                            shadows,
-                            typographies
-                          )
-                        : undefined
-                    }
+                    project={project}
                     palettes={palettes}
-                    corners={corners}
-                    shadows={shadows}
-                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )

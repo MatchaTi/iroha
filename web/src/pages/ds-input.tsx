@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -6,16 +6,16 @@ import {
   type DesignInputState,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
   type Typography,
 } from "@/store/use-project"
 import { resolveDesignInputStarterPacks } from "@/lib/constants"
+import { formatRadius } from "@/lib/design-tokens"
 import {
-  findTypographyById,
-  resolveHelperTypography,
-  resolveLabelTypography,
-  typographyStyle,
-} from "@/lib/typography"
+  DesignInput as DesignInputPreview,
+  DESIGN_INPUT_STATES,
+} from "@/components/shared/design-input"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -42,125 +42,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { MousePointerClick } from "lucide-react"
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATES: DesignInputState[] = ["default", "focus", "error", "disabled"]
-
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── InputPreview ─────────────────────────────────────────────────────────────
-
-interface ResolvedInput {
-  background: string
-  foreground: string
-  border: string
-  placeholder: string
-  label: string
-  helper: string
-  radius: number
-  fieldStyle: CSSProperties
-  labelStyle: CSSProperties
-  helperStyle: CSSProperties
-  paddingX: number
-  paddingY: number
-  shadow: string
-  state: DesignInputState
-}
-
-function InputPreview({ inp }: { inp: ResolvedInput }) {
-  return (
-    <div className="flex w-full max-w-xs flex-col gap-1.5">
-      <label
-        className="text-sm font-medium"
-        style={{ color: inp.label, ...inp.labelStyle }}
-      >
-        Label
-      </label>
-      <input
-        readOnly={inp.state === "disabled"}
-        disabled={inp.state === "disabled"}
-        placeholder="Placeholder"
-        className="outline-none"
-        style={{
-          backgroundColor: inp.background,
-          color: inp.foreground,
-          border: `1px solid ${inp.border}`,
-          borderRadius: inp.radius >= 9999 ? 9999 : inp.radius,
-          ...inp.fieldStyle,
-          paddingLeft: inp.paddingX,
-          paddingRight: inp.paddingX,
-          paddingTop: inp.paddingY,
-          paddingBottom: inp.paddingY,
-          boxShadow: inp.shadow === "none" ? "none" : inp.shadow,
-          width: "100%",
-        }}
-      />
-      <span
-        className="text-xs"
-        style={{ color: inp.helper, ...inp.helperStyle }}
-      >
-        Helper text
-      </span>
-    </div>
-  )
-}
-
-function resolveInput(
-  inp: DesignInput,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedInput {
-  const typo = findTypographyById(typographies, inp.typographyId)
-  const labelTypo = resolveLabelTypography(typographies, typo)
-  const helperTypo = resolveHelperTypography(typographies, typo)
-  return {
-    background: resolveColor(inp.background, palettes),
-    foreground: resolveColor(inp.foreground, palettes),
-    border: resolveColor(inp.border, palettes),
-    placeholder: resolveColor(inp.placeholder, palettes),
-    label: resolveColor(inp.label, palettes),
-    helper: resolveColor(inp.helper, palettes),
-    radius: resolveCorner(inp.cornerId, corners),
-    fieldStyle: typo
-      ? typographyStyle(typo)
-      : { fontFamily: "sans-serif", fontSize: 14, fontWeight: 400 },
-    labelStyle: typographyStyle(labelTypo),
-    helperStyle: typographyStyle(helperTypo),
-    paddingX: inp.paddingX,
-    paddingY: inp.paddingY,
-    shadow: resolveShadow(inp.shadowId, shadows),
-    state: inp.state,
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -481,30 +362,19 @@ function SharedTokensEditor({
 interface InputRowProps {
   state: DesignInputState
   inp: DesignInput | undefined
+  project: Project
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
   onCommit: (updated: Partial<DesignInput>) => void
 }
 
-function InputRow({
-  state,
-  inp,
-  palettes,
-  corners,
-  shadows,
-  typographies,
-  onCommit,
-}: InputRowProps) {
+function InputRow({ state, inp, project, palettes, onCommit }: InputRowProps) {
   if (!inp) return null
-  const resolved = resolveInput(inp, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-24 items-center px-6 py-8 md:col-span-3">
-        <InputPreview inp={resolved} />
+        <DesignInputPreview project={project} design={inp} state={state} />
       </div>
 
       {/* Editor */}
@@ -640,17 +510,15 @@ export function DSInput() {
 
             {/* ── States tab ── */}
             <TabsContent value="states">
-              {STATES.map((state) => {
+              {DESIGN_INPUT_STATES.map((state) => {
                 const inp = project.designInput.find((i) => i.state === state)
                 return (
                   <InputRow
                     key={state}
                     state={state}
                     inp={inp}
+                    project={project}
                     palettes={palettes}
-                    corners={corners}
-                    shadows={shadows}
-                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )

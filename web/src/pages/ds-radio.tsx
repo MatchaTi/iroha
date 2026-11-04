@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -6,11 +6,15 @@ import {
   type DesignRadioState,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
-  type Typography,
 } from "@/store/use-project"
 import { resolveDesignRadioStarterPacks } from "@/lib/constants"
-import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
+import { formatRadius } from "@/lib/design-tokens"
+import {
+  DesignRadio as DesignRadioPreview,
+  DESIGN_RADIO_STATES,
+} from "@/components/shared/design-radio"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -36,141 +40,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATES: DesignRadioState[] = ["default", "checked", "disabled"]
-
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── RadioPreview ─────────────────────────────────────────────────────────────
-
-interface ResolvedRadio {
-  background: string
-  foreground: string
-  border: string
-  radius: number
-  size: number
-  shadow: string
-  state: DesignRadioState
-  labelStyle: CSSProperties
-}
-
-function RadioPreview({
-  radio,
-  other,
-}: {
-  radio: ResolvedRadio
-  other?: ResolvedRadio
-}) {
-  const options = ["Option 1", "Option 2", "Option 3"]
-  // Interactive radio group: click an option to select it (radio semantics —
-  // a selection moves between options and never deselects)
-  const interactive = other !== undefined && radio.state !== "disabled"
-  const [selected, setSelected] = useState<number | null>(
-    radio.state === "checked" ? 0 : null
-  )
-  // Selected items use the "checked" config, unselected use the "default" one.
-  // For the checked row those are this row / its complement; for the default
-  // row it's the opposite; for the disabled row everything uses this row.
-  const checkedCfg = radio.state === "checked" ? radio : (other ?? radio)
-  const defaultCfg = radio.state === "checked" ? (other ?? radio) : radio
-  const itemOpacity = radio.state === "disabled" ? 0.5 : 1
-
-  return (
-    <div className="flex flex-col items-start gap-3">
-      {options.map((label, index) => {
-        const isSelected = selected === index
-        const shown = isSelected ? checkedCfg : defaultCfg
-        const dotSize = Math.round(shown.size * 0.5)
-        return (
-          <div
-            key={label}
-            onClick={interactive ? () => setSelected(index) : undefined}
-            className={
-              "flex items-center gap-2" + (interactive ? " cursor-pointer" : "")
-            }
-          >
-            <span
-              className="relative inline-flex shrink-0 items-center justify-center transition-all select-none"
-              style={{
-                backgroundColor: shown.background,
-                border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
-                borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
-                width: shown.size,
-                height: shown.size,
-                boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
-                opacity: itemOpacity,
-              }}
-            >
-              {isSelected && (
-                <span
-                  className="absolute inset-0 m-auto rounded-full"
-                  style={{
-                    backgroundColor: shown.foreground,
-                    width: dotSize,
-                    height: dotSize,
-                  }}
-                />
-              )}
-            </span>
-            <span
-              className="text-sm"
-              style={{ ...shown.labelStyle, opacity: itemOpacity }}
-            >
-              {label}
-            </span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function resolveRadio(
-  radio: DesignRadio,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedRadio {
-  return {
-    background: resolveColor(radio.background, palettes),
-    foreground: resolveColor(radio.foreground, palettes),
-    border: resolveColor(radio.border, palettes),
-    radius: resolveCorner(radio.cornerId, corners),
-    size: radio.size,
-    shadow: resolveShadow(radio.shadowId, shadows),
-    state: radio.state,
-    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -401,32 +270,25 @@ function SharedTokensEditor({
 interface RadioRowProps {
   state: DesignRadioState
   radio: DesignRadio | undefined
-  otherResolved: ResolvedRadio | undefined
+  project: Project
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
   onCommit: (updated: Partial<DesignRadio>) => void
 }
 
 function RadioRow({
   state,
   radio,
-  otherResolved,
+  project,
   palettes,
-  corners,
-  shadows,
-  typographies,
   onCommit,
 }: RadioRowProps) {
   if (!radio) return null
-  const resolved = resolveRadio(radio, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <RadioPreview radio={resolved} other={otherResolved} />
+        <DesignRadioPreview project={project} design={radio} state={state} />
       </div>
 
       {/* Editor */}
@@ -482,7 +344,6 @@ export function DSRadio() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
-  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstRadio = project?.designRadio?.[0]
@@ -544,36 +405,17 @@ export function DSRadio() {
 
             {/* ── States tab ── */}
             <TabsContent value="states">
-              {STATES.map((state) => {
+              {DESIGN_RADIO_STATES.map((state) => {
                 const radio = project.designRadio.find(
                   (radio) => radio.state === state
-                )
-                // Clicking a preview toggles it to the complementary state
-                const complementary =
-                  state === "default" ? "checked" : "default"
-                const otherRadio = project.designRadio.find(
-                  (x) => x.state === complementary
                 )
                 return (
                   <RadioRow
                     key={state}
                     state={state}
                     radio={radio}
-                    otherResolved={
-                      otherRadio
-                        ? resolveRadio(
-                            otherRadio,
-                            palettes,
-                            corners,
-                            shadows,
-                            typographies
-                          )
-                        : undefined
-                    }
+                    project={project}
                     palettes={palettes}
-                    corners={corners}
-                    shadows={shadows}
-                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )

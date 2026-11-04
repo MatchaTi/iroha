@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 import { useParams } from "react-router"
 import {
   useProject,
@@ -6,11 +6,15 @@ import {
   type DesignCheckboxState,
   type ColorPalette,
   type Corner,
+  type Project,
   type Shadow as ShadowType,
-  type Typography,
 } from "@/store/use-project"
 import { resolveDesignCheckboxStarterPacks } from "@/lib/constants"
-import { resolveLabelTypography, typographyStyle } from "@/lib/typography"
+import { formatRadius } from "@/lib/design-tokens"
+import {
+  DesignCheckbox as DesignCheckboxPreview,
+  DESIGN_CHECKBOX_STATES,
+} from "@/components/shared/design-checkbox"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -27,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { RotateCcw, Expand, Check, Minus, SquareCheck } from "lucide-react"
+import { RotateCcw, Expand, SquareCheck } from "lucide-react"
 import {
   Empty,
   EmptyContent,
@@ -36,125 +40,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATES: DesignCheckboxState[] = [
-  "default",
-  "checked",
-  "indeterminate",
-  "disabled",
-]
-
-function formatRadius(r: number) {
-  return r >= 99 ? "Full" : `${r}px`
-}
-
-// ─── Token resolvers ──────────────────────────────────────────────────────────
-
-function resolveColor(
-  ref: string | null | undefined,
-  palettes: ColorPalette[]
-): string {
-  if (!ref) return "#000000"
-  if (ref === "transparent") return "transparent"
-  if (!ref.includes("::")) return ref
-  const [purpose, level] = ref.split("::")
-  const palette = palettes.find((p) => p.purpose === purpose)
-  return palette?.colors.find((c) => c.level === level)?.hex ?? "#000000"
-}
-
-function resolveCorner(id: string, corners: Corner[]): number {
-  return corners.find((c) => c.id === id)?.radius ?? 0
-}
-
-function resolveShadow(id: string, shadows: ShadowType[]): string {
-  if (id === "none") return "none"
-  const s = shadows.find((s) => s.id === id)
-  return s ? `${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : "none"
-}
-
-// ─── CheckboxPreview ──────────────────────────────────────────────────────────
-
-interface ResolvedCheckbox {
-  background: string
-  foreground: string
-  border: string
-  radius: number
-  size: number
-  shadow: string
-  state: DesignCheckboxState
-  labelStyle: CSSProperties
-}
-
-function CheckboxPreview({
-  cb,
-  other,
-}: {
-  cb: ResolvedCheckbox
-  other?: ResolvedCheckbox
-}) {
-  const iconSize = Math.round(cb.size * 0.6)
-  // Interactive: click flips between this state and the default state
-  const interactive = other !== undefined && cb.state !== "disabled"
-  const [flipped, setFlipped] = useState(false)
-  const shown = flipped && other ? other : cb
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        onClick={interactive ? () => setFlipped(!flipped) : undefined}
-        className={
-          "relative inline-flex shrink-0 items-center justify-center transition-all select-none" +
-          (interactive ? " cursor-pointer" : "")
-        }
-        style={{
-          backgroundColor: shown.background,
-          border: `1px solid ${shown.border === "transparent" ? "transparent" : shown.border}`,
-          borderRadius: shown.radius >= 9999 ? 9999 : shown.radius,
-          width: shown.size,
-          height: shown.size,
-          boxShadow: shown.shadow === "none" ? "none" : shown.shadow,
-          opacity: shown.state === "disabled" ? 0.5 : 1,
-        }}
-      >
-        {shown.state === "checked" && (
-          <Check strokeWidth={3} size={iconSize} color={shown.foreground} />
-        )}
-        {shown.state === "indeterminate" && (
-          <Minus strokeWidth={3} size={iconSize} color={shown.foreground} />
-        )}
-      </span>
-      <span
-        className="text-sm"
-        style={{
-          ...shown.labelStyle,
-          opacity: shown.state === "disabled" ? 0.5 : 1,
-        }}
-      >
-        Checkbox
-      </span>
-    </div>
-  )
-}
-
-function resolveCheckbox(
-  cb: DesignCheckbox,
-  palettes: ColorPalette[],
-  corners: Corner[],
-  shadows: ShadowType[],
-  typographies: Typography[]
-): ResolvedCheckbox {
-  return {
-    background: resolveColor(cb.background, palettes),
-    foreground: resolveColor(cb.foreground, palettes),
-    border: resolveColor(cb.border, palettes),
-    radius: resolveCorner(cb.cornerId, corners),
-    size: cb.size,
-    shadow: resolveShadow(cb.shadowId, shadows),
-    state: cb.state,
-    labelStyle: typographyStyle(resolveLabelTypography(typographies)),
-  }
-}
 
 // ─── ColorTokenSelect ─────────────────────────────────────────────────────────
 
@@ -388,32 +273,25 @@ function SharedTokensEditor({
 interface CheckboxRowProps {
   state: DesignCheckboxState
   cb: DesignCheckbox | undefined
-  otherResolved: ResolvedCheckbox | undefined
+  project: Project
   palettes: ColorPalette[]
-  corners: Corner[]
-  shadows: ShadowType[]
-  typographies: Typography[]
   onCommit: (updated: Partial<DesignCheckbox>) => void
 }
 
 function CheckboxRow({
   state,
   cb,
-  otherResolved,
+  project,
   palettes,
-  corners,
-  shadows,
-  typographies,
   onCommit,
 }: CheckboxRowProps) {
   if (!cb) return null
-  const resolved = resolveCheckbox(cb, palettes, corners, shadows, typographies)
 
   return (
     <div className="grid border-b last:border-b-0 md:grid-cols-4">
       {/* Preview */}
       <div className="flex min-h-20 items-center px-6 py-8 md:col-span-3">
-        <CheckboxPreview cb={resolved} other={otherResolved} />
+        <DesignCheckboxPreview project={project} design={cb} state={state} />
       </div>
 
       {/* Editor */}
@@ -469,7 +347,6 @@ export function DSCheckbox() {
   const palettes = project?.colorPalette ?? []
   const corners = project?.corner ?? []
   const shadows = project?.shadow ?? []
-  const typographies = project?.typography ?? []
 
   // Shared token display values — only when every state agrees
   const firstCb = project?.designCheckbox?.[0]
@@ -531,36 +408,17 @@ export function DSCheckbox() {
 
             {/* ── States tab ── */}
             <TabsContent value="states">
-              {STATES.map((state) => {
+              {DESIGN_CHECKBOX_STATES.map((state) => {
                 const cb = project.designCheckbox.find(
                   (cb) => cb.state === state
-                )
-                // Clicking a preview toggles it to the complementary state
-                const complementary =
-                  state === "default" ? "checked" : "default"
-                const otherCb = project.designCheckbox.find(
-                  (x) => x.state === complementary
                 )
                 return (
                   <CheckboxRow
                     key={state}
                     state={state}
                     cb={cb}
-                    otherResolved={
-                      otherCb
-                        ? resolveCheckbox(
-                            otherCb,
-                            palettes,
-                            corners,
-                            shadows,
-                            typographies
-                          )
-                        : undefined
-                    }
+                    project={project}
                     palettes={palettes}
-                    corners={corners}
-                    shadows={shadows}
-                    typographies={typographies}
                     onCommit={(updated) => handleCommit(state, updated)}
                   />
                 )
