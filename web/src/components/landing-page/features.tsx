@@ -6,6 +6,7 @@ import { DisplayTypography } from "./display-typography"
 import { DisplayColorPalette } from "./display-color-palette"
 import { DisplayDesignSystem } from "./display-design-system"
 import { DisplayDesignMD } from "./display-design-md"
+import { ComponentContainer } from "../shared/component-container"
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -122,15 +123,9 @@ export function Features() {
                 key={active.id}
                 className="animate-in space-y-4 duration-500 fade-in slide-in-from-bottom-2"
               >
-                <div className="relative w-fit border border-dashed p-2">
+                <ComponentContainer className="w-fit p-2">
                   <h3 className="text-5xl">{active.title}</h3>
-                  <div className="absolute top-0 left-0 size-3 -translate-x-1/2 -translate-y-1/2 border bg-background" />
-                  <div className="absolute top-0 right-0 size-3 translate-x-1/2 -translate-y-1/2 border bg-background" />
-                  <div className="absolute right-0 bottom-0 size-3 translate-x-1/2 translate-y-1/2 border bg-background" />
-                  <div className="absolute bottom-0 left-0 size-3 -translate-x-1/2 translate-y-1/2 border bg-background" />
-                  <div className="absolute bottom-0 left-1/2 size-3 -translate-x-1/2 translate-y-1/2 border bg-background" />
-                  <div className="absolute top-0 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 border bg-background" />
-                </div>
+                </ComponentContainer>
                 <p className="max-w-md text-balance text-muted-foreground lg:text-lg">
                   {active.description}
                 </p>
