@@ -331,7 +331,7 @@ export function DesignMD() {
           <p>Auto-generated design system documentation from your tokens</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCopy}>
+          <Button variant="outline" size="lg" onClick={handleCopy}>
             {copied ? (
               <>
                 <Check /> Copied
@@ -342,7 +342,7 @@ export function DesignMD() {
               </>
             )}
           </Button>
-          <Button size="sm" onClick={handleDownload}>
+          <Button size="lg" onClick={handleDownload} variant={"secondary"}>
             <Download /> Download
           </Button>
         </div>

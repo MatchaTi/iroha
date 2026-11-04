@@ -327,7 +327,7 @@ export function ColorPalette() {
               <Button variant="secondary" onClick={resetToDefault}>
                 <RotateCcw /> Reset
               </Button>
-              <Button onClick={handleAdd}>
+              <Button onClick={handleAdd} variant={"secondary"}>
                 <Plus /> Add Palette
               </Button>
             </div>

@@ -85,7 +85,7 @@ export function ProjectLayout() {
       label: "Icon",
       href: `/projects/${id}/icon`,
       icon: Feather,
-      disabled: true,
+      disabled: false,
     },
     {
       label: "Design System",
@@ -130,7 +130,7 @@ export function ProjectLayout() {
       label: "Brand Kit",
       href: `/projects/${id}/brand-kit`,
       icon: VectorSquare,
-      disabled: true,
+      disabled: false,
     },
     {
       label: "DESIGN.md",

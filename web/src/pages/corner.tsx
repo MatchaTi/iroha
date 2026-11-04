@@ -193,7 +193,7 @@ export function Corner() {
           <Button variant="outline" onClick={resetToDefault}>
             <RotateCcw /> Reset
           </Button>
-          <Button onClick={handleAdd}>
+          <Button onClick={handleAdd} variant={"secondary"}>
             <Plus /> Add Corner
           </Button>
         </div>

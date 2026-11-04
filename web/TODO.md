@@ -1,7 +1,4 @@
-- [ ] Project Details
 - [ ] Preset Color Palette
 - [ ] Fonts
-- [ ] Under construction page
 - [ ] About
 - [ ] Icon integration
-- [ ] Button variant in the editor

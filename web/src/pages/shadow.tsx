@@ -291,7 +291,7 @@ export function Shadow() {
           <Button variant="outline" onClick={resetToDefault}>
             <RotateCcw /> Reset
           </Button>
-          <Button onClick={handleAdd}>
+          <Button onClick={handleAdd} variant={"secondary"}>
             <Plus /> Add Shadow
           </Button>
         </div>

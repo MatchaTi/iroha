@@ -17,6 +17,7 @@ import { DSSwitch } from "./pages/ds-switch"
 import { DSRadio } from "./pages/ds-radio"
 import { DSSlider } from "./pages/ds-slider"
 import { DesignMD } from "./pages/design-md"
+import { BrandKit } from "./pages/brand-kit"
 
 export function App() {
   return (
@@ -26,6 +27,8 @@ export function App() {
         <Route path="/new" element={<NewProject />} />
         <Route element={<ProjectLayout />}>
           <Route index path="/projects/:id" element={<ProjectDetails />} />
+          <Route index path="/projects/:id/brand-kit" element={<BrandKit />} />
+          <Route index path="/projects/:id/icon" element={<BrandKit />} />
           <Route path="/projects/:id/typography" element={<Typography />} />
           <Route
             path="/projects/:id/color-palette"
