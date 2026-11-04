@@ -8,6 +8,7 @@ import type {
   DesignRadio,
   DesignSlider,
   DesignSwitch,
+  DesignTextarea,
   Shadow,
   Typography,
 } from "@/store/use-project"
@@ -605,6 +606,111 @@ export function resolveDesignInputStarterPacks(
       shadowId: shadow?.id ?? "none",
       paddingX: pack.paddingX,
       paddingY: pack.paddingY,
+    }
+  })
+}
+
+export const DESIGN_TEXTAREA_STARTER_PACKS: (Omit<
+  DesignTextarea,
+  "cornerId" | "typographyId" | "shadowId"
+> & {
+  cornerName: string
+  typographyName: string
+  shadowName: string
+})[] = [
+  // ── default ──
+  {
+    state: "default",
+    background: "background::50",
+    foreground: "foreground::900",
+    border: "muted::300",
+    placeholder: "muted::500",
+    label: "foreground::900",
+    helper: "muted::500",
+    cornerName: "Medium",
+    typographyName: "Body Medium",
+    shadowName: "none",
+    paddingX: 12,
+    paddingY: 8,
+    minHeight: 96,
+  },
+  // ── focus ──
+  {
+    state: "focus",
+    background: "background::50",
+    foreground: "foreground::900",
+    border: "primary::500",
+    placeholder: "muted::500",
+    label: "foreground::900",
+    helper: "muted::500",
+    cornerName: "Medium",
+    typographyName: "Body Medium",
+    shadowName: "none",
+    paddingX: 12,
+    paddingY: 8,
+    minHeight: 96,
+  },
+  // ── error ──
+  {
+    state: "error",
+    background: "background::50",
+    foreground: "foreground::900",
+    border: "error::500",
+    placeholder: "muted::500",
+    label: "foreground::900",
+    helper: "error::500",
+    cornerName: "Medium",
+    typographyName: "Body Medium",
+    shadowName: "none",
+    paddingX: 12,
+    paddingY: 8,
+    minHeight: 96,
+  },
+  // ── disabled ──
+  {
+    state: "disabled",
+    background: "muted::100",
+    foreground: "muted::400",
+    border: "muted::200",
+    placeholder: "muted::300",
+    label: "muted::400",
+    helper: "muted::300",
+    cornerName: "Medium",
+    typographyName: "Body Medium",
+    shadowName: "none",
+    paddingX: 12,
+    paddingY: 8,
+    minHeight: 96,
+  },
+]
+
+/** Resolve textarea starter pack name refs to actual token IDs */
+export function resolveDesignTextareaStarterPacks(
+  corners: Corner[],
+  shadows: Shadow[],
+  typographies: Typography[]
+): DesignTextarea[] {
+  return DESIGN_TEXTAREA_STARTER_PACKS.map((pack) => {
+    const corner = corners.find((c) => c.name === pack.cornerName)
+    const shadow =
+      pack.shadowName === "none"
+        ? undefined
+        : shadows.find((s) => s.name === pack.shadowName)
+    const typo = typographies.find((t) => t.name === pack.typographyName)
+    return {
+      state: pack.state,
+      background: pack.background,
+      foreground: pack.foreground,
+      border: pack.border,
+      placeholder: pack.placeholder,
+      label: pack.label,
+      helper: pack.helper,
+      cornerId: corner?.id ?? corners[0]?.id ?? "",
+      typographyId: typo?.id ?? typographies[0]?.id ?? "",
+      shadowId: shadow?.id ?? "none",
+      paddingX: pack.paddingX,
+      paddingY: pack.paddingY,
+      minHeight: pack.minHeight,
     }
   })
 }

@@ -5,6 +5,7 @@ import { FieldDescription, FieldLabel } from "../ui/field"
 import { DesignBadge } from "../shared/design-badge"
 import { DesignSlider } from "../shared/design-slider"
 import { DesignInput } from "../shared/design-input"
+import { DesignTextarea } from "../shared/design-textarea"
 import { DesignRadio } from "../shared/design-radio"
 import { DesignCheckbox } from "../shared/design-checkbox"
 import { DesignSwitch } from "../shared/design-switch"
@@ -57,6 +58,14 @@ export function PDComponents({ project }: Props) {
             className="min-w-full"
             label="Email"
             helper="Enter your email."
+          />
+
+          <DesignTextarea
+            project={project}
+            placeholder="Tell us about yourself"
+            className="min-w-full"
+            label="About"
+            helper="A short bio."
           />
         </div>
 

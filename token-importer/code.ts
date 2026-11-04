@@ -1075,6 +1075,144 @@ async function importTokens(t) {
     }
   }
 
+  // -- Frame 6b: Textarea Components --
+  if (t.designTextarea && t.designTextarea.length) {
+    var textareaComponents = [];
+
+    for (var ta of t.designTextarea) {
+      var taBorderHex = resolveColorRef(ta.border);
+      var taRadius    = resolveCornerRef(ta.cornerId);
+      var taEffects   = resolveShadowRef(ta.shadowId);
+      var taTypo      = resolveTypoRef(ta.typographyId);
+      var taFontStyle  = toFigmaStyle(taTypo ? taTypo.fontWeight : "400");
+      var taFontFamily = taTypo ? taTypo.fontFamily : "Inter";
+      var taFontSize   = taTypo ? taTypo.fontSize : 14;
+      var taStyleId       = await ensureTypeStyleId(ta.typographyId);
+      var taLabelStyleId  = findTypeStyleId("label", "large") || taStyleId || defaultLabelStyleId;
+      var taHelperStyleId = findTypeStyleId("body", "small") || taStyleId || defaultHelperStyleId;
+      var taPadX = typeof ta.paddingX === "number" ? ta.paddingX : 12;
+      var taPadY = typeof ta.paddingY === "number" ? ta.paddingY : 8;
+      var taMinH = (typeof ta.minHeight === "number" && ta.minHeight > 0) ? ta.minHeight : 96;
+
+      // Load font dengan fallback
+      var loadedTextareaFont = await loadFigmaFont(taFontFamily, taFontStyle);
+      if (loadedTextareaFont) {
+        taFontFamily = loadedTextareaFont.family;
+        taFontStyle = loadedTextareaFont.style;
+      } else {
+        taFontFamily = "Inter";
+        taFontStyle = "Regular";
+      }
+
+      var taComp = figma.createComponent();
+      taComp.name = "State=" + cap(ta.state);
+      taComp.layoutMode = "VERTICAL";
+      taComp.primaryAxisSizingMode = "AUTO";
+      taComp.counterAxisSizingMode = "AUTO";
+      taComp.itemSpacing = 4;
+      taComp.fills = [];
+
+      // Daftarkan semua properties — hanya untuk direct children
+      var taShowLabelProp  = taComp.addComponentProperty("Show Label", "BOOLEAN", true);
+      var taLabelTextProp  = taComp.addComponentProperty("Label", "TEXT", "Label");
+      var taShowHelperProp = taComp.addComponentProperty("Show Helper", "BOOLEAN", true);
+      var taHelperTextProp = taComp.addComponentProperty("Helper", "TEXT", "Helper text");
+
+      // 1. Label
+      var taLabelTxt = figma.createText();
+      taLabelTxt.name = "Label";
+      taLabelTxt.fontName = { family: taFontFamily, style: taFontStyle };
+      taLabelTxt.fontSize = taFontSize > 12 ? taFontSize - 2 : taFontSize;
+      taLabelTxt.characters = "Label";
+      taLabelTxt.fills = resolveColorPaint(ta.label);
+      taComp.appendChild(taLabelTxt);
+      taLabelTxt.componentPropertyReferences = {
+        characters: taLabelTextProp,
+        visible: taShowLabelProp,
+      };
+      await bindTextStyle(taLabelTxt, taLabelStyleId);
+
+      // 2. Field — frame vertikal dengan tinggi minimum
+      var taField = makeFrame("Field", "VERTICAL", 0);
+      taField.primaryAxisSizingMode = "FIXED";
+      taField.counterAxisSizingMode = "FIXED";
+      taField.resize(240, Math.max(taMinH, taPadY * 2 + taFontSize * 1.5));
+      taField.paddingLeft = taField.paddingRight = taPadX;
+      taField.paddingTop = taField.paddingBottom = taPadY;
+      taField.primaryAxisAlignItems = "MIN";
+      taField.counterAxisAlignItems = "MIN";
+      taField.cornerRadius = taRadius > 9000 ? 9999 : taRadius;
+      taField.fills = resolveColorPaint(ta.background);
+      taField.strokes = taBorderHex && taBorderHex !== "transparent"
+        ? resolveColorPaint(ta.border) : [];
+      taField.strokeWeight = 1;
+      taField.strokeAlign = "INSIDE";
+      taField.effects = taEffects;
+
+      var taPlaceholder = figma.createText();
+      taPlaceholder.name = "Placeholder";
+      taPlaceholder.fontName = { family: taFontFamily, style: taFontStyle };
+      taPlaceholder.fontSize = taFontSize;
+      taPlaceholder.characters = "Placeholder";
+      taPlaceholder.fills = resolveColorPaint(ta.placeholder);
+      taPlaceholder.textAutoResize = "HEIGHT";
+      taField.appendChild(taPlaceholder);
+      taPlaceholder.layoutAlign = "STRETCH";
+      await bindTextStyle(taPlaceholder, taStyleId);
+
+      taComp.appendChild(taField);
+
+      // 3. Helper — direct child, bisa bind visible + characters
+      var taHelper = figma.createText();
+      taHelper.name = "Helper";
+      taHelper.fontName = { family: taFontFamily, style: taFontStyle };
+      taHelper.fontSize = taFontSize > 10 ? taFontSize - 4 : taFontSize;
+      taHelper.characters = "Helper text";
+      taHelper.fills = resolveColorPaint(ta.helper);
+      taComp.appendChild(taHelper);
+      taHelper.componentPropertyReferences = {
+        characters: taHelperTextProp,
+        visible: taShowHelperProp,
+      };
+      await bindTextStyle(taHelper, taHelperStyleId);
+
+      textareaComponents.push(taComp);
+    }
+
+    if (textareaComponents.length > 0) {
+      var taSet = figma.combineAsVariants(textareaComponents, figma.currentPage);
+      taSet.name = "Textarea";
+      taSet.fills = [];
+      taSet.strokes = [{ type: "SOLID", color: { r: 0.6, g: 0.4, b: 1 } }];
+      taSet.strokeWeight = 2;
+      taSet.dashPattern = [8, 4];
+      taSet.strokeAlign = "INSIDE";
+
+      // Susun satu baris horizontal
+      var taPadH = 32, taPadV = 32, taGap = 32;
+      var taCurX = taPadH;
+      var taMaxH = 0;
+      for (var ci = 0; ci < taSet.children.length; ci++) {
+        var ch = taSet.children[ci] as FrameNode;
+        ch.primaryAxisSizingMode = "AUTO";
+        ch.counterAxisSizingMode = "AUTO";
+        ch.x = taCurX;
+        ch.y = taPadV;
+        taCurX += ch.width + taGap;
+        if (ch.height > taMaxH) taMaxH = ch.height;
+      }
+      taSet.resize(taCurX - taGap + taPadH, taMaxH + taPadV * 2);
+
+      var frameTextarea = makeSectionFrame(
+        "Textarea",
+        "Textarea",
+        "Customize textarea styles for each state in your design system"
+      );
+      frameTextarea.appendChild(taSet);
+      figma.currentPage.appendChild(frameTextarea);
+    }
+  }
+
   // -- Frame 7: Badge Components --
   if (t.designBadge && t.designBadge.length) {
     var BADGE_VARIANTS_ORDER = [

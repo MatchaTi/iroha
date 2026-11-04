@@ -45,7 +45,7 @@ WHAT YOU GET
 - Color variables and paint styles for every palette and shade
 - Typography text styles with live previews
 - Corner radius variables and shadow effect styles
-- Button, Input, Badge, Checkbox, Radio, Switch, and Slider component sets
+- Button, Input, Textarea, Badge, Checkbox, Radio, Switch, and Slider component sets
 - Auto layout components with token colors, radius, padding, and shadows
 - Text layers bound to typography styles, so token changes flow through the system
 - Label text exposed as component properties where supported
@@ -78,7 +78,7 @@ Token Generator turns a design-system JSON export into a complete Figma foundati
 - Color variables and paint styles for every palette and shade
 - Typography text styles with live previews
 - Corner radius variables and shadow effect styles
-- Button, Input, Badge, Checkbox, Radio, Switch, and Slider component sets
+- Button, Input, Textarea, Badge, Checkbox, Radio, Switch, and Slider component sets
 - Auto layout components with token colors, radius, padding, and shadows
 - Text layers bound to typography styles, so token changes flow through the system
 - Label text exposed as component properties where supported
@@ -127,6 +127,7 @@ Build once. Keep your tokens and components in sync.
 | Shadow | Effect styles and shadow showcase |
 | Button | Component set for every variant × size combination |
 | Input | Component set for every input state |
+| Textarea | Component set for every textarea state |
 | Badge | Component set for every badge variant |
 | Checkbox | Component set for every checkbox state |
 | Radio | Component set for every radio state |
@@ -139,6 +140,7 @@ Component sets are generated only when the corresponding design configuration ex
 
 - **Button** — variant and size combinations, label component property, link underline support.
 - **Input** — label, placeholder, and helper text; label/helper use typography fallbacks.
+- **Textarea** — multi-line field with a token-driven minimum height, plus label and helper text.
 - **Badge** — per-variant colors, radius, padding, typography, and shadow.
 - **Checkbox** — default, checked, indeterminate, and disabled states.
 - **Radio** — default, checked, and disabled states.
@@ -175,6 +177,7 @@ The plugin expects the project JSON exported by the Iroha web app.
 | `shadow` | `Shadow[]` | No | Shadow tokens |
 | `designButton` | `object` | No | Button variants, sizes, and shared tokens |
 | `designInput` | `DesignInput[]` | No | Input states |
+| `designTextarea` | `DesignTextarea[]` | No | Textarea states |
 | `designBadge` | `DesignBadge[]` | No | Badge variants |
 | `designCheckbox` | `DesignCheckbox[]` | No | Checkbox states |
 | `designRadio` | `DesignRadio[]` | No | Radio states |

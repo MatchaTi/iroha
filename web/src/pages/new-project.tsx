@@ -13,6 +13,7 @@ import {
   resolveDesignRadioStarterPacks,
   resolveDesignSliderStarterPacks,
   resolveDesignSwitchStarterPacks,
+  resolveDesignTextareaStarterPacks,
   SHADOW_STARTER_PACKS,
   TYPOGRAPHY_STATER_PACKS,
 } from "@/lib/constants"
@@ -57,6 +58,11 @@ export function NewProject() {
           typography
         ),
         designInput: resolveDesignInputStarterPacks(
+          corners,
+          shadows,
+          typography
+        ),
+        designTextarea: resolveDesignTextareaStarterPacks(
           corners,
           shadows,
           typography

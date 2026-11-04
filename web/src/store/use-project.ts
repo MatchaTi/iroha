@@ -169,6 +169,26 @@ export type DesignInput = {
   paddingY: number
 }
 
+export type DesignTextarea = {
+  state: DesignInputState
+  // color refs: "transparent" or "purpose::level"
+  background: string
+  foreground: string
+  border: string
+  placeholder: string
+  label: string
+  helper: string
+  // token refs
+  cornerId: string
+  typographyId: string
+  shadowId: string
+  // spacing
+  paddingX: number
+  paddingY: number
+  // geometry
+  minHeight: number
+}
+
 export type DesignBadgeVariant =
   | "default"
   | "secondary"
@@ -203,6 +223,7 @@ export type Project = {
   shadow: Shadow[]
   designButton: DesignButton
   designInput: DesignInput[]
+  designTextarea: DesignTextarea[]
   designBadge: DesignBadge[]
   designCheckbox: DesignCheckbox[]
   designSwitch: DesignSwitch[]

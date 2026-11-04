@@ -112,6 +112,10 @@ export function ProjectLayout() {
           href: `/projects/${id}/input`,
         },
         {
+          label: "Textarea",
+          href: `/projects/${id}/textarea`,
+        },
+        {
           label: "Badge",
           href: `/projects/${id}/badge`,
         },
@@ -149,7 +153,7 @@ export function ProjectLayout() {
 
   return (
     <div className="flex w-full">
-      <aside className="hidden min-h-screen border-r bg-sidebar p-4 lg:block">
+      <aside className="hidden h-screen overflow-y-auto border-r bg-sidebar p-4 lg:block">
         <div className="sticky top-4 w-52 space-y-1">
           {NAV_ITEMS.map((item) => (
             <ProjectNav

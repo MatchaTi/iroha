@@ -1,6 +1,9 @@
 import { PDColorPalette } from "@/components/project-details/pd-color-palette"
 import { PDComponents } from "@/components/project-details/pd-components"
+import { PDEnv } from "@/components/project-details/pd-env"
 import { PDIcons } from "@/components/project-details/pd-icons"
+import { PDKitchenIsland } from "@/components/project-details/pd-kitchen-island"
+import { PDProfile } from "@/components/project-details/pd-profile"
 import { PDTypography } from "@/components/project-details/pd-typography"
 import {
   AlertDialog,
@@ -122,7 +125,28 @@ export function ProjectDetails() {
   return (
     <main className="flex h-[calc(100svh-3rem)] w-full flex-col gap-4 overflow-hidden p-4 lg:h-[calc(100svh-4px)]">
       <section className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-semibold">{project.name}</h1>
+        <div>
+          <h1
+            className="font-semibold"
+            ref={nameRef}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={handleNameBlur}
+            onKeyDown={handleKeyDown}
+          >
+            {project.name}
+          </h1>
+          <p
+            className="line-clamp-1 text-xs text-muted-foreground"
+            ref={descRef}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={handleDescBlur}
+            onKeyDown={handleKeyDown}
+          >
+            {project.description || "Add a description..."}
+          </p>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <AlertDialog>
@@ -185,8 +209,14 @@ export function ProjectDetails() {
             <PDIcons project={project} />
             <PDComponents project={project} />
           </div>
+          <div className="space-y-8">
+            <PDEnv />
+            <PDProfile project={project} />
+          </div>
+          <div className="space-y-8">
+            <PDKitchenIsland project={project} />
+          </div>
           {/*
-          <div className="space-y-8">hello</div>
           <div className="space-y-8">hello</div>
           <div className="space-y-8">hello</div>
           <div className="space-y-8">hello</div>

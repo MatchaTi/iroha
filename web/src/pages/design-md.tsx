@@ -175,6 +175,21 @@ function generateMarkdown(project: Project): string {
     lines.push("")
   }
 
+  // Textarea
+  if (project.designTextarea?.length > 0) {
+    const shared = project.designTextarea[0]
+    lines.push("### Textarea")
+    lines.push(
+      `- **Shared**: radius ${resolveCornerRadius(shared.cornerId, corners)}, typography ${resolveTypoName(shared.typographyId, typographies)}, shadow ${resolveShadowName(shared.shadowId, shadows)}, ${shared.paddingX}×${shared.paddingY}px padding, ${shared.minHeight}px min height`
+    )
+    for (const textarea of project.designTextarea) {
+      lines.push(
+        `- **${textarea.state}**: bg ${resolveColor(textarea.background, palettes)}, fg ${resolveColor(textarea.foreground, palettes)}, border ${resolveColor(textarea.border, palettes)}, placeholder ${resolveColor(textarea.placeholder, palettes)}, label ${resolveColor(textarea.label, palettes)}, helper ${resolveColor(textarea.helper, palettes)}`
+      )
+    }
+    lines.push("")
+  }
+
   // Badge
   if (project.designBadge?.length > 0) {
     const shared = project.designBadge[0]
