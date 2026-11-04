@@ -15,6 +15,7 @@ import { Input } from "../ui/input"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Switch } from "../ui/switch"
 import { Textarea } from "../ui/textarea"
+import { ComponentContainer } from "../shared/component-container"
 
 export function DisplayDesignSystem() {
   return (
@@ -25,23 +26,10 @@ export function DisplayDesignSystem() {
   )
 }
 
-function SideDots() {
-  return (
-    <>
-      <div className="absolute top-0 left-0 size-3 -translate-x-1/2 -translate-y-1/2 border-2 border-purple-500 bg-background" />
-      <div className="absolute top-0 right-0 size-3 translate-x-1/2 -translate-y-1/2 border-2 border-purple-500 bg-background" />
-      <div className="absolute right-0 bottom-0 size-3 translate-x-1/2 translate-y-1/2 border-2 border-purple-500 bg-background" />
-      <div className="absolute bottom-0 left-0 size-3 -translate-x-1/2 translate-y-1/2 border-2 border-purple-500 bg-background" />
-    </>
-  )
-}
-
 function Left() {
   return (
     <div className="space-y-8">
-      <div className="relative border-2 border-dashed border-purple-500 text-center">
-        <SideDots />
-
+      <ComponentContainer className="text-center">
         <div className="space-y-1 border-b p-6">
           <h3 className="font-semibold">Sign in to your account</h3>
           <p className="text-muted-foreground">Login with your credential</p>
@@ -61,9 +49,9 @@ function Left() {
             Don't have an account? <span className="underline">Sign up</span>
           </p>
         </div>
-      </div>
-      <div className="relative border-2 border-dashed border-purple-500 p-6 text-center">
-        <SideDots />
+      </ComponentContainer>
+
+      <ComponentContainer className="p-6">
         <div className="flex items-center justify-center gap-2">
           <img src="/iroha-logo.svg" alt="Iroha Logo" className="size-8" />
           <div className="flex-1 text-left">
@@ -77,11 +65,9 @@ function Left() {
             Try
           </Button>
         </div>
-      </div>
+      </ComponentContainer>
 
-      <div className="relative border-2 border-dashed border-purple-500 p-6">
-        <SideDots />
-
+      <ComponentContainer className="p-6">
         <Collapsible>
           <CollapsibleTrigger
             render={
@@ -98,7 +84,7 @@ function Left() {
             quickly for Figma. Built to work easily with minimal effort.
           </CollapsibleContent>
         </Collapsible>
-      </div>
+      </ComponentContainer>
     </div>
   )
 }
@@ -106,8 +92,7 @@ function Left() {
 function Right() {
   return (
     <div className="space-y-8">
-      <div className="relative border-2 border-dashed border-purple-500 p-6 text-center">
-        <SideDots />
+      <ComponentContainer className="p-6">
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <Button>Button</Button>
@@ -134,11 +119,9 @@ function Right() {
             <Switch defaultChecked />
           </div>
         </div>
-      </div>
+      </ComponentContainer>
 
-      <div className="relative border-2 border-dashed border-purple-500">
-        <SideDots />
-
+      <ComponentContainer>
         <div className="flex items-center gap-4 border-b p-6">
           <Avatar size="lg">
             <AvatarImage src="/aimyon.jpg" />
@@ -164,7 +147,7 @@ function Right() {
             <BubbleReactions>❤️</BubbleReactions>
           </Bubble>
         </div>
-      </div>
+      </ComponentContainer>
     </div>
   )
 }
