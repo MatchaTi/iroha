@@ -1,3 +1,4 @@
+import { MarkdownIcon } from "@/components/shared/markdown-icon"
 import { Button } from "@/components/ui/button"
 import {
   Collapsible,
@@ -45,18 +46,6 @@ type NavItem = {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   subItems?: SubItem[]
   disabled: boolean
-}
-
-function MarkdownIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 640 640"
-      fill="currentColor"
-    >
-      <path d="M593.8 123.1L46.2 123.1C20.7 123.1 0 143.8 0 169.2L0 470.7C0 496.2 20.7 516.9 46.2 516.9L593.9 516.9C619.4 516.9 640.1 496.2 640 470.8L640 169.2C640 143.8 619.3 123.1 593.8 123.1zM338.5 424.6L277 424.6L277 304.6L215.5 381.5L154 304.6L154 424.6L92.3 424.6L92.3 215.4L153.8 215.4L215.3 292.3L276.8 215.4L338.3 215.4L338.3 424.6L338.5 424.6zM473.8 427.7L381.5 320L443 320L443 215.4L504.5 215.4L504.5 320L566 320L473.8 427.7z" />
-    </svg>
-  )
 }
 
 export function ProjectLayout() {
@@ -153,20 +142,18 @@ export function ProjectLayout() {
 
   return (
     <div className="flex w-full">
-      <aside className="hidden h-screen overflow-y-auto border-r bg-sidebar p-4 lg:block">
-        <div className="sticky top-4 w-52 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <ProjectNav
-              key={item.label}
-              label={item.label}
-              href={item.href}
-              icon={item.icon}
-              disabled={item.disabled}
-              subItems={item.subItems}
-              className={"justify-start"}
-            />
-          ))}
-        </div>
+      <aside className="sticky top-0 hidden h-screen w-52 space-y-1 overflow-y-auto border-r bg-sidebar p-4 lg:block">
+        {NAV_ITEMS.map((item) => (
+          <ProjectNav
+            key={item.label}
+            label={item.label}
+            href={item.href}
+            icon={item.icon}
+            disabled={item.disabled}
+            subItems={item.subItems}
+            className={"justify-start"}
+          />
+        ))}
       </aside>
 
       <section className="min-w-0 flex-1">
@@ -216,7 +203,14 @@ function ProjectNav({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger
           render={
-            <SidebarMenuButton {...props} size={"lg"} className="rounded-full">
+            <SidebarMenuButton
+              {...props}
+              size={"lg"}
+              className="rounded-full"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
               <Icon />
               {label}
               <ChevronDown
@@ -281,13 +275,14 @@ function NavDrawer({ items }: { items: NavItem[] }) {
         <DrawerHeader>
           <DrawerTitle>Menu</DrawerTitle>
         </DrawerHeader>
-        <section className="grid flex-1 gap-2 p-4">
+        <section className="grid flex-1 gap-2 overflow-y-auto p-4">
           {items.map((item) => (
             <ProjectNav
               key={item.label}
               label={item.label}
               href={item.href}
               icon={item.icon}
+              subItems={item.subItems}
               disabled={item.disabled}
               className={"justify-start"}
               onClick={() => setOpen(false)}
