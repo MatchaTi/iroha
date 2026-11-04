@@ -1,9 +1,9 @@
 import { Link } from "react-router"
 import { PROJECT_NAME } from "@/lib/constants"
-import { ArrowRight } from "lucide-react"
 import { Button } from "../ui/button"
 import { GithubIcon } from "../shared/github-icon"
 import { AnimatedCursor } from "./animated-cursor"
+import { FigmaIcon } from "../shared/figma-icon"
 
 export function Hero() {
   return (
@@ -22,16 +22,18 @@ export function Hero() {
             styles quickly for Figma. Built to work easily with minimal effort.
           </p>
         </div>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           <Button
             className={"px-8 py-6"}
             render={
               <Link to={"/new"}>
-                Get Started <ArrowRight />
+                <FigmaIcon />
+                Try on Figma
               </Link>
             }
           />
           <Button
+            className={"px-8 py-6"}
             variant={"ghost"}
             render={
               <a href="https://github.com/MatchaTi/iroha" target="_blank">
