@@ -1,4 +1,4 @@
-- [ ] Preset Color Palette
-- [ ] Fonts
+- [x] Preset Color Palette
+- [x] Fonts
 - [ ] About
 - [ ] Icon integration
