@@ -33,7 +33,11 @@ export function Navbar() {
             </a>
           }
         />
-        <Button size="lg" render={<Link to="/new">Get Started</Link>} />
+        <Button
+          size="lg"
+          variant={"secondary"}
+          render={<Link to="/new">Get Started</Link>}
+        />
         <ThemeToggle />
       </section>
     </nav>

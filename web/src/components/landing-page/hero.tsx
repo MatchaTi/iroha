@@ -25,6 +25,7 @@ export function Hero() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button
             className={"px-8 py-6"}
+            variant={"secondary"}
             render={
               <Link to={"/new"}>
                 <FigmaIcon />

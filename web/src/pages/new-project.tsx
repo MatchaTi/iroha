@@ -114,7 +114,7 @@ export function NewProject() {
           />
         </Field>
         <div className="flex justify-end">
-          <Button type="submit" size={"lg"}>
+          <Button type="submit" size={"lg"} variant={"secondary"}>
             Create Project
           </Button>
         </div>
