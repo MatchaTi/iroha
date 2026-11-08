@@ -11,7 +11,7 @@ export function DisplayTypography() {
             name={pack.name}
             purpose={pack.purpose}
             level={pack.level}
-            fontFamily={"Inter Variable"}
+            fontFamily={"Inter"}
             fontSize={pack.fontSize}
             fontWeight={pack.fontWeight}
             lineHeight={`${pack.lineHeight}px`}
