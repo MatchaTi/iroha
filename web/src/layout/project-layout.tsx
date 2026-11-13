@@ -161,7 +161,11 @@ export function ProjectLayout() {
           <SidebarTrigger />
           <NavDrawer items={NAV_ITEMS} />
         </div>
-        <Outlet />
+        <div>
+          <div className="sticky top-0 bg-red-500 lg:bg-blue-500">Hello</div>
+
+          <Outlet />
+        </div>
       </section>
     </div>
   )

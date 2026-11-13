@@ -7,7 +7,7 @@ import {
   Moon,
   Plus,
   Sun,
-  type LucideIcon
+  type LucideIcon,
 } from "lucide-react"
 import { Link, useMatch } from "react-router"
 import { useTheme } from "../theme-provider"
@@ -26,6 +26,7 @@ import {
   useSidebar,
 } from "../ui/sidebar"
 import { GithubIcon } from "./github-icon"
+import { useDesignStore } from "@/store/use-design"
 
 export function AppSidebar() {
   return (
@@ -45,7 +46,11 @@ function Header() {
       <div className="flex items-center">
         <SidebarMenuButton size="lg">
           <div className="group flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
-            <img src={'/iroha-logo.svg'} alt="Iroha Logo" className={cn("size-5",!open && "group-hover:hidden")} />
+            <img
+              src={"/iroha-logo.svg"}
+              alt="Iroha Logo"
+              className={cn("size-5", !open && "group-hover:hidden")}
+            />
             <SidebarTrigger
               className={cn("hidden", !open && "group-hover:flex")}
             />
@@ -68,7 +73,7 @@ function Content() {
         <SidebarGroupContent>
           <NavItem label="Home" href="/" icon={Home} open={open} />
           <NavItem
-            label="New Project"
+            label="New Design"
             href="/new"
             icon={Plus}
             open={open}
@@ -77,9 +82,9 @@ function Content() {
         </SidebarGroupContent>
       </SidebarGroup>
       <SidebarGroup>
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupLabel>Designs</SidebarGroupLabel>
         <SidebarGroupContent>
-          <Projects />
+          <Designs />
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
@@ -125,6 +130,35 @@ function Footer() {
       />
     </SidebarFooter>
   )
+}
+
+function Designs() {
+  const { setOpenMobile, open } = useSidebar()
+  const designs = useDesignStore((state) => state.designs)
+
+  if (!designs || designs.length === 0) {
+    return (
+      <SidebarMenuButton
+        tooltip="No designs yet"
+        isActive={false}
+        size={open ? "lg" : "default"}
+      >
+        <CircleSmall />
+        No projects yet
+      </SidebarMenuButton>
+    )
+  }
+
+  return designs.map((design) => (
+    <NavItem
+      onClick={() => setOpenMobile(false)}
+      key={design.id}
+      label={design.name}
+      href={`/designs/${design.id}`}
+      icon={CircleSmall}
+      size={open ? "lg" : "default"}
+    />
+  ))
 }
 
 function Projects() {
