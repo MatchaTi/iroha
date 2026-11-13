@@ -1,17 +1,7 @@
 import { PROJECT_NAME_JP } from "@/lib/constants"
-import { useProject } from "@/store/use-project"
 import { cn } from "cn"
-import {
-  CircleSmall,
-  Home,
-  Moon,
-  Plus,
-  Sun,
-  type LucideIcon,
-} from "lucide-react"
+import { CircleSmall, Home, Plus, type LucideIcon } from "lucide-react"
 import { Link, useMatch } from "react-router"
-import { useTheme } from "../theme-provider"
-import { Kbd } from "../ui/kbd"
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +17,7 @@ import {
 } from "../ui/sidebar"
 import { GithubIcon } from "./github-icon"
 import { useDesignStore } from "@/store/use-design"
+import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
 
 export function AppSidebar() {
   return (
@@ -92,27 +83,11 @@ function Content() {
 }
 
 function Footer() {
-  const { theme, setTheme } = useTheme()
   const { open } = useSidebar()
 
   return (
     <SidebarFooter>
-      <SidebarMenuButton
-        size={open ? "lg" : "default"}
-        className="rounded-full"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      >
-        {theme === "dark" ? (
-          <>
-            <Sun /> Light Mode
-          </>
-        ) : (
-          <>
-            <Moon /> Dark Mode
-          </>
-        )}
-        <Kbd>d</Kbd>
-      </SidebarMenuButton>
+      <AnimatedThemeToggler duration={600} />
       <SidebarMenuButton
         tooltip="View on Github"
         className="rounded-full"
@@ -161,33 +136,33 @@ function Designs() {
   ))
 }
 
-function Projects() {
-  const projects = useProject((state) => state.projects)
-  const { setOpenMobile, open } = useSidebar()
-
-  if (!projects || projects.length === 0) {
-    return (
-      <SidebarMenuButton
-        tooltip="No projects"
-        isActive={false}
-        size={open ? "lg" : "default"}
-      >
-        No projects yet
-      </SidebarMenuButton>
-    )
-  }
-
-  return projects.map((project) => (
-    <NavItem
-      onClick={() => setOpenMobile(false)}
-      key={project.id}
-      label={project.name}
-      href={`/projects/${project.id}`}
-      icon={CircleSmall}
-      size={open ? "lg" : "default"}
-    />
-  ))
-}
+// function Projects() {
+//   const projects = useProject((state) => state.projects)
+//   const { setOpenMobile, open } = useSidebar()
+//
+//   if (!projects || projects.length === 0) {
+//     return (
+//       <SidebarMenuButton
+//         tooltip="No projects"
+//         isActive={false}
+//         size={open ? "lg" : "default"}
+//       >
+//         No projects yet
+//       </SidebarMenuButton>
+//     )
+//   }
+//
+//   return projects.map((project) => (
+//     <NavItem
+//       onClick={() => setOpenMobile(false)}
+//       key={project.id}
+//       label={project.name}
+//       href={`/projects/${project.id}`}
+//       icon={CircleSmall}
+//       size={open ? "lg" : "default"}
+//     />
+//   ))
+// }
 
 type NavItemProps = {
   label: string

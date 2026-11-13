@@ -148,3 +148,17 @@
     background-size: 100% 100%, 100% 100%, 56px 56px, 56px 56px;
     background-position: 0 0, 0 0, 0 -0.56px, -0.56px 0;
 }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+    animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-new(root) {
+    clip-path: var(--magicui-theme-vt-clip-from);
+}
