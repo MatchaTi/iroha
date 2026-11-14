@@ -129,7 +129,7 @@ export function DesignLayout() {
           <NavDrawer items={NAV_ITEMS} />
         </div>
         <div>
-          <div className="sticky top-0 flex justify-end border-b bg-background px-6 py-4">
+          <div className="sticky top-0 z-10 flex justify-end border-b bg-background px-6 py-4">
             <Button variant={"secondary"} size={"lg"}>
               <FigmaIcon />
               Export to Figma
