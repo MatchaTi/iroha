@@ -143,16 +143,17 @@ export function paletteFromPreset(preset: PalettePreset): ColorPalette {
     darkValue,
   })
 
-  const darkInk = surface(12, 0.35)
-  const lightInk = surface(96, 0.08)
+  // General surfaces: very subtle tint so the page stays mostly neutral
+  const darkInk = surface(12, 0.2)
+  const lightInk = surface(96, 0.06)
 
   return {
     ...base,
-    background: recolor("background", surface(98.5, 0.12), surface(12, 0.1)),
+    background: recolor("background", surface(98.5, 0.08), surface(7, 0.04)),
     foreground: recolor("foreground", darkInk, lightInk),
-    card: recolor("card", surface(99.5, 0.1), surface(15, 0.1)),
+    card: recolor("card", surface(99.5, 0.08), surface(9, 0.04)),
     cardForeground: recolor("cardForeground", darkInk, lightInk),
-    popover: recolor("popover", surface(99.5, 0.1), surface(15, 0.1)),
+    popover: recolor("popover", surface(99.5, 0.08), surface(9, 0.04)),
     popoverForeground: recolor("popoverForeground", darkInk, lightInk),
     primary: recolor("primary", primary, tint1),
     primaryForeground: recolor(
@@ -160,25 +161,26 @@ export function paletteFromPreset(preset: PalettePreset): ColorPalette {
       contrastInk(primary),
       contrastInk(tint1)
     ),
-    secondary: recolor("secondary", surface(94, 0.25), surface(20, 0.2)),
+    secondary: recolor("secondary", surface(94, 0.25), surface(20, 0.12)),
     secondaryForeground: recolor("secondaryForeground", darkInk, lightInk),
-    accent: recolor("accent", surface(94.5, 0.25), surface(20, 0.2)),
+    accent: recolor("accent", surface(94.5, 0.25), surface(20, 0.12)),
     accentForeground: recolor("accentForeground", darkInk, lightInk),
-    muted: recolor("muted", surface(95.5, 0.2), surface(18, 0.12)),
+    muted: recolor("muted", surface(95.5, 0.18), surface(15, 0.05)),
     mutedForeground: recolor(
       "mutedForeground",
-      surface(45, 0.2),
-      surface(63, 0.1)
+      surface(45, 0.15),
+      surface(63, 0.06)
     ),
-    border: recolor("border", surface(89, 0.2), surface(95, 0.12) + "1a"),
-    input: recolor("input", surface(89, 0.2), surface(95, 0.12) + "26"),
+    border: recolor("border", surface(89, 0.15), surface(95, 0.08) + "1a"),
+    input: recolor("input", surface(89, 0.15), surface(95, 0.08) + "26"),
     ring: recolor("ring", primary, tint1),
     chart1: recolor("chart1", primary),
     chart2: recolor("chart2", tint1),
     chart3: recolor("chart3", tint2),
     chart4: recolor("chart4", tint3),
     chart5: recolor("chart5", tint4),
-    sidebar: recolor("sidebar", surface(98, 0.12), surface(15, 0.1)),
+    // Sidebar keeps a strong tint so navigation feels themed
+    sidebar: recolor("sidebar", surface(97.5, 0.4), surface(8, 0.1)),
     sidebarForeground: recolor("sidebarForeground", darkInk, lightInk),
     sidebarPrimary: recolor("sidebarPrimary", primary, tint1),
     sidebarPrimaryForeground: recolor(
@@ -186,7 +188,11 @@ export function paletteFromPreset(preset: PalettePreset): ColorPalette {
       contrastInk(primary),
       contrastInk(tint1)
     ),
-    sidebarAccent: recolor("sidebarAccent", surface(94.5, 0.2), surface(20, 0.12)),
+    sidebarAccent: recolor(
+      "sidebarAccent",
+      surface(93.5, 0.55),
+      surface(13, 0.2)
+    ),
     sidebarAccentForeground: recolor(
       "sidebarAccentForeground",
       darkInk,
@@ -194,8 +200,8 @@ export function paletteFromPreset(preset: PalettePreset): ColorPalette {
     ),
     sidebarBorder: recolor(
       "sidebarBorder",
-      surface(89, 0.2),
-      surface(95, 0.12) + "1a"
+      surface(89, 0.3),
+      surface(95, 0.15) + "1a"
     ),
     sidebarRing: recolor("sidebarRing", primary, tint1),
   }
