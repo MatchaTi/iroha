@@ -7,6 +7,7 @@ import { DesignDetails } from "./pages/designs/design-details"
 import { ColorPalettePage } from "./pages/designs/color-palette"
 import { NewDesign } from "./pages/new-design"
 import { DesignThemeStyle } from "./components/designs/design-theme-style"
+import { TypographyPage } from "./pages/designs/typography"
 
 export function App() {
   return (
@@ -23,6 +24,10 @@ export function App() {
             <Route
               path="/designs/:id/color-palette"
               element={<ColorPalettePage />}
+            />
+            <Route
+              path="/designs/:id/typography"
+              element={<TypographyPage />}
             />
           </Route>
         </Route>

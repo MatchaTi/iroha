@@ -1,6 +1,11 @@
 import { useEffect } from "react"
 import { useLocation } from "react-router"
-import { useDesignStore, type ColorPalette } from "@/store/use-design"
+import {
+  useDesignStore,
+  type ColorPalette,
+  type Typography,
+} from "@/store/use-design"
+import { loadGoogleFont } from "@/lib/google-fonts"
 
 /** Token key → CSS variable name, e.g. "sidebarPrimary" → "--sidebar-primary" */
 function toCssVar(token: keyof ColorPalette) {
@@ -31,6 +36,34 @@ function buildPaletteCss(palette: ColorPalette) {
 }
 
 /**
+ * Build CSS that overrides the theme font stacks on `:root`. Fonts do not
+ * differ between light and dark mode, so only `:root` is targeted. The
+ * variables are the ones `index.css` chains into `--font-sans`,
+ * `--font-serif` and `--font-mono`, so every `font-*` utility follows.
+ */
+function buildTypographyCss(typography: Typography) {
+  const rules: string[] = []
+  if (typography.sans) {
+    rules.push(`--font-default-sans: "${typography.sans}", sans-serif;`)
+  }
+  if (typography.serif) {
+    rules.push(`--font-default-serif: "${typography.serif}", serif;`)
+  }
+  if (typography.mono) {
+    rules.push(`--font-default-mono: "${typography.mono}", monospace;`)
+  }
+  if (rules.length === 0) return ""
+
+  // Make sure the selected families are available after a page reload —
+  // idempotent via the loader's internal Set.
+  for (const family of [typography.sans, typography.serif, typography.mono]) {
+    if (family) loadGoogleFont(family)
+  }
+
+  return `\n\n:root {\n    ${rules.join("\n    ")}\n  }`
+}
+
+/**
  * Applies the active design's color palette to the whole website by
  * injecting CSS variables that override the ones defined in `index.css`.
  *
@@ -57,5 +90,10 @@ export function DesignThemeStyle() {
   const design = designs.find((d) => d.id === lastDesignId)
   if (!design) return null
 
-  return <style>{buildPaletteCss(design.colorPalette)}</style>
+  return (
+    <style>
+      {buildPaletteCss(design.colorPalette) +
+        (design.typography ? buildTypographyCss(design.typography) : "")}
+    </style>
+  )
 }

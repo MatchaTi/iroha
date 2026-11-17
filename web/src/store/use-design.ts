@@ -44,11 +44,26 @@ export type ColorPalette = {
   sidebarRing: Color
 }
 
+export type Typography = {
+  /** Applied to `--font-sans` (body text) and, via the theme chain, headings. */
+  sans: string | null
+  serif: string | null
+  mono: string | null
+}
+
+export const DEFAULT_TYPOGRAPHY: Typography = {
+  sans: null,
+  serif: null,
+  mono: null,
+}
+
 export type Design = {
   id: string
   name: string
   description: string
   colorPalette: ColorPalette
+  /** Optional so designs persisted before typography existed still load. */
+  typography?: Typography
 }
 
 type DesignStore = {
@@ -62,6 +77,11 @@ type DesignStore = {
     id: string,
     token: keyof ColorPalette,
     color: Color
+  ) => void
+  updateFont: (
+    id: string,
+    slot: keyof Typography,
+    family: string | null
   ) => void
   deleteDesign: (id: string) => void
   setLastDesignId: (id: string) => void
@@ -97,6 +117,22 @@ export const useDesignStore = create<DesignStore>()(
                   colorPalette: {
                     ...d.colorPalette,
                     [token]: color,
+                  },
+                }
+              : d
+          ),
+        }))
+      },
+      updateFont: (id, slot, family) => {
+        set((state) => ({
+          designs: state.designs.map((d) =>
+            d.id === id
+              ? {
+                  ...d,
+                  typography: {
+                    ...DEFAULT_TYPOGRAPHY,
+                    ...d.typography,
+                    [slot]: family,
                   },
                 }
               : d
