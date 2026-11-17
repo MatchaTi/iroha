@@ -90,7 +90,6 @@ function Footer() {
       <AnimatedThemeToggler duration={600} />
       <SidebarMenuButton
         tooltip="View on Github"
-        className="rounded-full"
         size={open ? "lg" : "default"}
         render={
           <a
@@ -178,7 +177,6 @@ function NavItem({ label, href, icon, open, ...props }: NavItemProps) {
   return (
     <SidebarMenu key={label}>
       <SidebarMenuButton
-        className="rounded-full"
         size={open ? "lg" : "default"}
         {...props}
         tooltip={label}

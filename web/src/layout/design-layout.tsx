@@ -150,7 +150,7 @@ function SubNavItem({ label, href }: SubItem) {
       size={"lg"}
       render={<Link to={href}>{label}</Link>}
       isActive={match !== null}
-      className="rounded-full pl-6"
+      className="pl-6"
     />
   )
 }
@@ -175,7 +175,6 @@ function ProjectNav({
             <SidebarMenuButton
               {...props}
               size={"lg"}
-              className="rounded-full"
               onClick={(e) => {
                 e.stopPropagation()
               }}
@@ -208,7 +207,6 @@ function ProjectNav({
       {...props}
       isActive={match !== null}
       size={"lg"}
-      className="rounded-full"
       render={
         disabled ? (
           <span className="text-muted-foreground">
