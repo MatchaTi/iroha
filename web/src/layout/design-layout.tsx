@@ -27,7 +27,6 @@ import {
   List,
   Palette,
   Settings,
-  Space,
   SquareRoundCorner,
   VectorSquare,
 } from "lucide-react"
@@ -69,15 +68,9 @@ export function DesignLayout() {
       disabled: false,
     },
     {
-      label: "Corner",
-      href: `/designs/${id}/corner`,
+      label: "Shape",
+      href: `/designs/${id}/shape`,
       icon: SquareRoundCorner,
-      disabled: false,
-    },
-    {
-      label: "Shadow",
-      href: `/designs/${id}/shadow`,
-      icon: Space,
       disabled: false,
     },
     {

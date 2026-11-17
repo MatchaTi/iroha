@@ -57,6 +57,18 @@ export const DEFAULT_TYPOGRAPHY: Typography = {
   mono: null,
 }
 
+export type ShadowConfig = {
+  /** Hex color (#rrggbb). `null` = black. */
+  color: string | null
+  /** 0–1. `null` = 0.1 (Tailwind default alpha). */
+  opacity: number | null
+  /** Offset, blur & spread in px. `null` = theme-ish defaults. */
+  x: number | null
+  y: number | null
+  blur: number | null
+  spread: number | null
+}
+
 export type Design = {
   id: string
   name: string
@@ -64,6 +76,18 @@ export type Design = {
   colorPalette: ColorPalette
   /** Optional so designs persisted before typography existed still load. */
   typography?: Typography
+  /**
+   * Base border radius in rem, applied to `--radius` which scales every
+   * `rounded-*` utility. `null` / undefined = theme default (0.625rem).
+   */
+  radius?: number | null
+  /**
+   * Custom shadow applied to the `shadow-*` utilities, built from x/y/
+   * spread offsets, color and opacity. `null` / undefined = theme default
+   * shadows. Guarded with a type check when read, because designs persisted
+   * while this field was a plain number still exist in localStorage.
+   */
+  shadow?: ShadowConfig | null
 }
 
 type DesignStore = {
@@ -83,6 +107,8 @@ type DesignStore = {
     slot: keyof Typography,
     family: string | null
   ) => void
+  updateRadius: (id: string, radius: number | null) => void
+  updateShadow: (id: string, shadow: ShadowConfig | null) => void
   deleteDesign: (id: string) => void
   setLastDesignId: (id: string) => void
 }
@@ -136,6 +162,20 @@ export const useDesignStore = create<DesignStore>()(
                   },
                 }
               : d
+          ),
+        }))
+      },
+      updateRadius: (id, radius) => {
+        set((state) => ({
+          designs: state.designs.map((d) =>
+            d.id === id ? { ...d, radius } : d
+          ),
+        }))
+      },
+      updateShadow: (id, shadow) => {
+        set((state) => ({
+          designs: state.designs.map((d) =>
+            d.id === id ? { ...d, shadow } : d
           ),
         }))
       },

@@ -34,6 +34,8 @@ export function NewDesign() {
         description,
         colorPalette: structuredClone(COLOR_PALETTE_STATER_PACKS),
         typography: { sans: null, serif: null, mono: null },
+        radius: null,
+        shadow: null,
       })
       setLastDesignId(id)
       navigate(`/designs/${id}`)
