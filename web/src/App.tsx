@@ -9,6 +9,9 @@ import { NewDesign } from "./pages/new-design"
 import { DesignThemeStyle } from "./components/designs/design-theme-style"
 import { TypographyPage } from "./pages/designs/typography"
 import { ShapePage } from "./pages/designs/shape"
+import { DashboardPreview } from "./pages/designs/dashboard"
+import { LandingPagePreview } from "./pages/designs/landing-page"
+import { AiChatPreview } from "./pages/designs/ai-chat"
 
 export function App() {
   return (
@@ -31,6 +34,18 @@ export function App() {
               element={<TypographyPage />}
             />
             <Route path="/designs/:id/shape" element={<ShapePage />} />
+            <Route
+              path="/designs/:id/dashboard"
+              element={<DashboardPreview />}
+            />
+            <Route
+              path="/designs/:id/landing-page"
+              element={<LandingPagePreview />}
+            />
+            <Route
+              path="/designs/:id/ai-chat"
+              element={<AiChatPreview />}
+            />
           </Route>
         </Route>
       </Routes>
