@@ -39,7 +39,7 @@ export function TypographyPage() {
   return (
     <main className="space-y-6">
       <div className="space-y-6">
-        <section className="flex gap-2 border-b p-6">
+        <section className="flex flex-wrap gap-2 border-b p-6">
           <Field className="flex-1">
             <FieldLabel>Sans-Serif</FieldLabel>
             <FontSelect

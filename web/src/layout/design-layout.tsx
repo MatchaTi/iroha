@@ -124,7 +124,7 @@ export function DesignLayout() {
           <NavDrawer items={NAV_ITEMS} />
         </div>
         <div>
-          <div className="sticky top-0 z-10 flex items-center justify-end gap-2 border-b bg-background px-6 py-4">
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b bg-background px-6 py-4 lg:justify-end">
             <ImportVariablesButton designId={id ?? ""} />
             <ExtractVariablesButton designId={id ?? ""} />
             <ExportFigmaButton designId={id ?? ""} />
