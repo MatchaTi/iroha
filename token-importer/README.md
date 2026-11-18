@@ -45,10 +45,13 @@ WHAT YOU GET
 - Color variables and paint styles for every palette and shade
 - Typography text styles with live previews
 - Corner radius variables and shadow effect styles
-- Button, Input, Textarea, Badge, Checkbox, Radio, Switch, and Slider component sets
+- Tailwind v4 primitives: the full color palette (26 families × 11 shades + white/black) and the spacing scale as variables
+- A full shadcn/ui component library: Button, Badge, Input, Textarea, Label, Checkbox, Radio Group, Switch, Select, Card, Alert, Avatar, Table, Progress, Skeleton, Separator, Breadcrumb, Pagination, Tabs, Accordion, Dialog, Sheet, Dropdown Menu, Popover, Hover Card, Tooltip, Toggle, Slider, Scroll Area, and Calendar component sets
 - Auto layout components with token colors, radius, padding, and shadows
+- Lucide icons (24×24 geometry, round caps, scaled stroke weight) on selects, accordions, checkboxes, dialogs, breadcrumbs, pagination, and calendars
 - Text layers bound to typography styles, so token changes flow through the system
 - Label text exposed as component properties where supported
+- Input, Textarea, and Select expose editable Label/Helper text properties plus "Show label" and "Show helper" visibility toggles
 
 HOW IT WORKS
 1. Create or open a design-system project in Iroha.
@@ -78,10 +81,13 @@ Token Generator turns a design-system JSON export into a complete Figma foundati
 - Color variables and paint styles for every palette and shade
 - Typography text styles with live previews
 - Corner radius variables and shadow effect styles
-- Button, Input, Textarea, Badge, Checkbox, Radio, Switch, and Slider component sets
+- Tailwind v4 primitives: the full color palette (26 families × 11 shades + white/black) and the spacing scale as variables
+- A full shadcn/ui component library: Button, Badge, Input, Textarea, Label, Checkbox, Radio Group, Switch, Select, Card, Alert, Avatar, Table, Progress, Skeleton, Separator, Breadcrumb, Pagination, Tabs, Accordion, Dialog, Sheet, Dropdown Menu, Popover, Hover Card, Tooltip, Toggle, Slider, Scroll Area, and Calendar component sets
 - Auto layout components with token colors, radius, padding, and shadows
+- Lucide icons (24×24 geometry, round caps, scaled stroke weight) on selects, accordions, checkboxes, dialogs, breadcrumbs, pagination, and calendars
 - Text layers bound to typography styles, so token changes flow through the system
 - Label text exposed as component properties where supported
+- Input, Textarea, and Select expose editable Label/Helper text properties plus "Show label" and "Show helper" visibility toggles
 
 ## How it works
 
@@ -110,6 +116,7 @@ Build once. Keep your tokens and components in sync.
 
 - **One-import setup** — generate tokens and components from a single JSON payload.
 - **Variables and styles** — creates real Figma variables, paint styles, text styles, and effect styles.
+- **Tailwind primitives** — imports the Tailwind v4 color palette and spacing scale as variables, ready to reference from your own components.
 - **Token-driven components** — colors, radius, padding, borders, and shadows come from the imported tokens.
 - **Typography binding** — component text layers use the generated Figma text styles.
 - **Component properties** — editable label text is exposed as component properties where supported.
@@ -123,29 +130,42 @@ Build once. Keep your tokens and components in sync.
 | Header | Project name and description |
 | Typography | Text styles plus a typography specimen frame |
 | Color Palette | `Colors` variable collection, paint styles, and palette showcase |
+| Tailwind Colors | `Tailwind Colors` variable collection (26 families × 11 shades + white/black) and swatch showcase |
+| Tailwind Spacing | `Tailwind Spacing` float variable collection (4px base scale) and bar showcase |
 | Corner | `Corner` float variable collection and radius showcase |
 | Shadow | Effect styles and shadow showcase |
 | Button | Component set for every variant × size combination |
-| Input | Component set for every input state |
-| Textarea | Component set for every textarea state |
 | Badge | Component set for every badge variant |
-| Checkbox | Component set for every checkbox state |
-| Radio | Component set for every radio state |
-| Switch | Component set for every switch state |
-| Slider | Component set for track fill values |
+| Components · Forms | Input, Textarea, Label, Checkbox, Radio Group, Switch, and Select |
+| Components · Display | Card, Alert, Avatar, Table, Progress, Skeleton, and Separator |
+| Components · Navigation | Breadcrumb, Pagination, Tabs, and Accordion |
+| Components · Overlays | Dialog, Sheet, Dropdown Menu, Popover, Hover Card, and Tooltip |
+| Components · Interactive | Toggle, Slider, Scroll Area, and Calendar |
 
-Component sets are generated only when the corresponding design configuration exists in the JSON.
+Component sets are generated from the imported tokens; components adapt to the design radius, typography, and shadow configuration.
+
+### Tailwind primitives
+
+- **Colors** — the complete Tailwind v4 default palette (slate, gray, zinc, neutral, stone, mauve, olive, mist, taupe, red … rose × 50–950, plus `white` and `black`), stored as color variables named `<family>/<shade>` and bound to the showcase swatches.
+- **Spacing** — the Tailwind spacing scale (`0`, `px`, `0.5` … `96`) as float variables in pixels, scoped to width/height and gap fields.
 
 ### Component details
 
 - **Button** — variant and size combinations, label component property, link underline support.
-- **Input** — label, placeholder, and helper text; label/helper use typography fallbacks.
-- **Textarea** — multi-line field with a token-driven minimum height, plus label and helper text.
 - **Badge** — per-variant colors, radius, padding, typography, and shadow.
-- **Checkbox** — default, checked, indeterminate, and disabled states.
-- **Radio** — default, checked, and disabled states.
-- **Switch** — default, checked, and disabled states.
-- **Slider** — track background, range fill, and thumb rendered at 0/25/50/75/100%.
+- **Input / Textarea** — default, focus, invalid, and disabled states, with editable Label and Helper text properties and boolean visibility toggles.
+- **Label** — default and disabled states.
+- **Checkbox** — unchecked, checked, indeterminate, and disabled states.
+- **Radio Group / Switch** — selected/unselected and on/off states, plus disabled.
+- **Select** — default, focus, invalid, and disabled states, with editable Label and Helper text properties and boolean visibility toggles.
+- **Card / Alert** — size and variant combinations with token-driven surfaces.
+- **Avatar** — small, default, and large sizes.
+- **Table** — default and striped variants.
+- **Progress / Slider** — value variants with token-driven track and range fills.
+- **Skeleton / Separator** — text, circle, and card skeletons; horizontal and vertical separators.
+- **Breadcrumb / Pagination / Tabs / Accordion** — default, collapsed, and open/closed states.
+- **Dialog / Sheet / Dropdown Menu / Popover / Hover Card / Tooltip** — overlay surfaces and open states.
+- **Toggle / Scroll Area / Calendar** — variant and orientation combinations, plus a selected date state.
 
 ## Quick start
 
