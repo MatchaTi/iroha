@@ -304,7 +304,7 @@ export function ImportVariablesButton({ designId }: { designId: string }) {
           </Button>
         }
       />
-      <DialogContent className="max-h-[calc(100dvh-4rem)] overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-4rem)] w-full max-w-7xl! overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Import Variables</DialogTitle>
           <DialogDescription>

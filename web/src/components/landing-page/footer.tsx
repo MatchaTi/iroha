@@ -1,5 +1,6 @@
 import { PROJECT_NAME_JP } from "@/lib/constants"
 import { Link } from "react-router"
+import { IrohaLogo } from "../designs/iroha-logo"
 
 export function Footer() {
   return (
@@ -16,7 +17,7 @@ export function Footer() {
       </p>
       <Link to="/" className="flex items-center gap-2">
         <div className="flex size-10 items-center justify-center rounded-lg text-background">
-          <img src={"/iroha-logo.svg"} alt="Iroha Logo" className="size-6" />
+          <IrohaLogo className="size-6" />
         </div>
         <span className="font-semibold">{PROJECT_NAME_JP}</span>
       </Link>

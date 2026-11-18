@@ -3,13 +3,14 @@ import { Link } from "react-router"
 import { GithubIcon } from "../shared/github-icon"
 import { ThemeToggle } from "../shared/theme-toggle"
 import { Button } from "../ui/button"
+import { IrohaLogo } from "../designs/iroha-logo"
 
 export function Navbar() {
   return (
     <nav className="fixed top-0 right-0 left-0 z-10 flex items-center justify-between gap-2 p-4 lg:px-60">
       <Link to="/" className="flex items-center gap-2">
         <div className="flex size-10 items-center justify-center rounded-lg text-background">
-          <img src={"/iroha-logo.svg"} alt="Iroha Logo" className="size-6" />
+          <IrohaLogo className="size-6" />
         </div>
         <span className="font-semibold">{PROJECT_NAME_JP}</span>
       </Link>

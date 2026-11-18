@@ -18,6 +18,7 @@ import {
 import { GithubIcon } from "./github-icon"
 import { useDesignStore } from "@/store/use-design"
 import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
+import { IrohaLogo } from "../designs/iroha-logo"
 
 export function AppSidebar() {
   return (
@@ -37,10 +38,8 @@ function Header() {
       <div className="flex items-center">
         <SidebarMenuButton size="lg">
           <div className="group flex aspect-square size-8 items-center justify-center rounded-md text-sidebar-primary-foreground">
-            <img
-              src={"/iroha-logo.svg"}
-              alt="Iroha Logo"
-              className={cn("size-5", !open && "group-hover:hidden")}
+            <IrohaLogo
+              className={cn("size-8!", !open && "group-hover:hidden")}
             />
             <SidebarTrigger
               className={cn("hidden", !open && "group-hover:flex")}
