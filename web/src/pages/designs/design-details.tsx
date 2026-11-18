@@ -1,3 +1,9 @@
+import { ShapePreview } from "@/components/designs/shape-preview"
+
 export function DesignDetails() {
-  return <main>Design Details</main>
+  return (
+    <main>
+      <ShapePreview />
+    </main>
+  )
 }

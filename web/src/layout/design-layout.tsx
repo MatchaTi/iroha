@@ -1,4 +1,5 @@
 import { FigmaIcon } from "@/components/shared/figma-icon"
+import { ExtractVariablesButton } from "@/components/designs/extract-variables"
 import { Button } from "@/components/ui/button"
 import {
   Collapsible,
@@ -122,7 +123,8 @@ export function DesignLayout() {
           <NavDrawer items={NAV_ITEMS} />
         </div>
         <div>
-          <div className="sticky top-0 z-10 flex justify-end border-b bg-background px-6 py-4">
+          <div className="sticky top-0 z-10 flex items-center justify-end gap-2 border-b bg-background px-6 py-4">
+            <ExtractVariablesButton designId={id ?? ""} />
             <Button variant={"secondary"} size={"lg"}>
               <FigmaIcon />
               Export to Figma
