@@ -1,4 +1,10 @@
-- [x] Preset Color Palette
-- [x] Fonts
-- [ ] About
-- [ ] Icon integration
+- [ ] Setup design store
+  - [x] Color Palette
+  - [ ] Typography
+  - [ ] Radius
+  - [ ] Spacing
+  - [ ] Shadow
+- [x] Setup editor
+- [x] Integrate with Shadcn Components
+- [ ] Export design store into figma and tailwind config
+- [ ] Landing Page

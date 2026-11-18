@@ -1,6 +1,6 @@
-import { FigmaIcon } from "@/components/shared/figma-icon"
 import { ExtractVariablesButton } from "@/components/designs/extract-variables"
 import { ImportVariablesButton } from "@/components/designs/import-variables"
+import { ExportFigmaButton } from "@/components/designs/export-figma"
 import { Button } from "@/components/ui/button"
 import {
   Collapsible,
@@ -127,10 +127,7 @@ export function DesignLayout() {
           <div className="sticky top-0 z-10 flex items-center justify-end gap-2 border-b bg-background px-6 py-4">
             <ImportVariablesButton designId={id ?? ""} />
             <ExtractVariablesButton designId={id ?? ""} />
-            <Button variant={"secondary"} size={"lg"}>
-              <FigmaIcon />
-              Export to Figma
-            </Button>
+            <ExportFigmaButton designId={id ?? ""} />
           </div>
 
           <Outlet />
