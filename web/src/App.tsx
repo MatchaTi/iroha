@@ -24,7 +24,7 @@ export function App() {
           <Route path="/new" element={<NewDesign />} />
 
           <Route element={<DesignLayout />}>
-            <Route index path="/designs/:id" element={<DesignDetails />} />
+            <Route path="/designs/:id" element={<DesignDetails />} />
             <Route
               path="/designs/:id/color-palette"
               element={<ColorPalettePage />}
